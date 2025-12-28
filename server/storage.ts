@@ -1,15 +1,36 @@
-import { randomUUID } from "crypto";
-import type {
-  Project,
-  InsertProject,
-  Inquiry,
-  InsertInquiry,
-  Article,
-  InsertArticle,
-  CommunityPost,
-  InsertCommunityPost,
-  Event,
-  InsertEvent,
+import { eq } from "drizzle-orm";
+import { db } from "./db";
+import {
+  projects,
+  inquiries,
+  articles,
+  communityPosts,
+  events,
+  editablePages,
+  residentPrograms,
+  programApplications,
+  projectImages,
+  partners,
+  type Project,
+  type InsertProject,
+  type Inquiry,
+  type InsertInquiry,
+  type Article,
+  type InsertArticle,
+  type CommunityPost,
+  type InsertCommunityPost,
+  type Event,
+  type InsertEvent,
+  type EditablePage,
+  type InsertEditablePage,
+  type ResidentProgram,
+  type InsertResidentProgram,
+  type ProgramApplication,
+  type InsertProgramApplication,
+  type ProjectImage,
+  type InsertProjectImage,
+  type Partner,
+  type InsertPartner,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -18,6 +39,8 @@ export interface IStorage {
   getProject(id: string): Promise<Project | undefined>;
   getProjectsByCategory(category: string): Promise<Project[]>;
   createProject(project: InsertProject): Promise<Project>;
+  updateProject(id: string, project: Partial<InsertProject>): Promise<Project | undefined>;
+  deleteProject(id: string): Promise<void>;
 
   // Inquiries
   getInquiries(): Promise<Inquiry[]>;
@@ -30,257 +53,272 @@ export interface IStorage {
   getArticle(id: string): Promise<Article | undefined>;
   getArticlesByCategory(category: string): Promise<Article[]>;
   createArticle(article: InsertArticle): Promise<Article>;
+  updateArticle(id: string, article: Partial<InsertArticle>): Promise<Article | undefined>;
+  deleteArticle(id: string): Promise<void>;
 
   // Community Posts
   getCommunityPosts(): Promise<CommunityPost[]>;
   createCommunityPost(post: InsertCommunityPost): Promise<CommunityPost>;
+  deleteCommunityPost(id: string): Promise<void>;
 
   // Events
   getEvents(): Promise<Event[]>;
+  getEvent(id: string): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
+  updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined>;
+  deleteEvent(id: string): Promise<void>;
+
+  // Editable Pages
+  getEditablePages(): Promise<EditablePage[]>;
+  getEditablePage(slug: string): Promise<EditablePage | undefined>;
+  upsertEditablePage(page: InsertEditablePage): Promise<EditablePage>;
+
+  // Resident Programs
+  getResidentPrograms(): Promise<ResidentProgram[]>;
+  getResidentProgram(id: string): Promise<ResidentProgram | undefined>;
+  getResidentProgramsByType(type: string): Promise<ResidentProgram[]>;
+  createResidentProgram(program: InsertResidentProgram): Promise<ResidentProgram>;
+  updateResidentProgram(id: string, program: Partial<InsertResidentProgram>): Promise<ResidentProgram | undefined>;
+  deleteResidentProgram(id: string): Promise<void>;
+
+  // Program Applications
+  getProgramApplications(): Promise<ProgramApplication[]>;
+  getProgramApplicationsByProgram(programId: string): Promise<ProgramApplication[]>;
+  createProgramApplication(application: InsertProgramApplication): Promise<ProgramApplication>;
+  updateProgramApplicationStatus(id: string, status: string): Promise<ProgramApplication | undefined>;
+  deleteProgramApplication(id: string): Promise<void>;
+
+  // Project Images
+  getProjectImages(projectId: string): Promise<ProjectImage[]>;
+  createProjectImage(image: InsertProjectImage): Promise<ProjectImage>;
+  deleteProjectImage(id: string): Promise<void>;
+
+  // Partners
+  getPartners(): Promise<Partner[]>;
+  createPartner(partner: InsertPartner): Promise<Partner>;
+  updatePartner(id: string, partner: Partial<InsertPartner>): Promise<Partner | undefined>;
+  deletePartner(id: string): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private projects: Map<string, Project>;
-  private inquiries: Map<string, Inquiry>;
-  private articles: Map<string, Article>;
-  private communityPosts: Map<string, CommunityPost>;
-  private events: Map<string, Event>;
-
-  constructor() {
-    this.projects = new Map();
-    this.inquiries = new Map();
-    this.articles = new Map();
-    this.communityPosts = new Map();
-    this.events = new Map();
-
-    this.seedData();
-  }
-
-  private seedData() {
-    const sampleProjects: InsertProject[] = [
-      {
-        title: "안암생활",
-        titleEn: "Anam Life",
-        location: "서울 성북구",
-        category: "youth",
-        description: "청년 특화 주거 공간으로, 코워킹 스페이스와 창업 지원 프로그램을 갖춘 대규모 커뮤니티",
-        imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
-        year: 2022,
-        units: 86,
-        featured: true,
-      },
-      {
-        title: "홍시주택",
-        titleEn: "Hongsi House",
-        location: "서울 마포구",
-        category: "single",
-        description: "1인 여성 가구를 위한 안전하고 편리한 주거 공간",
-        imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80",
-        year: 2021,
-        units: 45,
-        featured: true,
-      },
-      {
-        title: "장안생활",
-        titleEn: "Jangan Life",
-        location: "서울 동대문구",
-        category: "local-anchor",
-        description: "도시재생형 복합 주거 시설로, 지역 상권과 연계된 커뮤니티 앵커 역할",
-        imageUrl: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
-        year: 2023,
-        units: 120,
-        featured: true,
-      },
-    ];
-
-    sampleProjects.forEach((project) => {
-      const id = randomUUID();
-      this.projects.set(id, {
-        id,
-        title: project.title,
-        titleEn: project.titleEn ?? null,
-        location: project.location,
-        category: project.category,
-        description: project.description,
-        imageUrl: project.imageUrl,
-        year: project.year,
-        units: project.units ?? null,
-        featured: project.featured ?? null,
-      });
-    });
-
-    const sampleArticles: InsertArticle[] = [
-      {
-        title: "사회주택, 왜 지금 한국에 필요한가",
-        excerpt: "오스트리아 빈의 사회주택 모델과 한국적 적용 방안에 대한 고찰",
-        content: "사회주택의 필요성과 한국적 적용...",
-        author: "김아이 대표",
-        category: "column",
-        imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
-        featured: true,
-      },
-      {
-        title: "청년 주거 문제, 커뮤니티가 답이다",
-        excerpt: "혼자가 아닌 함께의 가치",
-        content: "커뮤니티 주거의 가능성...",
-        author: "박운영 팀장",
-        category: "column",
-        imageUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80",
-        featured: true,
-      },
-    ];
-
-    sampleArticles.forEach((article) => {
-      const id = randomUUID();
-      this.articles.set(id, {
-        id,
-        title: article.title,
-        excerpt: article.excerpt,
-        content: article.content,
-        author: article.author,
-        category: article.category,
-        imageUrl: article.imageUrl ?? null,
-        featured: article.featured ?? null,
-        publishedAt: new Date(),
-      });
-    });
-  }
-
+export class DatabaseStorage implements IStorage {
   // Projects
   async getProjects(): Promise<Project[]> {
-    return Array.from(this.projects.values());
+    return db.select().from(projects);
   }
 
   async getProject(id: string): Promise<Project | undefined> {
-    return this.projects.get(id);
+    const result = await db.select().from(projects).where(eq(projects.id, id));
+    return result[0];
   }
 
   async getProjectsByCategory(category: string): Promise<Project[]> {
-    return Array.from(this.projects.values()).filter(
-      (project) => project.category === category
-    );
+    return db.select().from(projects).where(eq(projects.category, category));
   }
 
-  async createProject(insertProject: InsertProject): Promise<Project> {
-    const id = randomUUID();
-    const project: Project = {
-      id,
-      title: insertProject.title,
-      titleEn: insertProject.titleEn ?? null,
-      location: insertProject.location,
-      category: insertProject.category,
-      description: insertProject.description,
-      imageUrl: insertProject.imageUrl,
-      year: insertProject.year,
-      units: insertProject.units ?? null,
-      featured: insertProject.featured ?? null,
-    };
-    this.projects.set(id, project);
-    return project;
+  async createProject(project: InsertProject): Promise<Project> {
+    const result = await db.insert(projects).values(project).returning();
+    return result[0];
+  }
+
+  async updateProject(id: string, project: Partial<InsertProject>): Promise<Project | undefined> {
+    const result = await db.update(projects).set(project).where(eq(projects.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    await db.delete(projects).where(eq(projects.id, id));
   }
 
   // Inquiries
   async getInquiries(): Promise<Inquiry[]> {
-    return Array.from(this.inquiries.values());
+    return db.select().from(inquiries);
   }
 
   async getInquiriesByType(type: string): Promise<Inquiry[]> {
-    return Array.from(this.inquiries.values()).filter(
-      (inquiry) => inquiry.type === type
-    );
+    return db.select().from(inquiries).where(eq(inquiries.type, type));
   }
 
-  async createInquiry(insertInquiry: InsertInquiry): Promise<Inquiry> {
-    const id = randomUUID();
-    const inquiry: Inquiry = {
-      id,
-      type: insertInquiry.type,
-      name: insertInquiry.name,
-      email: insertInquiry.email,
-      phone: insertInquiry.phone ?? null,
-      company: insertInquiry.company ?? null,
-      message: insertInquiry.message,
-      createdAt: new Date(),
-    };
-    this.inquiries.set(id, inquiry);
-    return inquiry;
+  async createInquiry(inquiry: InsertInquiry): Promise<Inquiry> {
+    const result = await db.insert(inquiries).values(inquiry).returning();
+    return result[0];
   }
 
   async deleteInquiry(id: string): Promise<void> {
-    this.inquiries.delete(id);
+    await db.delete(inquiries).where(eq(inquiries.id, id));
   }
 
   // Articles
   async getArticles(): Promise<Article[]> {
-    return Array.from(this.articles.values());
+    return db.select().from(articles);
   }
 
   async getArticle(id: string): Promise<Article | undefined> {
-    return this.articles.get(id);
+    const result = await db.select().from(articles).where(eq(articles.id, id));
+    return result[0];
   }
 
   async getArticlesByCategory(category: string): Promise<Article[]> {
-    return Array.from(this.articles.values()).filter(
-      (article) => article.category === category
-    );
+    return db.select().from(articles).where(eq(articles.category, category));
   }
 
-  async createArticle(insertArticle: InsertArticle): Promise<Article> {
-    const id = randomUUID();
-    const article: Article = {
-      id,
-      title: insertArticle.title,
-      excerpt: insertArticle.excerpt,
-      content: insertArticle.content,
-      author: insertArticle.author,
-      category: insertArticle.category,
-      imageUrl: insertArticle.imageUrl ?? null,
-      featured: insertArticle.featured ?? null,
-      publishedAt: new Date(),
-    };
-    this.articles.set(id, article);
-    return article;
+  async createArticle(article: InsertArticle): Promise<Article> {
+    const result = await db.insert(articles).values(article).returning();
+    return result[0];
+  }
+
+  async updateArticle(id: string, article: Partial<InsertArticle>): Promise<Article | undefined> {
+    const result = await db.update(articles).set(article).where(eq(articles.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteArticle(id: string): Promise<void> {
+    await db.delete(articles).where(eq(articles.id, id));
   }
 
   // Community Posts
   async getCommunityPosts(): Promise<CommunityPost[]> {
-    return Array.from(this.communityPosts.values());
+    return db.select().from(communityPosts);
   }
 
-  async createCommunityPost(insertPost: InsertCommunityPost): Promise<CommunityPost> {
-    const id = randomUUID();
-    const post: CommunityPost = {
-      id,
-      imageUrl: insertPost.imageUrl,
-      caption: insertPost.caption ?? null,
-      location: insertPost.location ?? null,
-      likes: insertPost.likes ?? null,
-      hashtags: insertPost.hashtags ?? null,
-      createdAt: new Date(),
-    };
-    this.communityPosts.set(id, post);
-    return post;
+  async createCommunityPost(post: InsertCommunityPost): Promise<CommunityPost> {
+    const result = await db.insert(communityPosts).values(post).returning();
+    return result[0];
+  }
+
+  async deleteCommunityPost(id: string): Promise<void> {
+    await db.delete(communityPosts).where(eq(communityPosts.id, id));
   }
 
   // Events
   async getEvents(): Promise<Event[]> {
-    return Array.from(this.events.values());
+    return db.select().from(events);
   }
 
-  async createEvent(insertEvent: InsertEvent): Promise<Event> {
-    const id = randomUUID();
-    const event: Event = {
-      id,
-      title: insertEvent.title,
-      description: insertEvent.description,
-      date: insertEvent.date,
-      location: insertEvent.location,
-      imageUrl: insertEvent.imageUrl ?? null,
-    };
-    this.events.set(id, event);
-    return event;
+  async getEvent(id: string): Promise<Event | undefined> {
+    const result = await db.select().from(events).where(eq(events.id, id));
+    return result[0];
+  }
+
+  async createEvent(event: InsertEvent): Promise<Event> {
+    const result = await db.insert(events).values(event).returning();
+    return result[0];
+  }
+
+  async updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined> {
+    const result = await db.update(events).set(event).where(eq(events.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteEvent(id: string): Promise<void> {
+    await db.delete(events).where(eq(events.id, id));
+  }
+
+  // Editable Pages
+  async getEditablePages(): Promise<EditablePage[]> {
+    return db.select().from(editablePages);
+  }
+
+  async getEditablePage(slug: string): Promise<EditablePage | undefined> {
+    const result = await db.select().from(editablePages).where(eq(editablePages.slug, slug));
+    return result[0];
+  }
+
+  async upsertEditablePage(page: InsertEditablePage): Promise<EditablePage> {
+    const existing = await this.getEditablePage(page.slug);
+    if (existing) {
+      const result = await db.update(editablePages)
+        .set({ ...page, updatedAt: new Date() })
+        .where(eq(editablePages.slug, page.slug))
+        .returning();
+      return result[0];
+    }
+    const result = await db.insert(editablePages).values(page).returning();
+    return result[0];
+  }
+
+  // Resident Programs
+  async getResidentPrograms(): Promise<ResidentProgram[]> {
+    return db.select().from(residentPrograms);
+  }
+
+  async getResidentProgram(id: string): Promise<ResidentProgram | undefined> {
+    const result = await db.select().from(residentPrograms).where(eq(residentPrograms.id, id));
+    return result[0];
+  }
+
+  async getResidentProgramsByType(type: string): Promise<ResidentProgram[]> {
+    return db.select().from(residentPrograms).where(eq(residentPrograms.programType, type));
+  }
+
+  async createResidentProgram(program: InsertResidentProgram): Promise<ResidentProgram> {
+    const result = await db.insert(residentPrograms).values(program).returning();
+    return result[0];
+  }
+
+  async updateResidentProgram(id: string, program: Partial<InsertResidentProgram>): Promise<ResidentProgram | undefined> {
+    const result = await db.update(residentPrograms).set(program).where(eq(residentPrograms.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteResidentProgram(id: string): Promise<void> {
+    await db.delete(residentPrograms).where(eq(residentPrograms.id, id));
+  }
+
+  // Program Applications
+  async getProgramApplications(): Promise<ProgramApplication[]> {
+    return db.select().from(programApplications);
+  }
+
+  async getProgramApplicationsByProgram(programId: string): Promise<ProgramApplication[]> {
+    return db.select().from(programApplications).where(eq(programApplications.programId, programId));
+  }
+
+  async createProgramApplication(application: InsertProgramApplication): Promise<ProgramApplication> {
+    const result = await db.insert(programApplications).values(application).returning();
+    return result[0];
+  }
+
+  async updateProgramApplicationStatus(id: string, status: string): Promise<ProgramApplication | undefined> {
+    const result = await db.update(programApplications).set({ status }).where(eq(programApplications.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteProgramApplication(id: string): Promise<void> {
+    await db.delete(programApplications).where(eq(programApplications.id, id));
+  }
+
+  // Project Images
+  async getProjectImages(projectId: string): Promise<ProjectImage[]> {
+    return db.select().from(projectImages).where(eq(projectImages.projectId, projectId));
+  }
+
+  async createProjectImage(image: InsertProjectImage): Promise<ProjectImage> {
+    const result = await db.insert(projectImages).values(image).returning();
+    return result[0];
+  }
+
+  async deleteProjectImage(id: string): Promise<void> {
+    await db.delete(projectImages).where(eq(projectImages.id, id));
+  }
+
+  // Partners
+  async getPartners(): Promise<Partner[]> {
+    return db.select().from(partners);
+  }
+
+  async createPartner(partner: InsertPartner): Promise<Partner> {
+    const result = await db.insert(partners).values(partner).returning();
+    return result[0];
+  }
+
+  async updatePartner(id: string, partner: Partial<InsertPartner>): Promise<Partner | undefined> {
+    const result = await db.update(partners).set(partner).where(eq(partners.id, id)).returning();
+    return result[0];
+  }
+
+  async deletePartner(id: string): Promise<void> {
+    await db.delete(partners).where(eq(partners.id, id));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
