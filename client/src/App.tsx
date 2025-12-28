@@ -10,6 +10,7 @@ import Space from "@/pages/Space";
 import Community from "@/pages/Community";
 import Insight from "@/pages/Insight";
 import Contact from "@/pages/Contact";
+import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/community" component={Community} />
       <Route path="/insight" component={Insight} />
       <Route path="/contact" component={Contact} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );
