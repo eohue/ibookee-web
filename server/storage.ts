@@ -1,7 +1,5 @@
 import { randomUUID } from "crypto";
 import type {
-  User,
-  InsertUser,
   Project,
   InsertProject,
   Inquiry,
@@ -15,11 +13,6 @@ import type {
 } from "@shared/schema";
 
 export interface IStorage {
-  // Users
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-
   // Projects
   getProjects(): Promise<Project[]>;
   getProject(id: string): Promise<Project | undefined>;
@@ -30,6 +23,7 @@ export interface IStorage {
   getInquiries(): Promise<Inquiry[]>;
   getInquiriesByType(type: string): Promise<Inquiry[]>;
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
+  deleteInquiry(id: string): Promise<void>;
 
   // Articles
   getArticles(): Promise<Article[]>;
@@ -47,7 +41,6 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
   private projects: Map<string, Project>;
   private inquiries: Map<string, Inquiry>;
   private articles: Map<string, Article>;
@@ -55,7 +48,6 @@ export class MemStorage implements IStorage {
   private events: Map<string, Event>;
 
   constructor() {
-    this.users = new Map();
     this.projects = new Map();
     this.inquiries = new Map();
     this.articles = new Map();
@@ -104,7 +96,18 @@ export class MemStorage implements IStorage {
 
     sampleProjects.forEach((project) => {
       const id = randomUUID();
-      this.projects.set(id, { ...project, id });
+      this.projects.set(id, {
+        id,
+        title: project.title,
+        titleEn: project.titleEn ?? null,
+        location: project.location,
+        category: project.category,
+        description: project.description,
+        imageUrl: project.imageUrl,
+        year: project.year,
+        units: project.units ?? null,
+        featured: project.featured ?? null,
+      });
     });
 
     const sampleArticles: InsertArticle[] = [
@@ -130,26 +133,18 @@ export class MemStorage implements IStorage {
 
     sampleArticles.forEach((article) => {
       const id = randomUUID();
-      this.articles.set(id, { ...article, id, publishedAt: new Date() });
+      this.articles.set(id, {
+        id,
+        title: article.title,
+        excerpt: article.excerpt,
+        content: article.content,
+        author: article.author,
+        category: article.category,
+        imageUrl: article.imageUrl ?? null,
+        featured: article.featured ?? null,
+        publishedAt: new Date(),
+      });
     });
-  }
-
-  // Users
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
   }
 
   // Projects
@@ -169,7 +164,18 @@ export class MemStorage implements IStorage {
 
   async createProject(insertProject: InsertProject): Promise<Project> {
     const id = randomUUID();
-    const project: Project = { ...insertProject, id };
+    const project: Project = {
+      id,
+      title: insertProject.title,
+      titleEn: insertProject.titleEn ?? null,
+      location: insertProject.location,
+      category: insertProject.category,
+      description: insertProject.description,
+      imageUrl: insertProject.imageUrl,
+      year: insertProject.year,
+      units: insertProject.units ?? null,
+      featured: insertProject.featured ?? null,
+    };
     this.projects.set(id, project);
     return project;
   }
@@ -187,9 +193,22 @@ export class MemStorage implements IStorage {
 
   async createInquiry(insertInquiry: InsertInquiry): Promise<Inquiry> {
     const id = randomUUID();
-    const inquiry: Inquiry = { ...insertInquiry, id, createdAt: new Date() };
+    const inquiry: Inquiry = {
+      id,
+      type: insertInquiry.type,
+      name: insertInquiry.name,
+      email: insertInquiry.email,
+      phone: insertInquiry.phone ?? null,
+      company: insertInquiry.company ?? null,
+      message: insertInquiry.message,
+      createdAt: new Date(),
+    };
     this.inquiries.set(id, inquiry);
     return inquiry;
+  }
+
+  async deleteInquiry(id: string): Promise<void> {
+    this.inquiries.delete(id);
   }
 
   // Articles
@@ -209,7 +228,17 @@ export class MemStorage implements IStorage {
 
   async createArticle(insertArticle: InsertArticle): Promise<Article> {
     const id = randomUUID();
-    const article: Article = { ...insertArticle, id, publishedAt: new Date() };
+    const article: Article = {
+      id,
+      title: insertArticle.title,
+      excerpt: insertArticle.excerpt,
+      content: insertArticle.content,
+      author: insertArticle.author,
+      category: insertArticle.category,
+      imageUrl: insertArticle.imageUrl ?? null,
+      featured: insertArticle.featured ?? null,
+      publishedAt: new Date(),
+    };
     this.articles.set(id, article);
     return article;
   }
@@ -221,7 +250,15 @@ export class MemStorage implements IStorage {
 
   async createCommunityPost(insertPost: InsertCommunityPost): Promise<CommunityPost> {
     const id = randomUUID();
-    const post: CommunityPost = { ...insertPost, id, createdAt: new Date() };
+    const post: CommunityPost = {
+      id,
+      imageUrl: insertPost.imageUrl,
+      caption: insertPost.caption ?? null,
+      location: insertPost.location ?? null,
+      likes: insertPost.likes ?? null,
+      hashtags: insertPost.hashtags ?? null,
+      createdAt: new Date(),
+    };
     this.communityPosts.set(id, post);
     return post;
   }
@@ -233,7 +270,14 @@ export class MemStorage implements IStorage {
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
     const id = randomUUID();
-    const event: Event = { ...insertEvent, id };
+    const event: Event = {
+      id,
+      title: insertEvent.title,
+      description: insertEvent.description,
+      date: insertEvent.date,
+      location: insertEvent.location,
+      imageUrl: insertEvent.imageUrl ?? null,
+    };
     this.events.set(id, event);
     return event;
   }

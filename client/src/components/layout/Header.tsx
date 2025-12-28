@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, Sun, Moon } from "lucide-react";
+import { Menu, Sun, Moon, User, LogIn, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/use-auth";
 
 const navigation = [
   { name: "About Us", href: "/about" },
@@ -22,6 +23,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,6 +113,34 @@ export default function Header() {
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
 
+            {!authLoading && (
+              isAuthenticated ? (
+                <Link href="/dashboard">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`hidden md:flex ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
+                    data-testid="button-dashboard"
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    관리자
+                  </Button>
+                </Link>
+              ) : (
+                <a href="/api/login">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`hidden md:flex ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
+                    data-testid="button-login"
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    로그인
+                  </Button>
+                </a>
+              )
+            )}
+
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild className="lg:hidden">
                 <Button
@@ -139,6 +169,31 @@ export default function Header() {
                       {item.name}
                     </Link>
                   ))}
+
+                  <div className="border-t border-border mt-4 pt-4">
+                    {!authLoading && (
+                      isAuthenticated ? (
+                        <Link
+                          href="/dashboard"
+                          className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
+                          onClick={() => setMobileMenuOpen(false)}
+                          data-testid="link-mobile-dashboard"
+                        >
+                          <LayoutDashboard className="w-5 h-5" />
+                          관리자
+                        </Link>
+                      ) : (
+                        <a
+                          href="/api/login"
+                          className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
+                          data-testid="link-mobile-login"
+                        >
+                          <LogIn className="w-5 h-5" />
+                          로그인
+                        </a>
+                      )
+                    )}
+                  </div>
                 </nav>
               </SheetContent>
             </Sheet>

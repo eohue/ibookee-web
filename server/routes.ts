@@ -2,11 +2,15 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertInquirySchema, insertProjectSchema, insertArticleSchema } from "@shared/schema";
+import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Setup auth BEFORE other routes
+  await setupAuth(app);
+  registerAuthRoutes(app);
   // Projects API
   app.get("/api/projects", async (_req, res) => {
     try {
@@ -109,6 +113,44 @@ export async function registerRoutes(
       res.json(events);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch events" });
+    }
+  });
+
+  // Admin API - Protected routes
+  app.get("/api/admin/inquiries", isAuthenticated, async (_req, res) => {
+    try {
+      const inquiries = await storage.getInquiries();
+      res.json(inquiries);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch inquiries" });
+    }
+  });
+
+  app.delete("/api/admin/inquiries/:id", isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteInquiry(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete inquiry" });
+    }
+  });
+
+  app.get("/api/admin/stats", isAuthenticated, async (_req, res) => {
+    try {
+      const [projects, inquiries, articles, communityPosts] = await Promise.all([
+        storage.getProjects(),
+        storage.getInquiries(),
+        storage.getArticles(),
+        storage.getCommunityPosts(),
+      ]);
+      res.json({
+        projectCount: projects.length,
+        inquiryCount: inquiries.length,
+        articleCount: articles.length,
+        communityPostCount: communityPosts.length,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch stats" });
     }
   });
 
