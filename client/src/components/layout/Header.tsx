@@ -1,0 +1,150 @@
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "wouter";
+import { Menu, Sun, Moon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+const navigation = [
+  { name: "About Us", href: "/about" },
+  { name: "Business", href: "/business" },
+  { name: "Space", href: "/space" },
+  { name: "Community", href: "/community" },
+  { name: "Insight", href: "/insight" },
+  { name: "Contact", href: "/contact" },
+];
+
+export default function Header() {
+  const [location] = useLocation();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark") {
+      setIsDark(true);
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    if (!isDark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
+  const isHomePage = location === "/";
+  const headerBg = isScrolled || !isHomePage
+    ? "bg-background/95 backdrop-blur-md border-b border-border"
+    : "bg-transparent";
+
+  return (
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerBg}`}
+      data-testid="header"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          <Link
+            href="/"
+            className="flex items-center gap-2"
+            data-testid="link-home"
+          >
+            <span className={`text-xl md:text-2xl font-bold transition-colors ${
+              isScrolled || !isHomePage ? "text-foreground" : "text-white"
+            }`}>
+              IBOOKEE
+            </span>
+            <span className={`hidden sm:inline text-sm font-medium transition-colors ${
+              isScrolled || !isHomePage ? "text-muted-foreground" : "text-white/80"
+            }`}>
+              아이부키
+            </span>
+          </Link>
+
+          <nav className="hidden lg:flex items-center gap-1">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  location === item.href
+                    ? isScrolled || !isHomePage
+                      ? "text-primary bg-primary/10"
+                      : "text-white bg-white/20"
+                    : isScrolled || !isHomePage
+                      ? "text-foreground hover:text-primary hover:bg-muted"
+                      : "text-white/90 hover:text-white hover:bg-white/10"
+                }`}
+                data-testid={`link-nav-${item.name.toLowerCase().replace(" ", "-")}`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={toggleTheme}
+              className={isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}
+              data-testid="button-theme-toggle"
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </Button>
+
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild className="lg:hidden">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}
+                  data-testid="button-mobile-menu"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+                <nav className="flex flex-col gap-2 mt-8">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`px-4 py-3 text-base font-medium rounded-md transition-colors ${
+                        location === item.href
+                          ? "text-primary bg-primary/10"
+                          : "text-foreground hover:text-primary hover:bg-muted"
+                      }`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      data-testid={`link-mobile-nav-${item.name.toLowerCase().replace(" ", "-")}`}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
