@@ -8,6 +8,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
+import logoWhite from "@assets/logo__1766970743621.png";
+import logoDark from "@assets/logo_square_1766970743622.png";
 
 const navigation = [
   { name: "About Us", href: "/about" },
@@ -66,19 +68,15 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link
             href="/"
-            className="flex items-center gap-2"
+            className="flex items-center"
             data-testid="link-home"
           >
-            <span className={`text-xl md:text-2xl font-bold transition-colors ${
-              isScrolled || !isHomePage ? "text-foreground" : "text-white"
-            }`}>
-              IBOOKEE
-            </span>
-            <span className={`hidden sm:inline text-sm font-medium transition-colors ${
-              isScrolled || !isHomePage ? "text-muted-foreground" : "text-white/80"
-            }`}>
-              아이부키
-            </span>
+            <img
+              src={isScrolled || !isHomePage ? logoDark : logoWhite}
+              alt="IBOOKEE 아이부키"
+              className="h-8 md:h-10 w-auto object-contain object-left"
+              style={{ maxWidth: '160px' }}
+            />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">
