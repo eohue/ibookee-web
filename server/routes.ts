@@ -574,38 +574,6 @@ export async function registerRoutes(
     }
   });
 
-  // Admin Community Posts CRUD
-  app.get("/api/admin/community-posts", isAuthenticated, async (_req, res) => {
-    try {
-      const posts = await storage.getCommunityPosts();
-      res.json(posts);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch community posts" });
-    }
-  });
-
-  app.post("/api/admin/community-posts", isAuthenticated, async (req, res) => {
-    try {
-      const parsed = insertCommunityPostSchema.safeParse(req.body);
-      if (!parsed.success) {
-        return res.status(400).json({ error: "Invalid post data", details: parsed.error });
-      }
-      const post = await storage.createCommunityPost(parsed.data);
-      res.status(201).json(post);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create post" });
-    }
-  });
-
-  app.delete("/api/admin/community-posts/:id", isAuthenticated, async (req, res) => {
-    try {
-      await storage.deleteCommunityPost(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete post" });
-    }
-  });
-
   // Admin Partners CRUD
   app.get("/api/admin/partners", isAuthenticated, async (_req, res) => {
     try {
