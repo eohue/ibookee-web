@@ -8,7 +8,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
-import logoWhite from "@assets/logo__1766970743621.png";
+import logoWhite from "@assets/logo_white_1766982239446.png";
 import logoDark from "@assets/logo_square_1766971215447.png";
 
 const navigation = [
