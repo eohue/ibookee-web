@@ -253,5 +253,19 @@ export const insertProjectImageSchema = createInsertSchema(projectImages).omit({
 export type InsertProjectImage = z.infer<typeof insertProjectImageSchema>;
 export type ProjectImage = typeof projectImages.$inferSelect;
 
+// Page Images (for managing hardcoded images on main pages)
+export const pageImages = pgTable("page_images", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  pageKey: text("page_key").notNull(), // home, about, business
+  imageKey: text("image_key").notNull(), // hero, office, ceo, solution-youth, etc.
+  imageUrl: text("image_url").notNull(),
+  altText: text("alt_text"),
+  displayOrder: integer("display_order").default(0),
+});
+
+export const insertPageImageSchema = createInsertSchema(pageImages).omit({ id: true });
+export type InsertPageImage = z.infer<typeof insertPageImageSchema>;
+export type PageImage = typeof pageImages.$inferSelect;
+
 // Re-export auth models
 export * from "./models/auth";
