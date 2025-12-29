@@ -12,6 +12,8 @@ import {
   insertCommunityPostSchema,
   insertSocialAccountSchema,
   insertPartnerSchema,
+  insertHistoryMilestoneSchema,
+  insertSiteSettingSchema,
 } from "@shared/schema";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 
@@ -625,6 +627,107 @@ export async function registerRoutes(
       res.json(partners);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch partners" });
+    }
+  });
+
+  // Admin History Milestones CRUD
+  app.get("/api/admin/history", isAuthenticated, async (_req, res) => {
+    try {
+      const milestones = await storage.getHistoryMilestones();
+      res.json(milestones);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch history milestones" });
+    }
+  });
+
+  app.post("/api/admin/history", isAuthenticated, async (req, res) => {
+    try {
+      const parsed = insertHistoryMilestoneSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid milestone data", details: parsed.error });
+      }
+      const milestone = await storage.createHistoryMilestone(parsed.data);
+      res.status(201).json(milestone);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create milestone" });
+    }
+  });
+
+  app.put("/api/admin/history/:id", isAuthenticated, async (req, res) => {
+    try {
+      const milestone = await storage.updateHistoryMilestone(req.params.id, req.body);
+      if (!milestone) {
+        return res.status(404).json({ error: "Milestone not found" });
+      }
+      res.json(milestone);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update milestone" });
+    }
+  });
+
+  app.delete("/api/admin/history/:id", isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteHistoryMilestone(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete milestone" });
+    }
+  });
+
+  // Public history endpoint
+  app.get("/api/history", async (_req, res) => {
+    try {
+      const milestones = await storage.getHistoryMilestones();
+      res.json(milestones);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch history" });
+    }
+  });
+
+  // Admin Site Settings CRUD
+  app.get("/api/admin/settings", isAuthenticated, async (_req, res) => {
+    try {
+      const settings = await storage.getSiteSettings();
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch site settings" });
+    }
+  });
+
+  app.get("/api/admin/settings/:key", isAuthenticated, async (req, res) => {
+    try {
+      const setting = await storage.getSiteSetting(req.params.key);
+      if (!setting) {
+        return res.status(404).json({ error: "Setting not found" });
+      }
+      res.json(setting);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch setting" });
+    }
+  });
+
+  app.put("/api/admin/settings/:key", isAuthenticated, async (req, res) => {
+    try {
+      const setting = await storage.upsertSiteSetting({
+        key: req.params.key,
+        value: req.body.value,
+      });
+      res.json(setting);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to save setting" });
+    }
+  });
+
+  // Public site settings endpoint (specific keys only)
+  app.get("/api/settings/:key", async (req, res) => {
+    try {
+      const setting = await storage.getSiteSetting(req.params.key);
+      if (!setting) {
+        return res.status(404).json({ error: "Setting not found" });
+      }
+      res.json(setting);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch setting" });
     }
   });
 

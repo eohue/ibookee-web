@@ -113,6 +113,7 @@ export const partners = pgTable("partners", {
   name: text("name").notNull(),
   logoUrl: text("logo_url").notNull(),
   category: text("category").notNull(), // government, finance, institution
+  displayOrder: integer("display_order").default(0),
 });
 
 export const insertPartnerSchema = createInsertSchema(partners).omit({ id: true });
@@ -126,11 +127,64 @@ export const historyMilestones = pgTable("history_milestones", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   imageUrl: text("image_url"),
+  displayOrder: integer("display_order").default(0),
 });
 
 export const insertHistoryMilestoneSchema = createInsertSchema(historyMilestones).omit({ id: true });
 export type InsertHistoryMilestone = z.infer<typeof insertHistoryMilestoneSchema>;
 export type HistoryMilestone = typeof historyMilestones.$inferSelect;
+
+// Site Settings (JSON configuration for various pages)
+export const siteSettings = pgTable("site_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull().unique(), // e.g., 'company-stats', 'footer', 'ceo-message', 'esg-metrics'
+  value: jsonb("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({ id: true, updatedAt: true });
+export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
+export type SiteSetting = typeof siteSettings.$inferSelect;
+
+// Type definitions for site settings JSON values
+export interface CompanyStats {
+  projects: { value: string; label: string; labelEn: string };
+  households: { value: string; label: string; labelEn: string };
+  years: { value: string; label: string; labelEn: string };
+  awards: { value: string; label: string; labelEn: string };
+}
+
+export interface FooterSettings {
+  tagline: string;
+  taglineEn: string;
+  description: string;
+  address: string;
+  phone: string;
+  email: string;
+}
+
+export interface CeoMessage {
+  name: string;
+  title: string;
+  imageUrl: string;
+  quote: string;
+  paragraphs: string[];
+}
+
+export interface BusinessSolution {
+  id: string;
+  title: string;
+  titleEn: string;
+  description: string;
+  features: string[];
+  caseProjectId?: string; // Links to a project
+  caseImageUrl?: string;
+}
+
+export interface EsgCategory {
+  category: string;
+  metrics: { label: string; value: string; desc: string }[];
+}
 
 // Editable Pages (About Us, Business)
 export const editablePages = pgTable("editable_pages", {
