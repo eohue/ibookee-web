@@ -1,8 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Building2, Users, Award, Target, ChevronRight } from "lucide-react";
+import { useCompanyStats } from "@/hooks/use-site-settings";
+import type { HistoryMilestone, Partner } from "@shared/schema";
 
-const historyMilestones = [
+const defaultHistoryMilestones = [
   { year: 2012, title: "아이부키 설립", description: "사회주택 전문기업으로 첫 발을 내딛다" },
   { year: 2014, title: "보린주택 준공", description: "첫 번째 사회주택 프로젝트 완공" },
   { year: 2016, title: "LH 매입약정 1호", description: "공공-민간 협력 모델 구축" },
@@ -13,7 +16,7 @@ const historyMilestones = [
   { year: 2024, title: "2,500세대 달성", description: "누적 입주 세대 2,500가구 돌파" },
 ];
 
-const partners = [
+const defaultPartners = [
   { name: "국토교통부", category: "정부" },
   { name: "LH 한국토지주택공사", category: "공공기관" },
   { name: "HUG 주택도시보증공사", category: "공공기관" },
@@ -25,6 +28,33 @@ const partners = [
 ];
 
 export default function About() {
+  const { stats } = useCompanyStats();
+  
+  const { data: historyData } = useQuery<HistoryMilestone[]>({
+    queryKey: ["/api/history"],
+    staleTime: 60000,
+  });
+
+  const { data: partnersData } = useQuery<Partner[]>({
+    queryKey: ["/api/partners"],
+    staleTime: 60000,
+  });
+
+  const historyMilestones = historyData && historyData.length > 0 
+    ? historyData.map(m => ({ year: m.year, title: m.title, description: m.description || "" }))
+    : defaultHistoryMilestones;
+
+  const partners = partnersData && partnersData.length > 0
+    ? partnersData.map(p => ({ name: p.name, category: p.category }))
+    : defaultPartners;
+
+  const statsDisplay = [
+    { icon: Building2, label: `${stats.projectCount.value} ${stats.projectCount.label}`, desc: "완공" },
+    { icon: Users, label: `${stats.householdCount.value} ${stats.householdCount.label}`, desc: "입주" },
+    { icon: Award, label: `${stats.awardCount.value} ${stats.awardCount.label}`, desc: "실적" },
+    { icon: Target, label: `${stats.yearsInBusiness.value} ${stats.yearsInBusiness.label}`, desc: "업력" },
+  ];
+
   return (
     <div className="min-h-screen" data-testid="page-about">
       <Header />
@@ -64,12 +94,7 @@ export default function About() {
                   누구나 존엄하게 살 수 있는 주거 환경을 만듭니다.
                 </p>
                 <div className="grid grid-cols-2 gap-6">
-                  {[
-                    { icon: Building2, label: "32+ 프로젝트", desc: "완공" },
-                    { icon: Users, label: "2,500+ 세대", desc: "입주" },
-                    { icon: Award, label: "15+ 수상", desc: "실적" },
-                    { icon: Target, label: "13년", desc: "업력" },
-                  ].map((item, index) => (
+                  {statsDisplay.map((item, index) => (
                     <div key={index} className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <item.icon className="w-5 h-5 text-primary" />

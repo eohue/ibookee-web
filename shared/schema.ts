@@ -125,8 +125,9 @@ export const historyMilestones = pgTable("history_milestones", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   year: integer("year").notNull(),
   title: text("title").notNull(),
-  description: text("description").notNull(),
+  description: text("description"),
   imageUrl: text("image_url"),
+  isHighlight: boolean("is_highlight").default(false),
   displayOrder: integer("display_order").default(0),
 });
 

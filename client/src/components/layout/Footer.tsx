@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { useFooterSettings } from "@/hooks/use-site-settings";
 
 const footerLinks = {
   company: [
@@ -15,6 +16,8 @@ const footerLinks = {
 };
 
 export default function Footer() {
+  const { footer, isLoading } = useFooterSettings();
+
   return (
     <footer className="bg-card border-t border-border" data-testid="footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
@@ -35,15 +38,15 @@ export default function Footer() {
             <div className="mt-6 space-y-3">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
-                <span>서울특별시 성동구 왕십리로 115</span>
+                <span>{footer.address}</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="w-4 h-4 flex-shrink-0" />
-                <span>02-1234-5678</span>
+                <span>{footer.phone}</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4 flex-shrink-0" />
-                <span>contact@ibookee.kr</span>
+                <span>{footer.email}</span>
               </div>
             </div>
           </div>
@@ -90,7 +93,7 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2025 IBOOKEE. All rights reserved.
+              {footer.copyright}
             </p>
             <div className="flex items-center gap-6">
               <span
