@@ -16,7 +16,7 @@ const categoryLabels: Record<string, string> = {
 
 export default function InsightDetail() {
   const [, params] = useRoute("/insight/:id");
-  const articleId = params?.id ? parseInt(params.id) : null;
+  const articleId = params?.id || null;
 
   const { data: article, isLoading, isError, refetch } = useQuery<Article>({
     queryKey: ["/api/articles", articleId],

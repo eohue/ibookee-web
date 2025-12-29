@@ -17,7 +17,7 @@ const categoryLabels: Record<string, string> = {
 
 export default function SpaceDetail() {
   const [, params] = useRoute("/space/:id");
-  const projectId = params?.id ? parseInt(params.id) : null;
+  const projectId = params?.id || null;
 
   const { data: project, isLoading, isError, refetch } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
