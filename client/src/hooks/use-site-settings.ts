@@ -1,0 +1,102 @@
+import { useQuery } from "@tanstack/react-query";
+import type { SiteSetting } from "@shared/schema";
+
+interface CompanyStats {
+  projectCount: { value: string; label: string };
+  householdCount: { value: string; label: string };
+  yearsInBusiness: { value: string; label: string };
+  awardCount: { value: string; label: string };
+}
+
+interface FooterSettings {
+  companyName: string;
+  address: string;
+  phone: string;
+  email: string;
+  businessNumber: string;
+  copyright: string;
+}
+
+interface CeoMessage {
+  title: string;
+  paragraphs: string[];
+  signature: string;
+}
+
+const defaultStats: CompanyStats = {
+  projectCount: { value: "32+", label: "완공 프로젝트" },
+  householdCount: { value: "2,500+", label: "입주 세대" },
+  yearsInBusiness: { value: "13년", label: "업력" },
+  awardCount: { value: "15+", label: "수상 실적" },
+};
+
+const defaultFooter: FooterSettings = {
+  companyName: "(주)아이부키",
+  address: "서울특별시 성동구 왕십리로 115",
+  phone: "02-1234-5678",
+  email: "contact@ibookee.kr",
+  businessNumber: "110-81-77570",
+  copyright: "2025 IBOOKEE. All rights reserved.",
+};
+
+const defaultCeo: CeoMessage = {
+  title: "CEO 인사말",
+  paragraphs: [
+    "아이부키는 사회주택 전문 기업으로서 주거 취약계층의 주거 안정과 삶의 질 향상을 위해 노력하고 있습니다.",
+    "우리는 단순히 집을 짓는 것이 아닌, 커뮤니티를 만들고 이웃과 함께하는 삶의 가치를 실현합니다.",
+  ],
+  signature: "아이부키 대표",
+};
+
+async function fetchSetting<T>(key: string): Promise<T | null> {
+  try {
+    const response = await fetch(`/api/settings/${key}`);
+    if (!response.ok) return null;
+    const setting = await response.json();
+    return setting.value as T;
+  } catch {
+    return null;
+  }
+}
+
+export function useCompanyStats() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["/api/settings", "company_stats"],
+    queryFn: () => fetchSetting<CompanyStats>("company_stats"),
+    staleTime: 60000,
+  });
+
+  return {
+    stats: data || defaultStats,
+    isLoading,
+  };
+}
+
+export function useFooterSettings() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["/api/settings", "footer_settings"],
+    queryFn: () => fetchSetting<FooterSettings>("footer_settings"),
+    staleTime: 60000,
+  });
+
+  return {
+    footer: data || defaultFooter,
+    isLoading,
+  };
+}
+
+export function useCeoMessage() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["/api/settings", "ceo_message"],
+    queryFn: () => fetchSetting<CeoMessage>("ceo_message"),
+    staleTime: 60000,
+  });
+
+  return {
+    ceoMessage: data || defaultCeo,
+    isLoading,
+  };
+}
+
+export { defaultStats, defaultFooter, defaultCeo };
+export type { CompanyStats, FooterSettings, CeoMessage };

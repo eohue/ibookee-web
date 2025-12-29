@@ -56,6 +56,9 @@ import {
   LayoutDashboard,
   Share2,
   ExternalLink,
+  Settings,
+  History,
+  Users,
 } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import type { 
@@ -66,6 +69,9 @@ import type {
   ResidentProgram, 
   CommunityPost,
   SocialAccount,
+  Partner,
+  HistoryMilestone,
+  SiteSetting,
 } from "@shared/schema";
 
 interface Stats {
@@ -77,7 +83,7 @@ interface Stats {
   programCount: number;
 }
 
-type Section = "overview" | "projects" | "articles" | "events" | "programs" | "inquiries" | "social-accounts" | "community";
+type Section = "overview" | "projects" | "articles" | "events" | "programs" | "inquiries" | "social-accounts" | "community" | "site-settings" | "history" | "partners";
 
 const menuItems = [
   { id: "overview" as Section, title: "개요", icon: LayoutDashboard },
@@ -88,6 +94,9 @@ const menuItems = [
   { id: "inquiries" as Section, title: "문의 관리", icon: MessageSquare },
   { id: "social-accounts" as Section, title: "소셜 계정", icon: Share2 },
   { id: "community" as Section, title: "소셜 스트림", icon: Image },
+  { id: "partners" as Section, title: "파트너 관리", icon: Users },
+  { id: "history" as Section, title: "연혁 관리", icon: History },
+  { id: "site-settings" as Section, title: "사이트 설정", icon: Settings },
 ];
 
 export default function Dashboard() {
@@ -195,6 +204,9 @@ export default function Dashboard() {
             {activeSection === "inquiries" && <InquiriesSection />}
             {activeSection === "social-accounts" && <SocialAccountsSection />}
             {activeSection === "community" && <CommunitySection />}
+            {activeSection === "partners" && <PartnersSection />}
+            {activeSection === "history" && <HistorySection />}
+            {activeSection === "site-settings" && <SiteSettingsSection />}
           </main>
         </div>
       </div>
@@ -1896,6 +1908,665 @@ function CommunitySection() {
             );
           })}
         </div>
+      )}
+    </div>
+  );
+}
+
+function PartnersSection() {
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+
+  const { data: partners, isLoading } = useQuery<Partner[]>({
+    queryKey: ["/api/admin/partners"],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("POST", "/api/admin/partners", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/partners"] });
+      toast({ title: "파트너가 추가되었습니다" });
+      setIsDialogOpen(false);
+    },
+    onError: () => {
+      toast({ title: "파트너 추가 실패", variant: "destructive" });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return apiRequest("PUT", `/api/admin/partners/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/partners"] });
+      toast({ title: "파트너가 수정되었습니다" });
+      setEditingPartner(null);
+    },
+    onError: () => {
+      toast({ title: "파트너 수정 실패", variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest("DELETE", `/api/admin/partners/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/partners"] });
+      toast({ title: "파트너가 삭제되었습니다" });
+    },
+    onError: () => {
+      toast({ title: "파트너 삭제 실패", variant: "destructive" });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get("name") as string,
+      logoUrl: formData.get("logoUrl") as string || null,
+      category: formData.get("category") as string,
+      displayOrder: parseInt(formData.get("displayOrder") as string) || 0,
+    };
+
+    if (editingPartner) {
+      updateMutation.mutate({ id: editingPartner.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-xl font-semibold">파트너 목록</h2>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button data-testid="button-add-partner">
+              <Plus className="w-4 h-4 mr-2" />
+              파트너 추가
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>새 파트너 추가</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">파트너명</Label>
+                <Input id="name" name="name" required data-testid="input-partner-name" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="logoUrl">로고 URL</Label>
+                <Input id="logoUrl" name="logoUrl" data-testid="input-partner-logo" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">카테고리</Label>
+                <Input id="category" name="category" placeholder="예: government, investment, construction" data-testid="input-partner-category" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="displayOrder">표시 순서</Label>
+                <Input id="displayOrder" name="displayOrder" type="number" defaultValue="0" data-testid="input-partner-order" />
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">취소</Button>
+                </DialogClose>
+                <Button type="submit" disabled={createMutation.isPending} data-testid="button-submit-partner">
+                  추가
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-12 text-muted-foreground">로딩 중...</div>
+      ) : !partners || partners.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            등록된 파트너가 없습니다.
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {partners.map((partner) => (
+            <Card key={partner.id} data-testid={`card-partner-${partner.id}`}>
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
+                <CardTitle className="text-base">{partner.name}</CardTitle>
+                <Badge variant="outline">{partner.category}</Badge>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {partner.logoUrl && (
+                  <img src={partner.logoUrl} alt={partner.name} className="h-12 object-contain" />
+                )}
+                <p className="text-sm text-muted-foreground">순서: {partner.displayOrder}</p>
+                <div className="flex gap-2 pt-2">
+                  <Dialog open={editingPartner?.id === partner.id} onOpenChange={(open) => !open && setEditingPartner(null)}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline" onClick={() => setEditingPartner(partner)} data-testid={`button-edit-partner-${partner.id}`}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>파트너 수정</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">파트너명</Label>
+                          <Input id="name" name="name" defaultValue={partner.name} required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="logoUrl">로고 URL</Label>
+                          <Input id="logoUrl" name="logoUrl" defaultValue={partner.logoUrl || ""} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="category">카테고리</Label>
+                          <Input id="category" name="category" defaultValue={partner.category} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="displayOrder">표시 순서</Label>
+                          <Input id="displayOrder" name="displayOrder" type="number" defaultValue={partner.displayOrder ?? 0} />
+                        </div>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button type="button" variant="outline">취소</Button>
+                          </DialogClose>
+                          <Button type="submit" disabled={updateMutation.isPending}>저장</Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => deleteMutation.mutate(partner.id)}
+                    data-testid={`button-delete-partner-${partner.id}`}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HistorySection() {
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingMilestone, setEditingMilestone] = useState<HistoryMilestone | null>(null);
+
+  const { data: milestones, isLoading } = useQuery<HistoryMilestone[]>({
+    queryKey: ["/api/admin/history"],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("POST", "/api/admin/history", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/history"] });
+      toast({ title: "연혁이 추가되었습니다" });
+      setIsDialogOpen(false);
+    },
+    onError: () => {
+      toast({ title: "연혁 추가 실패", variant: "destructive" });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return apiRequest("PUT", `/api/admin/history/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/history"] });
+      toast({ title: "연혁이 수정되었습니다" });
+      setEditingMilestone(null);
+    },
+    onError: () => {
+      toast({ title: "연혁 수정 실패", variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest("DELETE", `/api/admin/history/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/history"] });
+      toast({ title: "연혁이 삭제되었습니다" });
+    },
+    onError: () => {
+      toast({ title: "연혁 삭제 실패", variant: "destructive" });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      year: parseInt(formData.get("year") as string),
+      title: formData.get("title") as string,
+      description: formData.get("description") as string || null,
+      isHighlight: formData.get("isHighlight") === "on",
+      displayOrder: parseInt(formData.get("displayOrder") as string) || 0,
+    };
+
+    if (editingMilestone) {
+      updateMutation.mutate({ id: editingMilestone.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-xl font-semibold">연혁 관리</h2>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button data-testid="button-add-history">
+              <Plus className="w-4 h-4 mr-2" />
+              연혁 추가
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>새 연혁 추가</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="year">연도</Label>
+                <Input id="year" name="year" type="number" required data-testid="input-history-year" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="title">제목</Label>
+                <Input id="title" name="title" required data-testid="input-history-title" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">설명</Label>
+                <Textarea id="description" name="description" data-testid="input-history-description" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox id="isHighlight" name="isHighlight" data-testid="checkbox-history-highlight" />
+                <Label htmlFor="isHighlight">주요 이벤트로 표시</Label>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="displayOrder">표시 순서</Label>
+                <Input id="displayOrder" name="displayOrder" type="number" defaultValue="0" data-testid="input-history-order" />
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">취소</Button>
+                </DialogClose>
+                <Button type="submit" disabled={createMutation.isPending} data-testid="button-submit-history">
+                  추가
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-12 text-muted-foreground">로딩 중...</div>
+      ) : !milestones || milestones.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            등록된 연혁이 없습니다.
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {milestones.map((milestone) => (
+            <Card key={milestone.id} data-testid={`card-history-${milestone.id}`}>
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <Badge variant={milestone.isHighlight ? "default" : "outline"}>{milestone.year}</Badge>
+                  <CardTitle className="text-base">{milestone.title}</CardTitle>
+                </div>
+                <div className="flex gap-2">
+                  <Dialog open={editingMilestone?.id === milestone.id} onOpenChange={(open) => !open && setEditingMilestone(null)}>
+                    <DialogTrigger asChild>
+                      <Button size="icon" variant="ghost" onClick={() => setEditingMilestone(milestone)} data-testid={`button-edit-history-${milestone.id}`}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>연혁 수정</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="year">연도</Label>
+                          <Input id="year" name="year" type="number" defaultValue={milestone.year} required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="title">제목</Label>
+                          <Input id="title" name="title" defaultValue={milestone.title} required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="description">설명</Label>
+                          <Textarea id="description" name="description" defaultValue={milestone.description || ""} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="isHighlight" name="isHighlight" defaultChecked={milestone.isHighlight || false} />
+                          <Label htmlFor="isHighlight">주요 이벤트로 표시</Label>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="displayOrder">표시 순서</Label>
+                          <Input id="displayOrder" name="displayOrder" type="number" defaultValue={milestone.displayOrder ?? 0} />
+                        </div>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button type="button" variant="outline">취소</Button>
+                          </DialogClose>
+                          <Button type="submit" disabled={updateMutation.isPending}>저장</Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => deleteMutation.mutate(milestone.id)}
+                    data-testid={`button-delete-history-${milestone.id}`}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
+              </CardHeader>
+              {milestone.description && (
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{milestone.description}</p>
+                </CardContent>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface CompanyStats {
+  projectCount: { value: string; label: string };
+  householdCount: { value: string; label: string };
+  yearsInBusiness: { value: string; label: string };
+  awardCount: { value: string; label: string };
+}
+
+interface FooterSettings {
+  companyName: string;
+  address: string;
+  phone: string;
+  email: string;
+  businessNumber: string;
+  copyright: string;
+}
+
+interface CeoMessage {
+  title: string;
+  paragraphs: string[];
+  signature: string;
+}
+
+function SiteSettingsSection() {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<"stats" | "footer" | "ceo">("stats");
+
+  const { data: settings, isLoading } = useQuery<SiteSetting[]>({
+    queryKey: ["/api/admin/settings"],
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ key, value }: { key: string; value: any }) => {
+      return apiRequest("PUT", `/api/admin/settings/${key}`, { value });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      toast({ title: "설정이 저장되었습니다" });
+    },
+    onError: () => {
+      toast({ title: "설정 저장 실패", variant: "destructive" });
+    },
+  });
+
+  const getSetting = (key: string): any => {
+    const setting = settings?.find(s => s.key === key);
+    return setting?.value || null;
+  };
+
+  const defaultStats: CompanyStats = {
+    projectCount: { value: "32+", label: "프로젝트" },
+    householdCount: { value: "2,500+", label: "세대" },
+    yearsInBusiness: { value: "13", label: "년" },
+    awardCount: { value: "15+", label: "수상" },
+  };
+
+  const defaultFooter: FooterSettings = {
+    companyName: "(주)아이부키",
+    address: "서울시 성동구 왕십리로 115 헤이그라운드 서울숲점 G409",
+    phone: "02-6352-5730",
+    email: "hello@ibookee.kr",
+    businessNumber: "110-81-77570",
+    copyright: "2024 IBOOKEE. All rights reserved.",
+  };
+
+  const defaultCeo: CeoMessage = {
+    title: "CEO 인사말",
+    paragraphs: [
+      "아이부키는 사회주택 전문 기업으로서 주거 취약계층의 주거 안정과 삶의 질 향상을 위해 노력하고 있습니다.",
+      "우리는 단순히 집을 짓는 것이 아닌, 커뮤니티를 만들고 이웃과 함께하는 삶의 가치를 실현합니다.",
+    ],
+    signature: "아이부키 대표",
+  };
+
+  const handleStatsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const stats: CompanyStats = {
+      projectCount: { value: formData.get("projectValue") as string, label: formData.get("projectLabel") as string },
+      householdCount: { value: formData.get("householdValue") as string, label: formData.get("householdLabel") as string },
+      yearsInBusiness: { value: formData.get("yearsValue") as string, label: formData.get("yearsLabel") as string },
+      awardCount: { value: formData.get("awardValue") as string, label: formData.get("awardLabel") as string },
+    };
+    updateMutation.mutate({ key: "company_stats", value: stats });
+  };
+
+  const handleFooterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const footer: FooterSettings = {
+      companyName: formData.get("companyName") as string,
+      address: formData.get("address") as string,
+      phone: formData.get("phone") as string,
+      email: formData.get("email") as string,
+      businessNumber: formData.get("businessNumber") as string,
+      copyright: formData.get("copyright") as string,
+    };
+    updateMutation.mutate({ key: "footer_settings", value: footer });
+  };
+
+  const handleCeoSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const paragraphsText = formData.get("paragraphs") as string;
+    const ceo: CeoMessage = {
+      title: formData.get("title") as string,
+      paragraphs: paragraphsText.split("\n").filter(p => p.trim()),
+      signature: formData.get("signature") as string,
+    };
+    updateMutation.mutate({ key: "ceo_message", value: ceo });
+  };
+
+  const currentStats = getSetting("company_stats") || defaultStats;
+  const currentFooter = getSetting("footer_settings") || defaultFooter;
+  const currentCeo = getSetting("ceo_message") || defaultCeo;
+
+  if (isLoading) {
+    return <div className="text-center py-12 text-muted-foreground">로딩 중...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 flex-wrap">
+        <h2 className="text-xl font-semibold">사이트 설정</h2>
+        <div className="flex gap-2">
+          <Button
+            variant={activeTab === "stats" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveTab("stats")}
+            data-testid="tab-stats"
+          >
+            회사 성과
+          </Button>
+          <Button
+            variant={activeTab === "footer" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveTab("footer")}
+            data-testid="tab-footer"
+          >
+            푸터 정보
+          </Button>
+          <Button
+            variant={activeTab === "ceo" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveTab("ceo")}
+            data-testid="tab-ceo"
+          >
+            CEO 메시지
+          </Button>
+        </div>
+      </div>
+
+      {activeTab === "stats" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>회사 성과 지표</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleStatsSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>프로젝트 수</Label>
+                  <div className="flex gap-2">
+                    <Input name="projectValue" defaultValue={currentStats.projectCount?.value} placeholder="32+" data-testid="input-stats-project-value" />
+                    <Input name="projectLabel" defaultValue={currentStats.projectCount?.label} placeholder="프로젝트" data-testid="input-stats-project-label" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>세대 수</Label>
+                  <div className="flex gap-2">
+                    <Input name="householdValue" defaultValue={currentStats.householdCount?.value} placeholder="2,500+" data-testid="input-stats-household-value" />
+                    <Input name="householdLabel" defaultValue={currentStats.householdCount?.label} placeholder="세대" data-testid="input-stats-household-label" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>업력</Label>
+                  <div className="flex gap-2">
+                    <Input name="yearsValue" defaultValue={currentStats.yearsInBusiness?.value} placeholder="13" data-testid="input-stats-years-value" />
+                    <Input name="yearsLabel" defaultValue={currentStats.yearsInBusiness?.label} placeholder="년" data-testid="input-stats-years-label" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>수상 실적</Label>
+                  <div className="flex gap-2">
+                    <Input name="awardValue" defaultValue={currentStats.awardCount?.value} placeholder="15+" data-testid="input-stats-award-value" />
+                    <Input name="awardLabel" defaultValue={currentStats.awardCount?.label} placeholder="수상" data-testid="input-stats-award-label" />
+                  </div>
+                </div>
+              </div>
+              <Button type="submit" disabled={updateMutation.isPending} data-testid="button-save-stats">
+                저장
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === "footer" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>푸터 정보</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleFooterSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="companyName">회사명</Label>
+                <Input id="companyName" name="companyName" defaultValue={currentFooter.companyName} data-testid="input-footer-company" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">주소</Label>
+                <Input id="address" name="address" defaultValue={currentFooter.address} data-testid="input-footer-address" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">전화번호</Label>
+                  <Input id="phone" name="phone" defaultValue={currentFooter.phone} data-testid="input-footer-phone" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">이메일</Label>
+                  <Input id="email" name="email" defaultValue={currentFooter.email} data-testid="input-footer-email" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="businessNumber">사업자등록번호</Label>
+                <Input id="businessNumber" name="businessNumber" defaultValue={currentFooter.businessNumber} data-testid="input-footer-business" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="copyright">저작권 문구</Label>
+                <Input id="copyright" name="copyright" defaultValue={currentFooter.copyright} data-testid="input-footer-copyright" />
+              </div>
+              <Button type="submit" disabled={updateMutation.isPending} data-testid="button-save-footer">
+                저장
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === "ceo" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>CEO 메시지</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCeoSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">제목</Label>
+                <Input id="title" name="title" defaultValue={currentCeo.title} data-testid="input-ceo-title" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="paragraphs">본문 (줄바꿈으로 문단 구분)</Label>
+                <Textarea 
+                  id="paragraphs" 
+                  name="paragraphs" 
+                  rows={6} 
+                  defaultValue={currentCeo.paragraphs?.join("\n") || ""} 
+                  data-testid="input-ceo-paragraphs" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signature">서명</Label>
+                <Input id="signature" name="signature" defaultValue={currentCeo.signature} data-testid="input-ceo-signature" />
+              </div>
+              <Button type="submit" disabled={updateMutation.isPending} data-testid="button-save-ceo">
+                저장
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
