@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Building2, Users, Award, Target, ChevronRight } from "lucide-react";
-import { useCompanyStats } from "@/hooks/use-site-settings";
+import { useCompanyStats, usePageImages } from "@/hooks/use-site-settings";
 import type { HistoryMilestone, Partner } from "@shared/schema";
 
 const defaultHistoryMilestones = [
@@ -29,6 +29,7 @@ const defaultPartners = [
 
 export default function About() {
   const { stats } = useCompanyStats();
+  const { getImageUrl } = usePageImages();
   
   const { data: historyData } = useQuery<HistoryMilestone[]>({
     queryKey: ["/api/history"],
@@ -109,7 +110,7 @@ export default function About() {
               </div>
               <div className="relative">
                 <img
-                  src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                  src={getImageUrl("about", "office")}
                   alt="아이부키 오피스"
                   className="rounded-lg w-full aspect-[4/3] object-cover"
                 />
@@ -123,7 +124,7 @@ export default function About() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
               <div className="lg:sticky lg:top-32 lg:self-start">
                 <img
-                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                  src={getImageUrl("about", "ceo")}
                   alt="CEO"
                   className="rounded-lg w-full max-w-md aspect-[3/4] object-cover"
                 />

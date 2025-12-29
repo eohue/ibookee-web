@@ -1,8 +1,12 @@
 import { Link } from "wouter";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePageImages } from "@/hooks/use-site-settings";
 
 export default function HeroSection() {
+  const { getImageUrl } = usePageImages();
+  const heroImageUrl = getImageUrl("home", "hero");
+
   return (
     <section
       className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden"
@@ -11,7 +15,7 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`,
+          backgroundImage: `url('${heroImageUrl}')`,
         }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />

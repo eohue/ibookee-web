@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { SiteSetting } from "@shared/schema";
+import type { SiteSetting, PageImage } from "@shared/schema";
 
 interface CompanyStats {
   projectCount: { value: string; label: string };
@@ -98,5 +98,39 @@ export function useCeoMessage() {
   };
 }
 
-export { defaultStats, defaultFooter, defaultCeo };
+const defaultPageImages: Record<string, Record<string, string>> = {
+  home: {
+    hero: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+  },
+  about: {
+    office: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    ceo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+  },
+  business: {
+    "solution-youth": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    "solution-single": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    "solution-family": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+  },
+};
+
+export function usePageImages() {
+  const { data: pageImages, isLoading } = useQuery<PageImage[]>({
+    queryKey: ["/api/page-images"],
+    staleTime: 60000,
+  });
+
+  const getImageUrl = (pageKey: string, imageKey: string): string => {
+    const dbImage = pageImages?.find(img => img.pageKey === pageKey && img.imageKey === imageKey);
+    if (dbImage) return dbImage.imageUrl;
+    return defaultPageImages[pageKey]?.[imageKey] || "";
+  };
+
+  return {
+    getImageUrl,
+    isLoading,
+    pageImages,
+  };
+}
+
+export { defaultStats, defaultFooter, defaultCeo, defaultPageImages };
 export type { CompanyStats, FooterSettings, CeoMessage };
