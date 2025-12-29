@@ -73,7 +73,7 @@ export default function FeaturedProjects() {
             {displayProjects.map((project) => (
               <Link
                 key={project.id}
-                href="/space"
+                href={`/space/${project.id}`}
                 className="group block overflow-hidden rounded-lg bg-background border border-border hover-elevate"
                 data-testid={`card-project-${project.id}`}
               >

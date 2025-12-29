@@ -7,8 +7,10 @@ import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Business from "@/pages/Business";
 import Space from "@/pages/Space";
+import SpaceDetail from "@/pages/SpaceDetail";
 import Community from "@/pages/Community";
 import Insight from "@/pages/Insight";
+import InsightDetail from "@/pages/InsightDetail";
 import Contact from "@/pages/Contact";
 import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/not-found";
@@ -20,8 +22,10 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/business" component={Business} />
       <Route path="/space" component={Space} />
+      <Route path="/space/:id" component={SpaceDetail} />
       <Route path="/community" component={Community} />
       <Route path="/insight" component={Insight} />
+      <Route path="/insight/:id" component={InsightDetail} />
       <Route path="/contact" component={Contact} />
       <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />

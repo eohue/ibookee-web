@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { FileText, Video, Download, Calendar, User, AlertCircle, RefreshCw } from "lucide-react";
@@ -162,11 +163,15 @@ export default function Insight() {
                       <h2 className="text-2xl font-bold text-foreground mb-8">주요 기사</h2>
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {featuredArticles.map((article) => (
-                          <Card
+                          <Link
                             key={article.id}
-                            className="overflow-hidden hover-elevate cursor-pointer"
-                            data-testid={`featured-article-${article.id}`}
+                            href={`/insight/${article.id}`}
+                            className="block"
                           >
+                            <Card
+                              className="overflow-hidden hover-elevate cursor-pointer h-full"
+                              data-testid={`featured-article-${article.id}`}
+                            >
                             <div className="grid grid-cols-1 md:grid-cols-2">
                               <div className="aspect-[4/3] md:aspect-auto">
                                 {article.imageUrl ? (
@@ -208,6 +213,7 @@ export default function Insight() {
                               </div>
                             </div>
                           </Card>
+                        </Link>
                         ))}
                       </div>
                     </div>
@@ -228,11 +234,15 @@ export default function Insight() {
                         {(activeCategory === "all" ? regularArticles : filteredArticles).map((article) => {
                           const CategoryIcon = getCategoryIcon(article.category);
                           return (
-                            <Card
+                            <Link
                               key={article.id}
-                              className="overflow-hidden hover-elevate cursor-pointer"
-                              data-testid={`article-${article.id}`}
+                              href={`/insight/${article.id}`}
+                              className="block"
                             >
+                              <Card
+                                className="overflow-hidden hover-elevate cursor-pointer h-full"
+                                data-testid={`article-${article.id}`}
+                              >
                               <div className="aspect-[16/9] overflow-hidden">
                                 {article.imageUrl ? (
                                   <img
@@ -267,6 +277,7 @@ export default function Insight() {
                                 </div>
                               </div>
                             </Card>
+                          </Link>
                           );
                         })}
                       </div>
