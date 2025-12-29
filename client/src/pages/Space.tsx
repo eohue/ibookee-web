@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { MapPin, Grid3X3, Map, AlertCircle, RefreshCw } from "lucide-react";
@@ -120,9 +121,10 @@ export default function Space() {
             ) : viewMode === "grid" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredProjects.map((project) => (
-                  <div
+                  <Link
                     key={project.id}
-                    className="group overflow-hidden rounded-lg bg-card border border-border hover-elevate cursor-pointer"
+                    href={`/space/${project.id}`}
+                    className="group overflow-hidden rounded-lg bg-card border border-border hover-elevate cursor-pointer block"
                     data-testid={`card-project-${project.id}`}
                   >
                     <div className="relative aspect-[4/3] overflow-hidden">
@@ -159,7 +161,7 @@ export default function Space() {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
