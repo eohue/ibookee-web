@@ -4,8 +4,9 @@ import { Link } from "wouter";
 import { ArrowRight, Building2, Leaf, Users, Shield, TrendingUp, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { usePageImages } from "@/hooks/use-site-settings";
 
-const solutions = [
+const solutionsData = [
   {
     id: "purchase-agreement",
     title: "매입약정형",
@@ -17,11 +18,11 @@ const solutions = [
       "장기 운영위탁 계약",
       "안정적 수익 구조",
     ],
+    imageKey: "solution-youth",
     case: {
       name: "안암생활",
       location: "서울 성북구",
       units: 86,
-      image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     },
   },
   {
@@ -35,11 +36,11 @@ const solutions = [
       "장기 안정적 사업 운영",
       "공공-민간 협력 모델",
     ],
+    imageKey: "solution-single",
     case: {
       name: "홍시주택",
       location: "서울 마포구",
       units: 45,
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     },
   },
   {
@@ -53,11 +54,11 @@ const solutions = [
       "도시재생 활성화 기여",
       "지역경제 순환 구조",
     ],
+    imageKey: "solution-family",
     case: {
       name: "장안생활",
       location: "서울 동대문구",
       units: 120,
-      image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     },
   },
 ];
@@ -99,6 +100,16 @@ const esgMetrics = [
 ];
 
 export default function Business() {
+  const { getImageUrl } = usePageImages();
+  
+  const solutions = solutionsData.map(s => ({
+    ...s,
+    case: {
+      ...s.case,
+      image: getImageUrl("business", s.imageKey),
+    },
+  }));
+
   return (
     <div className="min-h-screen" data-testid="page-business">
       <Header />
