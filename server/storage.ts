@@ -5,6 +5,7 @@ import {
   inquiries,
   articles,
   communityPosts,
+  socialAccounts,
   events,
   editablePages,
   residentPrograms,
@@ -19,6 +20,8 @@ import {
   type InsertArticle,
   type CommunityPost,
   type InsertCommunityPost,
+  type SocialAccount,
+  type InsertSocialAccount,
   type Event,
   type InsertEvent,
   type EditablePage,
@@ -56,9 +59,19 @@ export interface IStorage {
   updateArticle(id: string, article: Partial<InsertArticle>): Promise<Article | undefined>;
   deleteArticle(id: string): Promise<void>;
 
+  // Social Accounts
+  getSocialAccounts(): Promise<SocialAccount[]>;
+  getSocialAccount(id: string): Promise<SocialAccount | undefined>;
+  createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount>;
+  updateSocialAccount(id: string, account: Partial<InsertSocialAccount>): Promise<SocialAccount | undefined>;
+  deleteSocialAccount(id: string): Promise<void>;
+
   // Community Posts
   getCommunityPosts(): Promise<CommunityPost[]>;
+  getCommunityPost(id: string): Promise<CommunityPost | undefined>;
+  getCommunityPostsByHashtag(hashtag: string): Promise<CommunityPost[]>;
   createCommunityPost(post: InsertCommunityPost): Promise<CommunityPost>;
+  updateCommunityPost(id: string, post: Partial<InsertCommunityPost>): Promise<CommunityPost | undefined>;
   deleteCommunityPost(id: string): Promise<void>;
 
   // Events
@@ -175,13 +188,52 @@ export class DatabaseStorage implements IStorage {
     await db.delete(articles).where(eq(articles.id, id));
   }
 
+  // Social Accounts
+  async getSocialAccounts(): Promise<SocialAccount[]> {
+    return db.select().from(socialAccounts);
+  }
+
+  async getSocialAccount(id: string): Promise<SocialAccount | undefined> {
+    const result = await db.select().from(socialAccounts).where(eq(socialAccounts.id, id));
+    return result[0];
+  }
+
+  async createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount> {
+    const result = await db.insert(socialAccounts).values(account).returning();
+    return result[0];
+  }
+
+  async updateSocialAccount(id: string, account: Partial<InsertSocialAccount>): Promise<SocialAccount | undefined> {
+    const result = await db.update(socialAccounts).set(account).where(eq(socialAccounts.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteSocialAccount(id: string): Promise<void> {
+    await db.delete(socialAccounts).where(eq(socialAccounts.id, id));
+  }
+
   // Community Posts
   async getCommunityPosts(): Promise<CommunityPost[]> {
     return db.select().from(communityPosts);
   }
 
+  async getCommunityPost(id: string): Promise<CommunityPost | undefined> {
+    const result = await db.select().from(communityPosts).where(eq(communityPosts.id, id));
+    return result[0];
+  }
+
+  async getCommunityPostsByHashtag(hashtag: string): Promise<CommunityPost[]> {
+    const allPosts = await db.select().from(communityPosts);
+    return allPosts.filter(post => post.hashtags?.includes(hashtag));
+  }
+
   async createCommunityPost(post: InsertCommunityPost): Promise<CommunityPost> {
     const result = await db.insert(communityPosts).values(post).returning();
+    return result[0];
+  }
+
+  async updateCommunityPost(id: string, post: Partial<InsertCommunityPost>): Promise<CommunityPost | undefined> {
+    const result = await db.update(communityPosts).set(post).where(eq(communityPosts.id, id)).returning();
     return result[0];
   }
 

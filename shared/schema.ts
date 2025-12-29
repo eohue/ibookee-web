@@ -54,14 +54,34 @@ export const insertArticleSchema = createInsertSchema(articles).omit({ id: true,
 export type InsertArticle = z.infer<typeof insertArticleSchema>;
 export type Article = typeof articles.$inferSelect;
 
-// Community Posts
+// Social Accounts (Instagram, Blog)
+export const socialAccounts = pgTable("social_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // 계정 이름 (예: 아이부키 공식, 안암생활)
+  platform: text("platform").notNull(), // instagram, blog, etc.
+  username: text("username").notNull(), // @username or blog URL
+  profileUrl: text("profile_url"), // 프로필 링크
+  profileImageUrl: text("profile_image_url"), // 프로필 이미지
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSocialAccountSchema = createInsertSchema(socialAccounts).omit({ id: true, createdAt: true });
+export type InsertSocialAccount = z.infer<typeof insertSocialAccountSchema>;
+export type SocialAccount = typeof socialAccounts.$inferSelect;
+
+// Community Posts (Social Stream)
 export const communityPosts = pgTable("community_posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  accountId: varchar("account_id").references(() => socialAccounts.id), // 연결된 소셜 계정
   imageUrl: text("image_url").notNull(),
   caption: text("caption"),
   location: text("location"),
   likes: integer("likes").default(0),
-  hashtags: text("hashtags").array(),
+  hashtags: text("hashtags").array(), // ["소모임", "파티", "원데이클래스"]
+  sourceUrl: text("source_url"), // 원본 게시물 링크
+  externalId: text("external_id"), // 외부 플랫폼 게시물 ID (API 연동용)
+  postedAt: timestamp("posted_at").defaultNow(), // 원본 게시 시간
   createdAt: timestamp("created_at").defaultNow(),
 });
 
