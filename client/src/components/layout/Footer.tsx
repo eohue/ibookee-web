@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { useFooterSettings } from "@/hooks/use-site-settings";
-import logoDark from "@assets/logo_square_1766970743622.png";
+import logoDark from "@assets/logo_square_1766971215447.png";
 
 const footerLinks = {
   company: [

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 import logoWhite from "@assets/logo__1766970743621.png";
-import logoDark from "@assets/logo_square_1766970743622.png";
+import logoDark from "@assets/logo_square_1766971215447.png";
 
 const navigation = [
   { name: "About Us", href: "/about" },
