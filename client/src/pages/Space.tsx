@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { MapPin, Grid3X3, Map } from "lucide-react";
+import { MapPin, Grid3X3, Map, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Project } from "@shared/schema";
 
 const categories = [
   { id: "all", label: "전체", labelEn: "All" },
@@ -13,120 +16,13 @@ const categories = [
   { id: "local-anchor", label: "로컬 앵커", labelEn: "Local Anchor" },
 ];
 
-const projects = [
-  {
-    id: 1,
-    title: "안암생활",
-    titleEn: "Anam Life",
-    location: "서울 성북구",
-    category: "youth",
-    description: "청년 특화 주거 공간으로, 코워킹 스페이스와 창업 지원 프로그램을 갖춘 대규모 커뮤니티",
-    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    units: 86,
-    year: 2022,
-    featured: true,
-  },
-  {
-    id: 2,
-    title: "홍시주택",
-    titleEn: "Hongsi House",
-    location: "서울 마포구",
-    category: "single",
-    description: "1인 여성 가구를 위한 안전하고 편리한 주거 공간, 셰어키친과 라운지 완비",
-    image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    units: 45,
-    year: 2021,
-    featured: true,
-  },
-  {
-    id: 3,
-    title: "장안생활",
-    titleEn: "Jangan Life",
-    location: "서울 동대문구",
-    category: "local-anchor",
-    description: "도시재생형 복합 주거 시설로, 지역 상권과 연계된 커뮤니티 앵커 역할",
-    image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    units: 120,
-    year: 2023,
-    featured: true,
-  },
-  {
-    id: 4,
-    title: "보린주택",
-    titleEn: "Borin House",
-    location: "서울 은평구",
-    category: "social-mix",
-    description: "장애인과 비장애인이 함께 어우러져 사는 소셜믹스 커뮤니티",
-    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    units: 32,
-    year: 2014,
-    featured: false,
-  },
-  {
-    id: 5,
-    title: "청춘주택",
-    titleEn: "Youth House",
-    location: "서울 마포구",
-    category: "youth",
-    description: "대학가 인근 청년 주거 공간, 스터디룸과 공유 라운지 완비",
-    image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    units: 54,
-    year: 2019,
-    featured: false,
-  },
-  {
-    id: 6,
-    title: "나눔하우스",
-    titleEn: "Sharing House",
-    location: "경기 고양시",
-    category: "social-mix",
-    description: "다양한 세대가 어우러지는 세대통합형 주거 모델",
-    image: "https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    units: 78,
-    year: 2020,
-    featured: false,
-  },
-  {
-    id: 7,
-    title: "동행주택",
-    titleEn: "Together House",
-    location: "인천 연수구",
-    category: "single",
-    description: "직장인 1인 가구를 위한 편리한 역세권 주거 공간",
-    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    units: 62,
-    year: 2021,
-    featured: false,
-  },
-  {
-    id: 8,
-    title: "마을생활",
-    titleEn: "Village Life",
-    location: "서울 노원구",
-    category: "local-anchor",
-    description: "지역 주민과 입주민이 함께하는 마을 커뮤니티 센터 겸 주거 시설",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    units: 95,
-    year: 2022,
-    featured: false,
-  },
-  {
-    id: 9,
-    title: "희망타운",
-    titleEn: "Hope Town",
-    location: "경기 수원시",
-    category: "youth",
-    description: "청년 창업가를 위한 오피스텔형 주거 공간, 1층 공유 오피스",
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    units: 48,
-    year: 2023,
-    featured: false,
-  },
-];
-
 export default function Space() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+
+  const { data: projects = [], isLoading, isError, refetch } = useQuery<Project[]>({
+    queryKey: ["/api/projects"],
+  });
 
   const filteredProjects = activeCategory === "all"
     ? projects
@@ -198,7 +94,30 @@ export default function Space() {
 
         <section className="py-12 bg-background" data-testid="section-projects">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {viewMode === "grid" ? (
+            {isError ? (
+              <div className="text-center py-16">
+                <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">데이터를 불러올 수 없습니다</h3>
+                <p className="text-muted-foreground mb-4">잠시 후 다시 시도해주세요.</p>
+                <Button variant="outline" onClick={() => refetch()} data-testid="button-retry">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  다시 시도
+                </Button>
+              </div>
+            ) : isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="overflow-hidden rounded-lg bg-card border border-border">
+                    <Skeleton className="aspect-[4/3] w-full" />
+                    <div className="p-5 space-y-3">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : viewMode === "grid" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredProjects.map((project) => (
                   <div
@@ -208,7 +127,7 @@ export default function Space() {
                   >
                     <div className="relative aspect-[4/3] overflow-hidden">
                       <img
-                        src={project.image}
+                        src={project.imageUrl}
                         alt={project.title}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
@@ -220,7 +139,9 @@ export default function Space() {
                       </div>
                       <div className="absolute bottom-4 left-4 right-4">
                         <h3 className="text-xl font-bold text-white">{project.title}</h3>
-                        <p className="text-white/80 text-sm">{project.titleEn}</p>
+                        {project.titleEn && (
+                          <p className="text-white/80 text-sm">{project.titleEn}</p>
+                        )}
                       </div>
                     </div>
                     <div className="p-5">
@@ -233,7 +154,9 @@ export default function Space() {
                       </p>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">{project.year}년 준공</span>
-                        <span className="font-medium text-foreground">{project.units}세대</span>
+                        {project.units && (
+                          <span className="font-medium text-foreground">{project.units}세대</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -252,7 +175,7 @@ export default function Space() {
               </div>
             )}
 
-            {filteredProjects.length === 0 && (
+            {!isLoading && filteredProjects.length === 0 && (
               <div className="text-center py-16">
                 <p className="text-muted-foreground">
                   해당 카테고리의 프로젝트가 없습니다.

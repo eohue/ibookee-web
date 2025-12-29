@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Heart, MessageCircle, Calendar, Users, ArrowRight, Gift } from "lucide-react";
+import { Heart, MessageCircle, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { CommunityPost, Event, ResidentProgram } from "@shared/schema";
 
 const hashtags = [
   { id: "all", label: "전체" },
@@ -15,137 +17,47 @@ const hashtags = [
   { id: "market", label: "#플리마켓" },
 ];
 
-const communityPosts = [
-  {
-    id: 1,
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    caption: "오늘의 요리 클래스! 입주민 분들과 함께 만든 파스타 🍝",
-    location: "안암생활 공유주방",
-    likes: 42,
-    comments: 8,
-    hashtag: "cooking",
-  },
-  {
-    id: 2,
-    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    caption: "월간 입주민 파티! 새로 오신 분들 환영해요 🎉",
-    location: "홍시주택 라운지",
-    likes: 67,
-    comments: 12,
-    hashtag: "party",
-  },
-  {
-    id: 3,
-    image: "https://images.unsplash.com/photo-1571624436279-b272aff752b5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    caption: "옥상 텃밭 가꾸기 클래스 진행했어요 🌱",
-    location: "장안생활 옥상",
-    likes: 35,
-    comments: 5,
-    hashtag: "hobby",
-  },
-  {
-    id: 4,
-    image: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    caption: "봄맞이 플리마켓 성공적! 다음에 또 만나요 💕",
-    location: "안암생활 1층 광장",
-    likes: 89,
-    comments: 23,
-    hashtag: "market",
-  },
-  {
-    id: 5,
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    caption: "독서모임 '책읽는밤' 4월 모임 📚",
-    location: "홍시주택 북카페",
-    likes: 54,
-    comments: 9,
-    hashtag: "hobby",
-  },
-  {
-    id: 6,
-    image: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    caption: "아침 요가 클래스 시작! 함께해요 🧘",
-    location: "장안생활 피트니스룸",
-    likes: 78,
-    comments: 15,
-    hashtag: "hobby",
-  },
-  {
-    id: 7,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    caption: "영화 동호회 '시네마클럽' 모임 🎬",
-    location: "안암생활 미디어룸",
-    likes: 93,
-    comments: 19,
-    hashtag: "hobby",
-  },
-  {
-    id: 8,
-    image: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    caption: "공유주방에서 만난 이웃들 🍳",
-    location: "홍시주택 공유주방",
-    likes: 61,
-    comments: 11,
-    hashtag: "daily",
-  },
-  {
-    id: 9,
-    image: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    caption: "크리스마스 파티 준비 중 🎄",
-    location: "장안생활 라운지",
-    likes: 112,
-    comments: 27,
-    hashtag: "party",
-  },
-];
+const programTypeIcons: Record<string, typeof Users> = {
+  "small-group": Users,
+  "space-sharing": Gift,
+};
 
-const supportPrograms = [
-  {
-    id: 1,
-    title: "소모임 지원 프로그램",
-    description: "입주민 자발적 모임에 활동비와 공간을 지원합니다. 독서, 운동, 취미 등 다양한 모임을 시작해보세요.",
-    icon: Users,
-    benefits: ["월 10만원 활동비 지원", "공용 공간 무료 이용", "홍보물 제작 지원"],
-  },
-  {
-    id: 2,
-    title: "공간 공유 공모전",
-    description: "공유 주방, 라운지 등을 활용한 창의적인 기획을 공모합니다. 채택된 기획에는 실행 예산을 지원합니다.",
-    icon: Gift,
-    benefits: ["최대 50만원 실행 예산", "전문가 멘토링", "기획 컨설팅"],
-  },
-];
+const programTypeLabels: Record<string, string> = {
+  "small-group": "소모임 지원 프로그램",
+  "space-sharing": "공간 공유 공모전",
+};
 
-const upcomingEvents = [
-  {
-    id: 1,
-    title: "5월 입주민 파티",
-    date: "2025-05-15",
-    location: "안암생활 라운지",
-    description: "새로 오신 분들 환영! 함께 저녁 먹어요",
-  },
-  {
-    id: 2,
-    title: "원데이 베이킹 클래스",
-    date: "2025-05-20",
-    location: "홍시주택 공유주방",
-    description: "마카롱 만들기 with 파티시에",
-  },
-  {
-    id: 3,
-    title: "옥상 바베큐 파티",
-    date: "2025-05-25",
-    location: "장안생활 옥상",
-    description: "봄밤의 바베큐 파티",
-  },
-];
+const programTypeBenefits: Record<string, string[]> = {
+  "small-group": ["월 10만원 활동비 지원", "공용 공간 무료 이용", "홍보물 제작 지원"],
+  "space-sharing": ["최대 50만원 실행 예산", "전문가 멘토링", "기획 컨설팅"],
+};
 
 export default function Community() {
   const [activeHashtag, setActiveHashtag] = useState("all");
 
+  const { data: communityPosts = [], isLoading: postsLoading, isError: postsError, refetch: refetchPosts } = useQuery<CommunityPost[]>({
+    queryKey: ["/api/community-posts"],
+  });
+
+  const { data: events = [], isLoading: eventsLoading, isError: eventsError, refetch: refetchEvents } = useQuery<Event[]>({
+    queryKey: ["/api/events"],
+  });
+
+  const { data: programs = [], isLoading: programsLoading, isError: programsError, refetch: refetchPrograms } = useQuery<ResidentProgram[]>({
+    queryKey: ["/api/programs"],
+  });
+
   const filteredPosts = activeHashtag === "all"
     ? communityPosts
-    : communityPosts.filter((post) => post.hashtag === activeHashtag);
+    : communityPosts.filter((post) => post.hashtags?.includes(activeHashtag));
+
+  const upcomingEvents = events.filter((event) => 
+    event.published && (event.status === "upcoming" || event.status === "ongoing")
+  ).slice(0, 3);
+
+  const openPrograms = programs.filter((program) => 
+    program.published && program.status === "open"
+  );
 
   return (
     <div className="min-h-screen" data-testid="page-community">
@@ -195,38 +107,62 @@ export default function Community() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="group relative aspect-square overflow-hidden rounded-lg bg-muted cursor-pointer"
-                  data-testid={`post-${post.id}`}
-                >
-                  <img
-                    src={post.image}
-                    alt={post.caption}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300" />
-                  <div className="absolute inset-0 p-4 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="flex items-center gap-4 text-white">
-                      <div className="flex items-center gap-1">
-                        <Heart className="w-5 h-5 fill-white" />
-                        <span className="font-medium">{post.likes}</span>
+            {postsError ? (
+              <div className="text-center py-16">
+                <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">데이터를 불러올 수 없습니다</h3>
+                <p className="text-muted-foreground mb-4">잠시 후 다시 시도해주세요.</p>
+                <Button variant="outline" onClick={() => refetchPosts()} data-testid="button-retry-posts">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  다시 시도
+                </Button>
+              </div>
+            ) : postsLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[...Array(8)].map((_, i) => (
+                  <Skeleton key={i} className="aspect-square rounded-lg" />
+                ))}
+              </div>
+            ) : filteredPosts.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground">
+                  등록된 게시물이 없습니다.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="group relative aspect-square overflow-hidden rounded-lg bg-muted cursor-pointer"
+                    data-testid={`post-${post.id}`}
+                  >
+                    <img
+                      src={post.imageUrl}
+                      alt={post.caption || "Community post"}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300" />
+                    <div className="absolute inset-0 p-4 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="flex items-center gap-4 text-white">
+                        <div className="flex items-center gap-1">
+                          <Heart className="w-5 h-5 fill-white" />
+                          <span className="font-medium">{post.likes || 0}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="w-5 h-5" />
-                        <span className="font-medium">{post.comments}</span>
+                      <div>
+                        {post.caption && (
+                          <p className="text-white text-sm line-clamp-2 mb-1">{post.caption}</p>
+                        )}
+                        {post.location && (
+                          <p className="text-white/70 text-xs">{post.location}</p>
+                        )}
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-white text-sm line-clamp-2 mb-1">{post.caption}</p>
-                      <p className="text-white/70 text-xs">{post.location}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -241,37 +177,75 @@ export default function Community() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {supportPrograms.map((program) => (
-                <Card
-                  key={program.id}
-                  className="p-6 md:p-8"
-                  data-testid={`program-${program.id}`}
-                >
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-                    <program.icon className="w-7 h-7 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-3">
-                    {program.title}
-                  </h3>
-                  <p className="text-muted-foreground mb-6">
-                    {program.description}
-                  </p>
-                  <ul className="space-y-2 mb-6">
-                    {program.benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        {benefit}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button variant="outline" className="w-full group" data-testid={`button-apply-${program.id}`}>
-                    신청하기
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Card>
-              ))}
-            </div>
+            {programsError ? (
+              <div className="text-center py-8">
+                <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">데이터를 불러올 수 없습니다</h3>
+                <p className="text-muted-foreground mb-4">잠시 후 다시 시도해주세요.</p>
+                <Button variant="outline" onClick={() => refetchPrograms()} data-testid="button-retry-programs">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  다시 시도
+                </Button>
+              </div>
+            ) : programsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {[...Array(2)].map((_, i) => (
+                  <Card key={i} className="p-6 md:p-8">
+                    <Skeleton className="w-14 h-14 rounded-full mb-6" />
+                    <Skeleton className="h-6 w-48 mb-3" />
+                    <Skeleton className="h-4 w-full mb-6" />
+                    <div className="space-y-2 mb-6">
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-4 w-36" />
+                      <Skeleton className="h-4 w-44" />
+                    </div>
+                    <Skeleton className="h-10 w-full" />
+                  </Card>
+                ))}
+              </div>
+            ) : openPrograms.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  현재 모집 중인 프로그램이 없습니다.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {openPrograms.map((program) => {
+                  const IconComponent = programTypeIcons[program.programType] || Users;
+                  const defaultBenefits = programTypeBenefits[program.programType] || [];
+                  return (
+                    <Card
+                      key={program.id}
+                      className="p-6 md:p-8"
+                      data-testid={`program-${program.id}`}
+                    >
+                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                        <IconComponent className="w-7 h-7 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-foreground mb-3">
+                        {program.title}
+                      </h3>
+                      <p className="text-muted-foreground mb-6">
+                        {program.description}
+                      </p>
+                      <ul className="space-y-2 mb-6">
+                        {defaultBenefits.map((benefit, index) => (
+                          <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            {benefit}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button variant="outline" className="w-full group" data-testid={`button-apply-${program.id}`}>
+                        신청하기
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
 
@@ -288,32 +262,66 @@ export default function Community() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {upcomingEvents.map((event) => (
-                <Card
-                  key={event.id}
-                  className="p-6 hover-elevate"
-                  data-testid={`event-${event.id}`}
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-primary" />
+            {eventsError ? (
+              <div className="text-center py-8">
+                <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">데이터를 불러올 수 없습니다</h3>
+                <p className="text-muted-foreground mb-4">잠시 후 다시 시도해주세요.</p>
+                <Button variant="outline" onClick={() => refetchEvents()} data-testid="button-retry-events">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  다시 시도
+                </Button>
+              </div>
+            ) : eventsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => (
+                  <Card key={i} className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Skeleton className="w-12 h-12 rounded-lg" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-primary">
-                        {new Date(event.date).toLocaleDateString("ko-KR", {
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{event.location}</p>
+                    <Skeleton className="h-5 w-32 mb-2" />
+                    <Skeleton className="h-4 w-full" />
+                  </Card>
+                ))}
+              </div>
+            ) : upcomingEvents.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  예정된 행사가 없습니다.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {upcomingEvents.map((event) => (
+                  <Card
+                    key={event.id}
+                    className="p-6 hover-elevate"
+                    data-testid={`event-${event.id}`}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Calendar className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-primary">
+                          {new Date(event.date).toLocaleDateString("ko-KR", {
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{event.location}</p>
+                      </div>
                     </div>
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">{event.title}</h3>
-                  <p className="text-sm text-muted-foreground">{event.description}</p>
-                </Card>
-              ))}
-            </div>
+                    <h3 className="font-semibold text-foreground mb-2">{event.title}</h3>
+                    <p className="text-sm text-muted-foreground">{event.description}</p>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </main>
