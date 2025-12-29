@@ -1,20 +1,22 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Heart, MessageCircle, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw } from "lucide-react";
+import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink } from "lucide-react";
+import { SiInstagram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CommunityPost, Event, ResidentProgram } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
+import type { CommunityPost, Event, ResidentProgram, SocialAccount } from "@shared/schema";
 
-const hashtags = [
+const defaultHashtags = [
   { id: "all", label: "전체" },
-  { id: "party", label: "#파티" },
-  { id: "cooking", label: "#요리클래스" },
-  { id: "hobby", label: "#소모임" },
-  { id: "daily", label: "#입주민일상" },
-  { id: "market", label: "#플리마켓" },
+  { id: "소모임", label: "#소모임" },
+  { id: "파티", label: "#파티" },
+  { id: "원데이클래스", label: "#원데이클래스" },
+  { id: "입주민일상", label: "#입주민일상" },
+  { id: "플리마켓", label: "#플리마켓" },
 ];
 
 const programTypeIcons: Record<string, typeof Users> = {
@@ -35,6 +37,10 @@ const programTypeBenefits: Record<string, string[]> = {
 export default function Community() {
   const [activeHashtag, setActiveHashtag] = useState("all");
 
+  const { data: socialAccounts = [], isLoading: accountsLoading } = useQuery<SocialAccount[]>({
+    queryKey: ["/api/social-accounts"],
+  });
+
   const { data: communityPosts = [], isLoading: postsLoading, isError: postsError, refetch: refetchPosts } = useQuery<CommunityPost[]>({
     queryKey: ["/api/community-posts"],
   });
@@ -47,9 +53,27 @@ export default function Community() {
     queryKey: ["/api/programs"],
   });
 
+  const allHashtags = useMemo(() => {
+    const tagSet = new Set<string>();
+    communityPosts.forEach(post => {
+      post.hashtags?.forEach(tag => tagSet.add(tag));
+    });
+    const dynamicTags = Array.from(tagSet).map(tag => ({ id: tag, label: `#${tag}` }));
+    if (dynamicTags.length > 0) {
+      return [{ id: "all", label: "전체" }, ...dynamicTags];
+    }
+    return defaultHashtags;
+  }, [communityPosts]);
+
   const filteredPosts = activeHashtag === "all"
     ? communityPosts
     : communityPosts.filter((post) => post.hashtags?.includes(activeHashtag));
+  
+  const accountsById = useMemo(() => {
+    const map: Record<string, SocialAccount> = {};
+    socialAccounts.forEach(acc => { map[acc.id] = acc; });
+    return map;
+  }, [socialAccounts]);
 
   const upcomingEvents = events.filter((event) => 
     event.published && (event.status === "upcoming" || event.status === "ongoing")
@@ -92,7 +116,7 @@ export default function Community() {
                 </h2>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {hashtags.map((tag) => (
+                {allHashtags.map((tag) => (
                   <Button
                     key={tag.id}
                     variant={activeHashtag === tag.id ? "default" : "outline"}
@@ -131,36 +155,53 @@ export default function Community() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    className="group relative aspect-square overflow-hidden rounded-lg bg-muted cursor-pointer"
-                    data-testid={`post-${post.id}`}
-                  >
-                    <img
-                      src={post.imageUrl}
-                      alt={post.caption || "Community post"}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300" />
-                    <div className="absolute inset-0 p-4 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="flex items-center gap-4 text-white">
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-5 h-5 fill-white" />
-                          <span className="font-medium">{post.likes || 0}</span>
+                {filteredPosts.map((post) => {
+                  const account = post.accountId ? accountsById[post.accountId] : null;
+                  return (
+                    <div
+                      key={post.id}
+                      className="group relative aspect-square overflow-hidden rounded-lg bg-muted cursor-pointer"
+                      data-testid={`post-${post.id}`}
+                      onClick={() => post.sourceUrl && window.open(post.sourceUrl, '_blank')}
+                    >
+                      <img
+                        src={post.imageUrl}
+                        alt={post.caption || "Community post"}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300" />
+                      <div className="absolute inset-0 p-4 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="flex items-center justify-between text-white">
+                          <div className="flex items-center gap-1">
+                            <Heart className="w-5 h-5 fill-white" />
+                            <span className="font-medium">{post.likes || 0}</span>
+                          </div>
+                          {post.sourceUrl && (
+                            <ExternalLink className="w-4 h-4" />
+                          )}
+                        </div>
+                        <div>
+                          {account && (
+                            <div className="flex items-center gap-2 mb-2">
+                              {account.platform === 'instagram' && <SiInstagram className="w-4 h-4 text-white" />}
+                              <span className="text-white text-xs font-medium">{account.name}</span>
+                            </div>
+                          )}
+                          {post.caption && (
+                            <p className="text-white text-sm line-clamp-2 mb-1">{post.caption}</p>
+                          )}
+                          {post.hashtags && post.hashtags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {post.hashtags.slice(0, 3).map(tag => (
+                                <span key={tag} className="text-white/80 text-xs">#{tag}</span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div>
-                        {post.caption && (
-                          <p className="text-white text-sm line-clamp-2 mb-1">{post.caption}</p>
-                        )}
-                        {post.location && (
-                          <p className="text-white/70 text-xs">{post.location}</p>
-                        )}
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
