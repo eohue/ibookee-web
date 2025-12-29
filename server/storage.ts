@@ -12,6 +12,8 @@ import {
   programApplications,
   projectImages,
   partners,
+  historyMilestones,
+  siteSettings,
   type Project,
   type InsertProject,
   type Inquiry,
@@ -34,6 +36,10 @@ import {
   type InsertProjectImage,
   type Partner,
   type InsertPartner,
+  type HistoryMilestone,
+  type InsertHistoryMilestone,
+  type SiteSetting,
+  type InsertSiteSetting,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -111,6 +117,18 @@ export interface IStorage {
   createPartner(partner: InsertPartner): Promise<Partner>;
   updatePartner(id: string, partner: Partial<InsertPartner>): Promise<Partner | undefined>;
   deletePartner(id: string): Promise<void>;
+
+  // History Milestones
+  getHistoryMilestones(): Promise<HistoryMilestone[]>;
+  createHistoryMilestone(milestone: InsertHistoryMilestone): Promise<HistoryMilestone>;
+  updateHistoryMilestone(id: string, milestone: Partial<InsertHistoryMilestone>): Promise<HistoryMilestone | undefined>;
+  deleteHistoryMilestone(id: string): Promise<void>;
+
+  // Site Settings
+  getSiteSettings(): Promise<SiteSetting[]>;
+  getSiteSetting(key: string): Promise<SiteSetting | undefined>;
+  upsertSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
+  deleteSiteSetting(key: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -370,6 +388,49 @@ export class DatabaseStorage implements IStorage {
 
   async deletePartner(id: string): Promise<void> {
     await db.delete(partners).where(eq(partners.id, id));
+  }
+
+  // History Milestones
+  async getHistoryMilestones(): Promise<HistoryMilestone[]> {
+    return db.select().from(historyMilestones).orderBy(historyMilestones.year);
+  }
+
+  async createHistoryMilestone(milestone: InsertHistoryMilestone): Promise<HistoryMilestone> {
+    const result = await db.insert(historyMilestones).values(milestone).returning();
+    return result[0];
+  }
+
+  async updateHistoryMilestone(id: string, milestone: Partial<InsertHistoryMilestone>): Promise<HistoryMilestone | undefined> {
+    const result = await db.update(historyMilestones).set(milestone).where(eq(historyMilestones.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteHistoryMilestone(id: string): Promise<void> {
+    await db.delete(historyMilestones).where(eq(historyMilestones.id, id));
+  }
+
+  // Site Settings
+  async getSiteSettings(): Promise<SiteSetting[]> {
+    return db.select().from(siteSettings);
+  }
+
+  async getSiteSetting(key: string): Promise<SiteSetting | undefined> {
+    const result = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
+    return result[0];
+  }
+
+  async upsertSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting> {
+    const existing = await this.getSiteSetting(setting.key);
+    if (existing) {
+      const result = await db.update(siteSettings).set({ value: setting.value, updatedAt: new Date() }).where(eq(siteSettings.key, setting.key)).returning();
+      return result[0];
+    }
+    const result = await db.insert(siteSettings).values(setting).returning();
+    return result[0];
+  }
+
+  async deleteSiteSetting(key: string): Promise<void> {
+    await db.delete(siteSettings).where(eq(siteSettings.key, key));
   }
 }
 
