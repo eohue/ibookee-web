@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "./db";
 import {
   projects,
@@ -14,6 +14,7 @@ import {
   partners,
   historyMilestones,
   siteSettings,
+  pageImages,
   type Project,
   type InsertProject,
   type Inquiry,
@@ -40,6 +41,8 @@ import {
   type InsertHistoryMilestone,
   type SiteSetting,
   type InsertSiteSetting,
+  type PageImage,
+  type InsertPageImage,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -129,6 +132,13 @@ export interface IStorage {
   getSiteSetting(key: string): Promise<SiteSetting | undefined>;
   upsertSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
   deleteSiteSetting(key: string): Promise<void>;
+
+  // Page Images
+  getPageImages(): Promise<PageImage[]>;
+  getPageImagesByPage(pageKey: string): Promise<PageImage[]>;
+  getPageImage(pageKey: string, imageKey: string): Promise<PageImage | undefined>;
+  upsertPageImage(image: InsertPageImage): Promise<PageImage>;
+  deletePageImage(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -431,6 +441,38 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSiteSetting(key: string): Promise<void> {
     await db.delete(siteSettings).where(eq(siteSettings.key, key));
+  }
+
+  // Page Images
+  async getPageImages(): Promise<PageImage[]> {
+    return db.select().from(pageImages);
+  }
+
+  async getPageImagesByPage(pageKey: string): Promise<PageImage[]> {
+    return db.select().from(pageImages).where(eq(pageImages.pageKey, pageKey));
+  }
+
+  async getPageImage(pageKey: string, imageKey: string): Promise<PageImage | undefined> {
+    const result = await db.select().from(pageImages)
+      .where(and(eq(pageImages.pageKey, pageKey), eq(pageImages.imageKey, imageKey)));
+    return result[0];
+  }
+
+  async upsertPageImage(image: InsertPageImage): Promise<PageImage> {
+    const existing = await this.getPageImage(image.pageKey, image.imageKey);
+    if (existing) {
+      const result = await db.update(pageImages)
+        .set({ imageUrl: image.imageUrl, altText: image.altText })
+        .where(eq(pageImages.id, existing.id))
+        .returning();
+      return result[0];
+    }
+    const result = await db.insert(pageImages).values(image).returning();
+    return result[0];
+  }
+
+  async deletePageImage(id: string): Promise<void> {
+    await db.delete(pageImages).where(eq(pageImages.id, id));
   }
 }
 

@@ -731,5 +731,61 @@ export async function registerRoutes(
     }
   });
 
+  // Admin Page Images CRUD
+  app.get("/api/admin/page-images", isAuthenticated, async (_req, res) => {
+    try {
+      const images = await storage.getPageImages();
+      res.json(images);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch page images" });
+    }
+  });
+
+  app.get("/api/admin/page-images/:pageKey", isAuthenticated, async (req, res) => {
+    try {
+      const images = await storage.getPageImagesByPage(req.params.pageKey);
+      res.json(images);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch page images" });
+    }
+  });
+
+  app.put("/api/admin/page-images", isAuthenticated, async (req, res) => {
+    try {
+      const image = await storage.upsertPageImage(req.body);
+      res.json(image);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to save page image" });
+    }
+  });
+
+  app.delete("/api/admin/page-images/:id", isAuthenticated, async (req, res) => {
+    try {
+      await storage.deletePageImage(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete page image" });
+    }
+  });
+
+  // Public page images endpoint
+  app.get("/api/page-images", async (_req, res) => {
+    try {
+      const images = await storage.getPageImages();
+      res.json(images);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch page images" });
+    }
+  });
+
+  app.get("/api/page-images/:pageKey", async (req, res) => {
+    try {
+      const images = await storage.getPageImagesByPage(req.params.pageKey);
+      res.json(images);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch page images" });
+    }
+  });
+
   return httpServer;
 }
