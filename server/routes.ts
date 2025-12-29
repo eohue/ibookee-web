@@ -10,6 +10,7 @@ import {
   insertResidentProgramSchema,
   insertProgramApplicationSchema,
   insertCommunityPostSchema,
+  insertSocialAccountSchema,
   insertPartnerSchema,
 } from "@shared/schema";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
@@ -106,13 +107,41 @@ export async function registerRoutes(
     }
   });
 
-  // Community Posts API
-  app.get("/api/community-posts", async (_req, res) => {
+  // Social Accounts API (public - for displaying account info)
+  app.get("/api/social-accounts", async (_req, res) => {
     try {
-      const posts = await storage.getCommunityPosts();
+      const accounts = await storage.getSocialAccounts();
+      res.json(accounts.filter(a => a.isActive));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch social accounts" });
+    }
+  });
+
+  // Community Posts API
+  app.get("/api/community-posts", async (req, res) => {
+    try {
+      const { hashtag } = req.query;
+      let posts;
+      if (hashtag && typeof hashtag === 'string') {
+        posts = await storage.getCommunityPostsByHashtag(hashtag);
+      } else {
+        posts = await storage.getCommunityPosts();
+      }
       res.json(posts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch community posts" });
+    }
+  });
+
+  app.get("/api/community-posts/:id", async (req, res) => {
+    try {
+      const post = await storage.getCommunityPost(req.params.id);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      res.json(post);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch community post" });
     }
   });
 
@@ -297,6 +326,94 @@ export async function registerRoutes(
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete event" });
+    }
+  });
+
+  // Admin Social Accounts CRUD
+  app.get("/api/admin/social-accounts", isAuthenticated, async (_req, res) => {
+    try {
+      const accounts = await storage.getSocialAccounts();
+      res.json(accounts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch social accounts" });
+    }
+  });
+
+  app.post("/api/admin/social-accounts", isAuthenticated, async (req, res) => {
+    try {
+      const parsed = insertSocialAccountSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid account data", details: parsed.error });
+      }
+      const account = await storage.createSocialAccount(parsed.data);
+      res.status(201).json(account);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create social account" });
+    }
+  });
+
+  app.put("/api/admin/social-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const account = await storage.updateSocialAccount(req.params.id, req.body);
+      if (!account) {
+        return res.status(404).json({ error: "Social account not found" });
+      }
+      res.json(account);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update social account" });
+    }
+  });
+
+  app.delete("/api/admin/social-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteSocialAccount(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete social account" });
+    }
+  });
+
+  // Admin Community Posts CRUD
+  app.get("/api/admin/community-posts", isAuthenticated, async (_req, res) => {
+    try {
+      const posts = await storage.getCommunityPosts();
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch community posts" });
+    }
+  });
+
+  app.post("/api/admin/community-posts", isAuthenticated, async (req, res) => {
+    try {
+      const parsed = insertCommunityPostSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid post data", details: parsed.error });
+      }
+      const post = await storage.createCommunityPost(parsed.data);
+      res.status(201).json(post);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create community post" });
+    }
+  });
+
+  app.put("/api/admin/community-posts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const post = await storage.updateCommunityPost(req.params.id, req.body);
+      if (!post) {
+        return res.status(404).json({ error: "Community post not found" });
+      }
+      res.json(post);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update community post" });
+    }
+  });
+
+  app.delete("/api/admin/community-posts/:id", isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteCommunityPost(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete community post" });
     }
   });
 
