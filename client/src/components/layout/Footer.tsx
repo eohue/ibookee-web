@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { useFooterSettings } from "@/hooks/use-site-settings";
+import logoDark from "@assets/logo_square_1766970743622.png";
 
 const footerLinks = {
   company: [
@@ -24,8 +25,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block" data-testid="link-footer-home">
-              <span className="text-2xl font-bold text-foreground">IBOOKEE</span>
-              <span className="ml-2 text-sm text-muted-foreground">아이부키</span>
+              <img
+                src={logoDark}
+                alt="IBOOKEE 아이부키"
+                className="h-10 w-auto object-contain object-left"
+                style={{ maxWidth: '180px' }}
+              />
             </Link>
             <p className="mt-4 text-muted-foreground leading-relaxed max-w-md">
               공간을 짓고, 삶을 잇다.<br />
