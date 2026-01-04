@@ -32,12 +32,12 @@ export default function MissionSection() {
             Our Mission
           </p>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight mb-6">
-            "가난한 자를 위한 주택은<br />
-            가난해 보여서는 안 된다"
+            "지속 가능한 도시를 만드는<br />
+            소셜 임팩트 솔루션"
           </h2>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            오스트리아 빈(Vienna)의 사회주택 철학을 한국에 맞게 재해석하여,
-            공공성과 수익성을 결합한 새로운 주거 모델을 제시합니다.
+            단순한 주거 공급을 넘어, 지역 사회의 앵커가 되어
+            상생하는 로컬 생태계를 구축합니다.
           </p>
         </div>
 
@@ -45,7 +45,7 @@ export default function MissionSection() {
           {values.map((value, index) => (
             <div
               key={value.title}
-              className="text-center p-6 rounded-lg bg-card border border-card-border hover-elevate transition-all duration-300"
+              className="text-center p-6 rounded-lg bg-card border border-border shadow-md hover:shadow-lg hover:border-primary/50 transition-all duration-300"
               data-testid={`card-value-${index}`}
             >
               <div className="w-14 h-14 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">

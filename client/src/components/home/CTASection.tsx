@@ -59,12 +59,13 @@ export default function CTASection() {
               Move-in Waiting List
             </p>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-              아이부키에서<br />
-              새로운 삶을 시작하세요
+              따로 또 같이,<br />
+              당신의 첫 번째 소셜 라이프
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              입주 대기 신청을 하시면 새로운 프로젝트 오픈 시 가장 먼저 안내받으실 수 있습니다.
-              외롭지 않은 나만의 집, 아이부키와 함께하세요.
+              문을 열면 이웃이 있고, 문을 닫으면 온전한 휴식이 있는 곳.
+              아이부키의 새로운 공간 소식을 누구보다 빠르게 받아보세요.
+              혼자가 아니기에 더 특별한 일상이 시작됩니다.
             </p>
             <ul className="space-y-3">
               {[

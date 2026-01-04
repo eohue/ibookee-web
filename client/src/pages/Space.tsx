@@ -152,7 +152,7 @@ export default function Space() {
                         <span>{project.location}</span>
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                        {project.description}
+                        {project.description.replace(/<[^>]*>?/gm, "")}
                       </p>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">{project.year}년 준공</span>

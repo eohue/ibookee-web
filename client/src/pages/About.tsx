@@ -30,7 +30,7 @@ const defaultPartners = [
 export default function About() {
   const { stats } = useCompanyStats();
   const { getImageUrl } = usePageImages();
-  
+
   const { data: historyData } = useQuery<HistoryMilestone[]>({
     queryKey: ["/api/history"],
     staleTime: 60000,
@@ -41,7 +41,7 @@ export default function About() {
     staleTime: 60000,
   });
 
-  const historyMilestones = historyData && historyData.length > 0 
+  const historyMilestones = historyData && historyData.length > 0
     ? historyData.map(m => ({ year: m.year, title: m.title, description: m.description || "" }))
     : defaultHistoryMilestones;
 
@@ -138,28 +138,22 @@ export default function About() {
                   CEO Message
                 </p>
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
-                  "가난한 자를 위한 주택은<br />
-                  가난해 보여서는 안 된다"
+                  "주거는 상품이 아니라,<br />
+                  지속 가능한 삶을 담는 그릇이어야 합니다."
                 </h2>
                 <div className="prose prose-lg dark:prose-invert max-w-none">
                   <p className="text-muted-foreground leading-relaxed mb-6">
-                    오스트리아 빈에서 처음 사회주택을 접했을 때, 저는 깊은 감명을 받았습니다.
-                    사회주택이 빈민을 위한 시혜가 아닌, 모든 시민이 존엄하게 살 권리를 보장하는
-                    공공 인프라라는 사실을요.
+                    오스트리아 빈의 사회주택 모델이 우리에게 준 교훈은 명확합니다.
+                    주거는 시혜가 아닌 존엄이며, 가난한 자를 위한 주택일수록 더욱 품격 있게 디자인되어야 한다는 것입니다.
                   </p>
                   <p className="text-muted-foreground leading-relaxed mb-6">
-                    한국에 돌아와 아이부키를 설립하면서, 저는 이 철학을 한국적으로 재해석하고자 했습니다.
-                    공공성과 수익성이 양립할 수 있다는 것, 좋은 주거 환경이 개인의 삶뿐만 아니라
-                    지역사회 전체를 변화시킬 수 있다는 것을 증명하고 싶었습니다.
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed mb-6">
-                    지난 13년간 32개 프로젝트, 2,500세대를 거쳐오면서 우리는 그 가능성을 확인했습니다.
-                    아이부키의 커뮤니티에서 이웃이 된 청년들이 창업을 하고, 가족을 이루고,
-                    다시 지역사회에 기여하는 선순환을 목격했습니다.
+                    아이부키는 지난 13년간 보린주택을 시작으로 안암생활, 장안생활에 이르기까지 한국형 사회주택의 새로운 표준을 제시해 왔습니다.
+                    우리는 공공성(Affordability)과 수익성(Profitability)이 조화롭게 공존하는 '제3의 섹터' 모델을 통해,
+                    부동산 시장의 새로운 대안을 증명해내고 있습니다.
                   </p>
                   <p className="text-muted-foreground leading-relaxed">
-                    앞으로도 아이부키는 '공간을 짓고, 삶을 잇는' 사명을 이어가겠습니다.
-                    더 많은 분들이 존엄한 주거를 누릴 수 있도록, 한국형 소셜 하우징의 새로운 길을 열어가겠습니다.
+                    단순히 물리적인 벽을 쌓는 것을 넘어, 사람과 사람이 연결되고 지역 사회가 다시 살아나는 '리빙 플랫폼'을 지향합니다.
+                    아이부키가 가는 길이 우리나라 사회주택이 가는 길입니다.
                   </p>
                 </div>
               </div>
@@ -183,16 +177,14 @@ export default function About() {
                 {historyMilestones.map((milestone, index) => (
                   <div
                     key={milestone.year}
-                    className={`relative md:flex items-center ${
-                      index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                    }`}
+                    className={`relative md:flex items-center ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+                      }`}
                     data-testid={`milestone-${milestone.year}`}
                   >
                     <div className="md:w-1/2 md:px-8">
                       <div
-                        className={`bg-card rounded-lg p-6 border border-border ${
-                          index % 2 === 0 ? "md:text-right" : "md:text-left"
-                        }`}
+                        className={`bg-card rounded-lg p-6 border border-border ${index % 2 === 0 ? "md:text-right" : "md:text-left"
+                          }`}
                       >
                         <span className="text-primary font-bold text-2xl">{milestone.year}</span>
                         <h3 className="text-lg font-semibold text-foreground mt-2">{milestone.title}</h3>
@@ -237,6 +229,6 @@ export default function About() {
         </section>
       </main>
       <Footer />
-    </div>
+    </div >
   );
 }

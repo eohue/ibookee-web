@@ -1,0 +1,51 @@
+{
+  "projects": [],
+  "inquiries": [],
+  "articles": [],
+  "socialAccounts": [],
+  "communityPosts": [],
+  "events": [],
+  "editablePages": [],
+  "residentPrograms": [],
+  "programApplications": [],
+  "projectImages": [],
+  "partners": [],
+  "historyMilestones": [],
+  "siteSettings": [],
+  "pageImages": [
+    [
+      "2",
+      {
+        "pageKey": "about",
+        "imageKey": "ceo",
+        "imageUrl": "/assets/image-1767142336805-560705019.png",
+        "id": "2",
+        "altText": null,
+        "displayOrder": 0
+      }
+    ]
+  ],
+  "users": [
+    [
+      "1",
+      {
+        "email": "lks@ibookee.kr",
+        "password": "b4a2964fa9033f9a7c0f1ff1e59bea9a:e73a5996e7d0a58f954ee8da46dfac6106da9b7bf93c4f6ec6aea96b8bf9f1c366b4d0fda2359dc9cd09e28a7fd6a8464b4c7f1c8fef54f3eec2d32b62bcbfb8",
+        "firstName": "Admin",
+        "lastName": "Account",
+        "role": "admin",
+        "createdAt": "2025-12-31T00:42:23.883Z",
+        "id": "1",
+        "updatedAt": "2025-12-31T00:42:23.883Z",
+        "profileImageUrl": null,
+        "googleId": null,
+        "naverId": null,
+        "kakaoId": null,
+        "isVerified": false,
+        "realName": null,
+        "phoneNumber": null
+      }
+    ]
+  ],
+  "idCounter": 3
+}
