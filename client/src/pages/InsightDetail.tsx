@@ -77,12 +77,12 @@ export default function InsightDetail() {
     );
   }
 
-  const formattedDate = article.publishedAt 
+  const formattedDate = article.publishedAt
     ? new Date(article.publishedAt).toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
     : null;
 
   return (
@@ -138,9 +138,11 @@ export default function InsightDetail() {
             )}
 
             <div className="prose prose-lg max-w-none dark:prose-invert">
-              <p className="text-foreground leading-relaxed whitespace-pre-wrap" data-testid="text-article-content">
-                {article.content}
-              </p>
+              <div
+                className="text-foreground leading-relaxed"
+                data-testid="text-article-content"
+                dangerouslySetInnerHTML={{ __html: article.content }}
+              />
             </div>
           </article>
         </div>

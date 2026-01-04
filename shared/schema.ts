@@ -15,6 +15,7 @@ export const projects = pgTable("projects", {
   year: integer("year").notNull(),
   units: integer("units"),
   featured: boolean("featured").default(false),
+  partnerLogos: text("partner_logos").array(),
 });
 
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true });

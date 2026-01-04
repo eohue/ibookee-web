@@ -13,7 +13,11 @@ import Insight from "@/pages/Insight";
 import InsightDetail from "@/pages/InsightDetail";
 import Contact from "@/pages/Contact";
 import Dashboard from "@/pages/Dashboard";
+
+import AuthPage from "@/pages/auth/AuthPage";
 import NotFound from "@/pages/not-found";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
   return (
@@ -27,7 +31,8 @@ function Router() {
       <Route path="/insight" component={Insight} />
       <Route path="/insight/:id" component={InsightDetail} />
       <Route path="/contact" component={Contact} />
-      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/auth" component={AuthPage} />
+      <ProtectedRoute path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -38,7 +43,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <AuthProvider>
+          <Router />
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
