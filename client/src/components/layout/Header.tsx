@@ -85,12 +85,12 @@ export default function Header() {
                 key={item.name}
                 href={item.href}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${location === item.href
-                    ? isScrolled || !isHomePage
-                      ? "text-primary bg-primary/10"
-                      : "text-white bg-white/20"
-                    : isScrolled || !isHomePage
-                      ? "text-foreground hover:text-primary hover:bg-muted"
-                      : "text-white/90 hover:text-white hover:bg-white/10"
+                  ? isScrolled || !isHomePage
+                    ? "text-primary bg-primary/10"
+                    : "text-white bg-white/20"
+                  : isScrolled || !isHomePage
+                    ? "text-foreground hover:text-primary hover:bg-muted"
+                    : "text-white/90 hover:text-white hover:bg-white/10"
                   }`}
                 data-testid={`link-nav-${item.name.toLowerCase().replace(" ", "-")}`}
               >
@@ -124,7 +124,7 @@ export default function Header() {
                   </Button>
                 </Link>
               ) : (
-                <a href="/api/login">
+                <Link href="/auth">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -134,7 +134,7 @@ export default function Header() {
                     <LogIn className="w-4 h-4 mr-2" />
                     로그인
                   </Button>
-                </a>
+                </Link>
               )
             )}
 
@@ -156,8 +156,8 @@ export default function Header() {
                       key={item.name}
                       href={item.href}
                       className={`px-4 py-3 text-base font-medium rounded-md transition-colors ${location === item.href
-                          ? "text-primary bg-primary/10"
-                          : "text-foreground hover:text-primary hover:bg-muted"
+                        ? "text-primary bg-primary/10"
+                        : "text-foreground hover:text-primary hover:bg-muted"
                         }`}
                       onClick={() => setMobileMenuOpen(false)}
                       data-testid={`link-mobile-nav-${item.name.toLowerCase().replace(" ", "-")}`}
@@ -179,14 +179,14 @@ export default function Header() {
                           관리자
                         </Link>
                       ) : (
-                        <a
-                          href="/api/login"
+                        <Link
+                          href="/auth"
                           className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
                           data-testid="link-mobile-login"
                         >
                           <LogIn className="w-5 h-5" />
                           로그인
-                        </a>
+                        </Link>
                       )
                     )}
                   </div>

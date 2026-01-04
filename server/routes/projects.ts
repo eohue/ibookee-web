@@ -49,11 +49,14 @@ export function registerProjectRoutes(app: Express) {
     try {
       const parsed = insertProjectSchema.safeParse(req.body);
       if (!parsed.success) {
+        console.error("Project creation validation failed:", JSON.stringify(parsed.error, null, 2));
+        console.error("Received payload:", req.body);
         return res.status(400).json({ error: "Invalid project data", details: parsed.error });
       }
       const project = await storage.createProject(parsed.data);
       res.status(201).json(project);
     } catch (error) {
+      console.error("Project creation error:", error);
       res.status(500).json({ error: "Failed to create project" });
     }
   });

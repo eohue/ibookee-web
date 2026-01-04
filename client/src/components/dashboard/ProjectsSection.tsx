@@ -107,15 +107,21 @@ export function ProjectsSection() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+        const yearInput = formData.get("year") as string;
+        const year = parseInt(yearInput);
+
+        const unitsInput = formData.get("units") as string;
+        const units = unitsInput ? parseInt(unitsInput) : undefined;
+
         const data = {
             title: formData.get("title") as string,
-            titleEn: formData.get("titleEn") as string,
+            titleEn: (formData.get("titleEn") as string) || null,
             location: formData.get("location") as string,
             category: selectedCategory,
             description: description,
             imageUrl: formData.get("imageUrl") as string,
-            year: parseInt(formData.get("year") as string),
-            units: parseInt(formData.get("units") as string) || undefined,
+            year: isNaN(year) ? new Date().getFullYear() : year,
+            units: typeof units === 'number' && !isNaN(units) ? units : undefined,
             featured: false,
             partnerLogos: partnerLogos,
         };
