@@ -125,7 +125,7 @@ export default function Header() {
                   </Button>
                 </Link>
               ) : (
-                <a href="/api/login">
+                <Link href="/auth">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -135,7 +135,7 @@ export default function Header() {
                     <LogIn className="w-4 h-4 mr-2" />
                     로그인
                   </Button>
-                </a>
+                </Link>
               )
             )}
 
@@ -181,14 +181,15 @@ export default function Header() {
                           관리자
                         </Link>
                       ) : (
-                        <a
-                          href="/api/login"
+                        <Link
+                          href="/auth"
                           className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
+                          onClick={() => setMobileMenuOpen(false)}
                           data-testid="link-mobile-login"
                         >
                           <LogIn className="w-5 h-5" />
                           로그인
-                        </a>
+                        </Link>
                       )
                     )}
                   </div>
