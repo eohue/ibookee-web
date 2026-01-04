@@ -32,7 +32,7 @@ function Router() {
       <Route path="/insight/:id" component={InsightDetail} />
       <Route path="/contact" component={Contact} />
       <Route path="/auth" component={AuthPage} />
-      <ProtectedRoute path="/dashboard" component={Dashboard} />
+      <ProtectedRoute path="/dashboard" component={Dashboard} adminOnly={true} />
       <Route component={NotFound} />
     </Switch>
   );

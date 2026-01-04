@@ -65,7 +65,11 @@ export default function AuthPage() {
     }, [toast]);
 
     if (user) {
-        setLocation("/dashboard");
+        if (user.role === "admin") {
+            setLocation("/dashboard");
+        } else {
+            setLocation("/");
+        }
         return null;
     }
 

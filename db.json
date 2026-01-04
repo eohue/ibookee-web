@@ -23,6 +23,17 @@
         "altText": null,
         "displayOrder": 0
       }
+    ],
+    [
+      "3",
+      {
+        "pageKey": "home",
+        "imageKey": "hero",
+        "imageUrl": "/assets/image-1767563203898-809204244.jpg",
+        "id": "3",
+        "altText": null,
+        "displayOrder": 0
+      }
     ]
   ],
   "users": [
@@ -30,7 +41,7 @@
       "1",
       {
         "email": "lks@ibookee.kr",
-        "password": "b4a2964fa9033f9a7c0f1ff1e59bea9a:e73a5996e7d0a58f954ee8da46dfac6106da9b7bf93c4f6ec6aea96b8bf9f1c366b4d0fda2359dc9cd09e28a7fd6a8464b4c7f1c8fef54f3eec2d32b62bcbfb8",
+        "password": "bd75e8fe6ffa52a7ff838d5a2555ffee:1d60504e456215be0cc1e2e70ac44e341e271f9eecada3d64b4dac5a70dda42f2022e875464f76a59b8d3c2eb658d4112808d5ae21910ad5b5eff3cca086916d",
         "firstName": "Admin",
         "lastName": "Account",
         "role": "admin",
@@ -45,7 +56,27 @@
         "realName": null,
         "phoneNumber": null
       }
+    ],
+    [
+      "4",
+      {
+        "email": "user_test_2@example.com",
+        "password": "5239e3117414162581c41aaf51bc922c:7fedfd2767207c4cd4209778c2553c4b0fb1d5201f36e9731acda5fa2367b32afb30935fc921ba65da01ce61550bda02568e0436ec4379ed180ed20d87a6fa5c",
+        "createdAt": "2026-01-04T21:58:52.622Z",
+        "firstName": "Admin",
+        "lastName": "User",
+        "id": "4",
+        "updatedAt": "2026-01-04T21:58:52.622Z",
+        "profileImageUrl": null,
+        "role": "user",
+        "googleId": null,
+        "naverId": null,
+        "kakaoId": null,
+        "isVerified": false,
+        "realName": null,
+        "phoneNumber": null
+      }
     ]
   ],
-  "idCounter": 3
+  "idCounter": 5
 }

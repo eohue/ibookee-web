@@ -29,7 +29,12 @@ export function registerAuthRoutes(app: Express): void {
   app.get("/api/auth/google/callback",
     passport.authenticate("google", { failureRedirect: "/auth?error=google_login_failed" }),
     (req, res) => {
-      res.redirect("/dashboard");
+      const user = req.user as any;
+      if (user?.role === "admin") {
+        res.redirect("/dashboard");
+      } else {
+        res.redirect("/");
+      }
     }
   );
 
@@ -38,7 +43,12 @@ export function registerAuthRoutes(app: Express): void {
   app.get("/api/auth/naver/callback",
     passport.authenticate("naver", { failureRedirect: "/auth?error=naver_login_failed" }),
     (req, res) => {
-      res.redirect("/dashboard");
+      const user = req.user as any;
+      if (user?.role === "admin") {
+        res.redirect("/dashboard");
+      } else {
+        res.redirect("/");
+      }
     }
   );
 
@@ -47,7 +57,12 @@ export function registerAuthRoutes(app: Express): void {
   app.get("/api/auth/kakao/callback",
     passport.authenticate("kakao", { failureRedirect: "/auth?error=kakao_login_failed" }),
     (req, res) => {
-      res.redirect("/dashboard");
+      const user = req.user as any;
+      if (user?.role === "admin") {
+        res.redirect("/dashboard");
+      } else {
+        res.redirect("/");
+      }
     }
   );
 }
