@@ -122,7 +122,40 @@
       }
     ]
   ],
-  "siteSettings": [],
+  "siteSettings": [
+    [
+      "ceo_message",
+      {
+        "key": "ceo_message",
+        "value": {
+          "title": "CEO 인사말",
+          "paragraphs": [
+            "아이부키는 우리 사회 사회주택 영역의 First Mover로 한국 사회주택을 정의하는 역할을 자처해왔습니다.",
+            "우리는 단순히 집을 짓는 것이 아닌, 커뮤니티를 만들고 이웃과 함께하는 삶의 가치를 실현하려는 초심을 잃지 않고 언제나 그 길을 가려 합니다."
+          ],
+          "signature": "아이부키 대표"
+        },
+        "id": "20",
+        "updatedAt": "2026-01-05T12:59:42.023Z"
+      }
+    ],
+    [
+      "footer_settings",
+      {
+        "key": "footer_settings",
+        "value": {
+          "companyName": "아이부키(주)",
+          "address": "서울시 동대문구 천호대로89길9, 3층 장안생활",
+          "phone": "02-553-8387",
+          "email": "info@ibookee.kr",
+          "businessNumber": "212-86-01703",
+          "copyright": "2026 IBOOKEE. All rights reserved."
+        },
+        "id": "21",
+        "updatedAt": "2026-01-05T13:01:42.206Z"
+      }
+    ]
+  ],
   "pageImages": [
     [
       "2",
@@ -293,5 +326,5 @@
       }
     ]
   ],
-  "idCounter": 20
+  "idCounter": 22
 }
