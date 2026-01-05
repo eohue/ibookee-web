@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, Sun, Moon, User, LogIn, LayoutDashboard } from "lucide-react";
+import { Menu, Sun, Moon, User, LogIn, LayoutDashboard, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -25,7 +33,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logoutMutation } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -112,31 +120,44 @@ export default function Header() {
 
             {!authLoading && (
               isAuthenticated ? (
-                <div className="flex gap-2">
-                  <Link href="/mypage">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`hidden md:flex ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
+                      className={`hidden md:flex gap-2 ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
                     >
-                      <User className="w-4 h-4 mr-2" />
-                      마이페이지
+                      <User className="w-4 h-4" />
+                      <span className="max-w-[100px] truncate">{user?.firstName}</span>
                     </Button>
-                  </Link>
-                  {user?.role === 'admin' && (
-                    <Link href="/dashboard">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`hidden md:flex ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
-                        data-testid="button-dashboard"
-                      >
-                        <LayoutDashboard className="w-4 h-4 mr-2" />
-                        관리자
-                      </Button>
-                    </Link>
-                  )}
-                </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>내 계정</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/mypage" className="cursor-pointer w-full flex items-center">
+                        <User className="w-4 h-4 mr-2" />
+                        마이페이지
+                      </Link>
+                    </DropdownMenuItem>
+                    {user?.role === 'admin' && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard" className="cursor-pointer w-full flex items-center">
+                          <LayoutDashboard className="w-4 h-4 mr-2" />
+                          관리자
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600 cursor-pointer"
+                      onClick={() => logoutMutation.mutate()}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      로그아웃
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <Link href="/auth">
                   <Button
