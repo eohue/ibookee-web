@@ -112,17 +112,31 @@ export default function Header() {
 
             {!authLoading && (
               isAuthenticated ? (
-                <Link href="/dashboard">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`hidden md:flex ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
-                    data-testid="button-dashboard"
-                  >
-                    <LayoutDashboard className="w-4 h-4 mr-2" />
-                    관리자
-                  </Button>
-                </Link>
+                <div className="flex gap-2">
+                  <Link href="/mypage">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`hidden md:flex ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      마이페이지
+                    </Button>
+                  </Link>
+                  {user?.role === 'admin' && (
+                    <Link href="/dashboard">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`hidden md:flex ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
+                        data-testid="button-dashboard"
+                      >
+                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                        관리자
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               ) : (
                 <Link href="/auth">
                   <Button

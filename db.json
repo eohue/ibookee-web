@@ -34,6 +34,50 @@
         "altText": null,
         "displayOrder": 0
       }
+    ],
+    [
+      "5",
+      {
+        "pageKey": "about",
+        "imageKey": "office",
+        "imageUrl": "/assets/image-1767570289905-579289716.jpg",
+        "id": "5",
+        "altText": null,
+        "displayOrder": 0
+      }
+    ],
+    [
+      "6",
+      {
+        "pageKey": "business",
+        "imageKey": "solution-youth",
+        "imageUrl": "/assets/image-1767570328064-928108098.jpg",
+        "id": "6",
+        "altText": null,
+        "displayOrder": 0
+      }
+    ],
+    [
+      "7",
+      {
+        "pageKey": "business",
+        "imageKey": "solution-single",
+        "imageUrl": "/assets/image-1767570344977-664196948.jpg",
+        "id": "7",
+        "altText": null,
+        "displayOrder": 0
+      }
+    ],
+    [
+      "8",
+      {
+        "pageKey": "business",
+        "imageKey": "solution-family",
+        "imageUrl": "/assets/image-1767570397274-438014056.jpg",
+        "id": "8",
+        "altText": null,
+        "displayOrder": 0
+      }
     ]
   ],
   "users": [
@@ -76,7 +120,40 @@
         "realName": null,
         "phoneNumber": null
       }
+    ],
+    [
+      "9",
+      {
+        "email": "testnewuser@example.com",
+        "password": "6ce428777520993870f3db445d6abf78:6f702ef4b461b1e0046f86fd45a4489c4b5c9727908db34c216bf16bb3bd2364582f9209a7aa002016a5c58a9a398508bb922f0792e88465371d22fd3db4f443",
+        "createdAt": "2026-01-04T23:53:05.517Z",
+        "firstName": "General",
+        "lastName": "Member",
+        "role": "user",
+        "id": "9",
+        "updatedAt": "2026-01-04T23:53:05.517Z",
+        "profileImageUrl": null,
+        "googleId": null,
+        "naverId": null,
+        "kakaoId": null,
+        "isVerified": false,
+        "realName": null,
+        "phoneNumber": null
+      }
+    ],
+    [
+      "104",
+      {
+        "id": "104",
+        "email": "test@ibookee.kr",
+        "password": "d167098034b166d07f5a7f748b8f19ad:223210bd620e428c343dfcdb46b5d42f9ca8178ee64271a31224344d04dee21cdf01b9edcbf77b70440c027d8f71ef5aac18a1ab6bbc5b8c46e28e10acfd5ddb",
+        "role": "user",
+        "firstName": "General",
+        "lastName": "Member",
+        "createdAt": "2026-01-05T01:26:19.154Z",
+        "updatedAt": "2026-01-05T01:26:19.154Z"
+      }
     ]
   ],
-  "idCounter": 5
+  "idCounter": 10
 }

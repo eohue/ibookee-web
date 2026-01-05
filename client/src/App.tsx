@@ -13,6 +13,7 @@ import Insight from "@/pages/Insight";
 import InsightDetail from "@/pages/InsightDetail";
 import Contact from "@/pages/Contact";
 import Dashboard from "@/pages/Dashboard";
+import MyPage from "@/pages/MyPage";
 
 import AuthPage from "@/pages/auth/AuthPage";
 import NotFound from "@/pages/not-found";
@@ -32,7 +33,8 @@ function Router() {
       <Route path="/insight/:id" component={InsightDetail} />
       <Route path="/contact" component={Contact} />
       <Route path="/auth" component={AuthPage} />
-      <ProtectedRoute path="/dashboard" component={Dashboard} adminOnly={true} />
+      <ProtectedRoute path="/mypage" component={MyPage} />
+      <ProtectedRoute path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );

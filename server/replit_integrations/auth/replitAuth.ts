@@ -174,8 +174,9 @@ export async function setupAuth(app: Express) {
           email: username,
           password: hashedPassword,
           createdAt: new Date(),
-          firstName: "Admin", // default
-          lastName: "User"
+          firstName: "General", // default
+          lastName: "Member",
+          role: "user",
         });
 
         req.logIn(user, (err) => {

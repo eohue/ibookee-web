@@ -79,7 +79,11 @@ export default function Dashboard() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {menuItems
-                    .filter(item => item.id !== "users" || (user && user.role === "admin"))
+                    .filter(item => {
+                      if (user?.role === "admin") return true;
+                      // Resident/User can see Overview (+ Inquiries if resident? for now strictly just Overview)
+                      return ["overview"].includes(item.id);
+                    })
                     .map((item) => (
                       <SidebarMenuItem key={item.id}>
                         <SidebarMenuButton
