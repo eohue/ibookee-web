@@ -63,7 +63,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isReplit, // secure cookies require https
+      secure: false, // Changed to false for debugging login issues
       maxAge: sessionTtl,
     },
   });
@@ -132,28 +132,44 @@ export async function setupAuth(app: Express) {
 
     passport.use(new LocalStrategy(async (username, password, done) => {
       try {
+        console.log(`[LocalStrategy] Attempting login for: ${username}`);
         const user = await storage.getUserByEmail(username);
         if (!user || !user.password) {
+          console.log(`[LocalStrategy] User not found or no password: ${username}`);
           return done(null, false, { message: "Incorrect email or password." });
         }
 
         const isValid = await verifyPassword(password, user.password);
         if (!isValid) {
+          console.log(`[LocalStrategy] Invalid password for: ${username}`);
           return done(null, false, { message: "Incorrect email or password." });
         }
 
+        console.log(`[LocalStrategy] Login successful for: ${username}`);
         return done(null, user);
       } catch (err) {
+        console.error(`[LocalStrategy] Error:`, err);
         return done(err);
       }
     }));
 
     app.post("/api/login", (req, res, next) => {
+      console.log(`[API] Login request received`);
       passport.authenticate("local", (err: any, user: any, info: any) => {
-        if (err) return next(err);
-        if (!user) return res.status(401).json({ message: "Invalid credentials" });
+        if (err) {
+          console.error(`[API] Login error:`, err);
+          return next(err);
+        }
+        if (!user) {
+          console.log(`[API] Login failed (no user):`, info);
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
         req.logIn(user, (err) => {
-          if (err) return next(err);
+          if (err) {
+            console.error(`[API] req.logIn error:`, err);
+            return next(err);
+          }
+          console.log(`[API] Session established for user: ${user.id}`);
           return res.json(user);
         });
       })(req, res, next);
