@@ -124,8 +124,10 @@ export async function setupAuth(app: Express) {
     };
     // ... rest of Replit logic (omitted for brevity, assume similar)
     // For now prioritizing local flow requested by user.
-  } else {
-    // Local Dev Strategy (Email/Password)
+  }
+
+  // Local Dev Strategy (Email/Password) - Enabled Globally
+  {
     console.log("Setting up Local Auth Strategy");
 
     passport.use(new LocalStrategy(async (username, password, done) => {
