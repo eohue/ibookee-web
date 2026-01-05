@@ -271,7 +271,27 @@
         "realName": null,
         "phoneNumber": null
       }
+    ],
+    [
+      "19",
+      {
+        "email": "kslee@ibookee.kr",
+        "password": "fce2f9df7e515dfb0b27cbff55a77904:9649d4229ccb141d4af92cd999356d1191036760a4e45906cdd7eb14d115b911a9bfc610d2dfd014e11e48c664eee2f1ae82b133d1ed2def92c3df5f3d16f24a",
+        "firstName": "Admin",
+        "lastName": "User",
+        "role": "admin",
+        "createdAt": "2026-01-05T08:16:04.094Z",
+        "id": "19",
+        "updatedAt": "2026-01-05T08:16:04.094Z",
+        "profileImageUrl": null,
+        "googleId": null,
+        "naverId": null,
+        "kakaoId": null,
+        "isVerified": false,
+        "realName": null,
+        "phoneNumber": null
+      }
     ]
   ],
-  "idCounter": 19
+  "idCounter": 20
 }
