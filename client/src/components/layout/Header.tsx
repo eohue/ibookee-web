@@ -80,7 +80,7 @@ export default function Header() {
             data-testid="link-home"
           >
             <img
-              src={isScrolled || !isHomePage ? logoDark : logoWhite}
+              src={isScrolled || (!isHomePage && !isDark) ? (isDark ? logoWhite : logoDark) : logoWhite}
               alt="IBOOKEE 아이부키"
               className="h-8 md:h-10 w-auto object-contain object-left"
               style={{ maxWidth: '160px' }}

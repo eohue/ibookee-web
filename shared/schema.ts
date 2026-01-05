@@ -125,8 +125,10 @@ export type Partner = typeof partners.$inferSelect;
 export const historyMilestones = pgTable("history_milestones", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   year: integer("year").notNull(),
+  month: text("month"), // 월 (예: "04월")
   title: text("title").notNull(),
   description: text("description"),
+  link: text("link"), // 프로젝트 링크 등
   imageUrl: text("image_url"),
   isHighlight: boolean("is_highlight").default(false),
   displayOrder: integer("display_order").default(0),

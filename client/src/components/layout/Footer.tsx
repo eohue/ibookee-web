@@ -2,6 +2,8 @@ import { Link } from "wouter";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { useFooterSettings } from "@/hooks/use-site-settings";
 import logoDark from "@assets/logo_square_1766971215447.png";
+import logoWhite from "@assets/logo_white_1766982239446.png";
+import { useEffect, useState } from "react";
 
 const footerLinks = {
   company: [
@@ -18,6 +20,23 @@ const footerLinks = {
 
 export default function Footer() {
   const { footer, isLoading } = useFooterSettings();
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    // Initial check
+    const checkTheme = () => {
+      const isDarkTheme = document.documentElement.classList.contains("dark");
+      setIsDark(isDarkTheme);
+    };
+
+    checkTheme();
+
+    // Listen for class changes on html element (theme toggle)
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <footer className="bg-card border-t border-border" data-testid="footer">
@@ -26,7 +45,7 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block" data-testid="link-footer-home">
               <img
-                src={logoDark}
+                src={isDark ? logoWhite : logoDark}
                 alt="IBOOKEE 아이부키"
                 className="h-10 w-auto object-contain object-left"
                 style={{ maxWidth: '180px' }}

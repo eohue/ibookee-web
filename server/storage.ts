@@ -1015,6 +1015,8 @@ export class MemStorage implements IStorage {
     const newMilestone: HistoryMilestone = {
       ...milestone,
       id,
+      month: milestone.month ?? null,
+      link: milestone.link ?? null,
       description: milestone.description ?? null,
       imageUrl: milestone.imageUrl ?? null,
       isHighlight: milestone.isHighlight ?? false,
@@ -1028,7 +1030,7 @@ export class MemStorage implements IStorage {
   async updateHistoryMilestone(id: string, milestone: Partial<InsertHistoryMilestone>): Promise<HistoryMilestone | undefined> {
     const existing = this.historyMilestones.get(id);
     if (!existing) return undefined;
-    const updated = { ...existing, ...milestone };
+    const updated = { ...existing, ...milestone, month: milestone.month ?? existing.month, link: milestone.link ?? existing.link, description: milestone.description ?? existing.description };
     this.historyMilestones.set(id, updated);
     this.persist();
     return updated;

@@ -41,9 +41,8 @@ export default function About() {
     staleTime: 60000,
   });
 
-  const historyMilestones = historyData && historyData.length > 0
-    ? historyData.map(m => ({ year: m.year, title: m.title, description: m.description || "" }))
-    : defaultHistoryMilestones;
+  // Data handling moved to render logic
+
 
   const partners = partnersData && partnersData.length > 0
     ? partnersData.map(p => ({ name: p.name, category: p.category }))
@@ -163,38 +162,54 @@ export default function About() {
 
         <section className="py-20 bg-background" data-testid="section-history">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
-                History
-              </p>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                The First Mover의 여정
-              </h2>
-            </div>
-            <div className="relative">
-              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border hidden md:block" />
-              <div className="space-y-8 md:space-y-0">
-                {historyMilestones.map((milestone, index) => (
-                  <div
-                    key={milestone.year}
-                    className={`relative md:flex items-center ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                      }`}
-                    data-testid={`milestone-${milestone.year}`}
-                  >
-                    <div className="md:w-1/2 md:px-8">
-                      <div
-                        className={`bg-card rounded-lg p-6 border border-border ${index % 2 === 0 ? "md:text-right" : "md:text-left"
-                          }`}
-                      >
-                        <span className="text-primary font-bold text-2xl">{milestone.year}</span>
-                        <h3 className="text-lg font-semibold text-foreground mt-2">{milestone.title}</h3>
-                        <p className="text-muted-foreground mt-1">{milestone.description}</p>
+            <div className="flex flex-col md:flex-row gap-12 lg:gap-24">
+              <div className="md:w-1/4 flex-shrink-0">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground">연혁</h2>
+              </div>
+              <div className="md:w-3/4 space-y-16">
+                {Object.entries((historyData || [])
+                  .reduce((acc, milestone) => {
+                    const year = milestone.year;
+                    if (!acc[year]) acc[year] = [];
+                    acc[year].push(milestone);
+                    return acc;
+                  }, {} as Record<string, HistoryMilestone[]>))
+                  .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
+                  .map(([year, milestones]) => (
+                    <div key={year} className="flex flex-col md:flex-row gap-8 md:gap-16">
+                      <div className="md:w-24 flex-shrink-0">
+                        <span className="text-2xl md:text-3xl font-bold text-foreground">{year}</span>
+                      </div>
+                      <div className="flex-grow space-y-4">
+                        {milestones
+                          .sort((a, b) => (b.month || "").localeCompare(a.month || "") || (b.displayOrder || 0) - (a.displayOrder || 0))
+                          .map((milestone) => (
+                            <div key={milestone.id} className="flex gap-4 md:gap-8 items-start">
+                              <div className="w-12 pt-1 flex-shrink-0 text-foreground font-bold text-right md:text-left">
+                                {milestone.month ? (milestone.month.endsWith('월') ? milestone.month : `${milestone.month}월`) : ""}
+                              </div>
+                              <div className="flex-grow pt-1">
+                                {milestone.link ? (
+                                  <a
+                                    href={milestone.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-muted-foreground hover:text-primary transition-colors hover:underline block"
+                                  >
+                                    {milestone.title}
+                                  </a>
+                                ) : (
+                                  <span className="text-muted-foreground">{milestone.title}</span>
+                                )}
+                                {milestone.description && (
+                                  <p className="text-sm text-muted-foreground/80 mt-1">{milestone.description}</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                       </div>
                     </div>
-                    <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-4 border-background" />
-                    <div className="md:w-1/2" />
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </div>

@@ -76,8 +76,10 @@ export function HistorySection() {
         const formData = new FormData(e.currentTarget);
         const data = {
             year: parseInt(formData.get("year") as string),
+            month: formData.get("month") as string || null,
             title: formData.get("title") as string,
             description: formData.get("description") as string || null,
+            link: formData.get("link") as string || null,
             isHighlight: formData.get("isHighlight") === "on",
             displayOrder: parseInt(formData.get("displayOrder") as string) || 0,
         };
@@ -105,9 +107,15 @@ export function HistorySection() {
                             <DialogTitle>새 연혁 추가</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="year">연도</Label>
-                                <Input id="year" name="year" type="number" required data-testid="input-history-year" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="year">연도</Label>
+                                    <Input id="year" name="year" type="number" required data-testid="input-history-year" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="month">월 (예: 04)</Label>
+                                    <Input id="month" name="month" placeholder="MM" data-testid="input-history-month" />
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="title">제목</Label>
@@ -116,6 +124,10 @@ export function HistorySection() {
                             <div className="space-y-2">
                                 <Label htmlFor="description">설명</Label>
                                 <Textarea id="description" name="description" data-testid="input-history-description" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="link">관련 프로젝트 링크</Label>
+                                <Input id="link" name="link" placeholder="https://" data-testid="input-history-link" />
                             </div>
                             <div className="flex items-center gap-2">
                                 <Checkbox id="isHighlight" name="isHighlight" data-testid="checkbox-history-highlight" />
@@ -167,13 +179,23 @@ export function HistorySection() {
                                                 <DialogTitle>연혁 수정</DialogTitle>
                                             </DialogHeader>
                                             <form onSubmit={handleSubmit} className="space-y-4">
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="year">연도</Label>
-                                                    <Input id="year" name="year" type="number" defaultValue={milestone.year} required />
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="year">연도</Label>
+                                                        <Input id="year" name="year" type="number" defaultValue={milestone.year} required />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="month">월 (예: 04)</Label>
+                                                        <Input id="month" name="month" placeholder="MM" defaultValue={milestone.month || ""} />
+                                                    </div>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label htmlFor="title">제목</Label>
                                                     <Input id="title" name="title" defaultValue={milestone.title} required />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="link">관련 프로젝트 링크</Label>
+                                                    <Input id="link" name="link" placeholder="https://" defaultValue={milestone.link || ""} />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label htmlFor="description">설명</Label>
