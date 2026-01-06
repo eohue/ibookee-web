@@ -15,12 +15,17 @@ export const projects = pgTable("projects", {
   year: integer("year").notNull(),
   units: integer("units"),
   featured: boolean("featured").default(false),
-  partnerLogos: text("partner_logos").array(),
+  partnerLogos: jsonb("partner_logos"), // Array of PartnerLogo objects
 });
 
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true });
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
+
+export interface PartnerLogo {
+  url: string;
+  link?: string;
+}
 
 // Inquiries (Contact forms)
 export const inquiries = pgTable("inquiries", {
