@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { MultiImageUpload } from "@/components/ui/multi-image-upload";
 
@@ -29,12 +30,14 @@ import {
 } from "@/components/ui/select";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import type { Project } from "@shared/schema";
+import { MultiSelect } from "@/components/ui/multi-select-custom";
+import { PROJECT_CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
 
 export function ProjectsSection() {
     const { toast } = useToast();
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState("youth");
+    const [selectedCategories, setSelectedCategories] = useState<string[]>(["youth"]);
     const [imageUrl, setImageUrl] = useState("");
     const [description, setDescription] = useState("");
     const [partnerLogos, setPartnerLogos] = useState<string[]>([]);
@@ -91,12 +94,15 @@ export function ProjectsSection() {
     const openDialog = (project: Project | null) => {
         setEditingProject(project);
         if (project) {
-            setSelectedCategory(project.category);
+            const categories = Array.isArray(project.category)
+                ? project.category
+                : [project.category as unknown as string];
+            setSelectedCategories(categories);
             setImageUrl(project.imageUrl ?? "");
             setDescription(project.description);
             setPartnerLogos(project.partnerLogos ?? []);
         } else {
-            setSelectedCategory("youth");
+            setSelectedCategories(["youth"]);
             setImageUrl("");
             setDescription("");
             setPartnerLogos([]);
@@ -117,7 +123,7 @@ export function ProjectsSection() {
             title: formData.get("title") as string,
             titleEn: (formData.get("titleEn") as string) || null,
             location: formData.get("location") as string,
-            category: selectedCategory,
+            category: selectedCategories,
             description: description,
             imageUrl: formData.get("imageUrl") as string,
             year: isNaN(year) ? new Date().getFullYear() : year,
@@ -133,12 +139,7 @@ export function ProjectsSection() {
         }
     };
 
-    const categoryLabels: Record<string, string> = {
-        youth: "청년 주택",
-        single: "1인 가구",
-        "social-mix": "소셜 믹스",
-        "local-anchor": "지역 앵커",
-    };
+
 
     return (
         <div className="space-y-4">
@@ -189,18 +190,31 @@ export function ProjectsSection() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="category">카테고리</Label>
-                                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                                        <SelectTrigger data-testid="select-project-category">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="youth">청년 주택</SelectItem>
-                                            <SelectItem value="single">1인 가구</SelectItem>
-                                            <SelectItem value="social-mix">소셜 믹스</SelectItem>
-                                            <SelectItem value="local-anchor">지역 앵커</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Label className="mb-2 block">카테고리</Label>
+                                    <div className="grid grid-cols-2 gap-4 border rounded-md p-4">
+                                        {PROJECT_CATEGORIES.map((category) => (
+                                            <div key={category.id} className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`category-${category.id}`}
+                                                    checked={selectedCategories.includes(category.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        if (checked) {
+                                                            setSelectedCategories([...selectedCategories, category.id]);
+                                                        } else {
+                                                            setSelectedCategories(selectedCategories.filter((id) => id !== category.id));
+                                                        }
+                                                    }}
+                                                />
+                                                <Label
+                                                    htmlFor={`category-${category.id}`}
+                                                    className="text-sm font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    {category.label}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <input type="hidden" name="category" value={JSON.stringify(selectedCategories)} />
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -296,9 +310,11 @@ export function ProjectsSection() {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap mb-1">
                                             <h3 className="font-medium">{project.title}</h3>
-                                            <Badge variant="secondary" className="text-xs">
-                                                {categoryLabels[project.category] || project.category}
-                                            </Badge>
+                                            {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
+                                                <Badge key={cat} variant="secondary" className="text-xs">
+                                                    {CATEGORY_LABELS[cat] || cat}
+                                                </Badge>
+                                            ))}
                                             {project.featured && <Badge>추천</Badge>}
                                         </div>
                                         <p className="text-sm text-muted-foreground line-clamp-1">

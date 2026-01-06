@@ -5,12 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Project } from "@shared/schema";
 
-const categoryLabels: Record<string, string> = {
-  youth: "청년주택",
-  single: "1인가구",
-  "social-mix": "소셜믹스",
-  "local-anchor": "도시재생",
-};
+import { CATEGORY_LABELS } from "@/lib/constants";
 
 export default function FeaturedProjects() {
   const { data: projects = [], isLoading, isError, refetch } = useQuery<Project[]>({
@@ -85,9 +80,13 @@ export default function FeaturedProjects() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
-                    <span className="inline-block px-3 py-1 text-xs font-medium bg-white/20 backdrop-blur-sm text-white rounded-full mb-2">
-                      {categoryLabels[project.category] || project.category}
-                    </span>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
+                        <span key={cat} className="inline-block px-3 py-1 text-xs font-medium bg-white/20 backdrop-blur-sm text-white rounded-full">
+                          {CATEGORY_LABELS[cat] || cat}
+                        </span>
+                      ))}
+                    </div>
                     <h3 className="text-xl font-bold text-white">{project.title}</h3>
                     {project.titleEn && (
                       <p className="text-white/80 text-sm">{project.titleEn}</p>

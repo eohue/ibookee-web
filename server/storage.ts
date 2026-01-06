@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, arrayContains } from "drizzle-orm";
 import { db } from "./db";
 import {
   projects,
@@ -168,7 +168,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProjectsByCategory(category: string): Promise<Project[]> {
-    return db.select().from(projects).where(eq(projects.category, category));
+    return db.select().from(projects).where(arrayContains(projects.category, [category]));
   }
 
   async createProject(project: InsertProject): Promise<Project> {
@@ -642,7 +642,7 @@ export class MemStorage implements IStorage {
   }
 
   async getProjectsByCategory(category: string): Promise<Project[]> {
-    return Array.from(this.projects.values()).filter(p => p.category === category);
+    return Array.from(this.projects.values()).filter(p => p.category.includes(category));
   }
 
   async createProject(project: InsertProject): Promise<Project> {

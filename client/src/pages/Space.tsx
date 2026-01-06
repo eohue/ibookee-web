@@ -9,12 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Project } from "@shared/schema";
 
+import { PROJECT_CATEGORIES } from "@/lib/constants";
+
 const categories = [
   { id: "all", label: "전체", labelEn: "All" },
-  { id: "youth", label: "청년 & 창업", labelEn: "Youth & Startup" },
-  { id: "single", label: "1인가구 & 여성", labelEn: "Single & Women" },
-  { id: "social-mix", label: "소셜믹스", labelEn: "Social Mix" },
-  { id: "local-anchor", label: "로컬 앵커", labelEn: "Local Anchor" },
+  ...PROJECT_CATEGORIES
 ];
 
 export default function Space() {
@@ -27,7 +26,10 @@ export default function Space() {
 
   const filteredProjects = activeCategory === "all"
     ? projects
-    : projects.filter((p) => p.category === activeCategory);
+    : projects.filter((p) => {
+      const cats = Array.isArray(p.category) ? p.category : [p.category as unknown as string];
+      return cats.includes(activeCategory);
+    });
 
   const getCategoryLabel = (categoryId: string) => {
     const cat = categories.find((c) => c.id === categoryId);
@@ -135,9 +137,13 @@ export default function Space() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                       <div className="absolute top-4 left-4">
-                        <Badge variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0">
-                          {getCategoryLabel(project.category)}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1">
+                          {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
+                            <Badge key={cat} variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0 mr-1">
+                              {getCategoryLabel(cat)}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                       <div className="absolute bottom-4 left-4 right-4">
                         <h3 className="text-xl font-bold text-white">{project.title}</h3>

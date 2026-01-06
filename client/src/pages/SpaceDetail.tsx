@@ -8,12 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, MapPin, Calendar, Home, Users, AlertCircle, RefreshCw } from "lucide-react";
 
-const categoryLabels: Record<string, string> = {
-  youth: "청년주택",
-  single: "1인가구",
-  "social-mix": "소셜믹스",
-  "local-anchor": "지역거점",
-};
+import { CATEGORY_LABELS } from "@/lib/constants";
 
 export default function SpaceDetail() {
   const [, params] = useRoute("/space/:id");
@@ -98,9 +93,13 @@ export default function SpaceDetail() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-6 left-6 right-6">
-              <Badge className="mb-3 bg-white/20 backdrop-blur-sm text-white border-0">
-                {categoryLabels[project.category] || project.category}
-              </Badge>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
+                  <Badge key={cat} className="bg-white/20 backdrop-blur-sm text-white border-0">
+                    {CATEGORY_LABELS[cat] || cat}
+                  </Badge>
+                ))}
+              </div>
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2" data-testid="text-project-title">
                 {project.title}
               </h1>

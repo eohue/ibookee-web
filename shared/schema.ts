@@ -9,7 +9,7 @@ export const projects = pgTable("projects", {
   title: text("title").notNull(),
   titleEn: text("title_en"),
   location: text("location").notNull(),
-  category: text("category").notNull(), // youth, single, social-mix, local-anchor
+  category: text("category").array().notNull(), // Array of category IDs
   description: text("description").notNull(),
   imageUrl: text("image_url").notNull(),
   year: integer("year").notNull(),

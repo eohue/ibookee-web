@@ -67,16 +67,18 @@ export function MultiImageUpload({ value = [], onChange, disabled }: MultiImageU
                             alt={`Partner Logo ${index + 1}`}
                             className="h-full w-full object-contain p-2"
                         />
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-                            onClick={() => removeImage(index)}
-                            disabled={disabled}
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
+                        <div className="absolute top-2 right-2 z-10">
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => removeImage(index)}
+                                disabled={disabled}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 ))}
 
