@@ -1,6 +1,18 @@
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from "@/components/ui/carousel";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -100,11 +112,44 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                 <DialogTitle className="sr-only">Post Detail</DialogTitle>
                 {/* Left: Image */}
                 <div className="w-full md:w-3/5 bg-black flex items-center justify-center relative">
-                    <img
-                        src={post.imageUrl || ""}
-                        alt={post.caption || "Community post"}
-                        className="max-h-full max-w-full object-contain"
-                    />
+                    {post.embedCode ? (
+                        <div
+                            className="w-full h-full flex items-center justify-center overflow-hidden [&>iframe]:max-w-full [&>iframe]:max-h-full [&>blockquote]:max-w-full [&>blockquote]:max-h-full [&>blockquote]:bg-white [&>blockquote]:mx-auto"
+                            dangerouslySetInnerHTML={{ __html: post.embedCode }}
+                        />
+                    ) : (post.images && post.images.length > 0) ? (
+                        <Carousel className="w-full h-full overflow-hidden">
+                            <CarouselContent>
+                                {post.images.map((img, idx) => (
+                                    <CarouselItem key={idx} className="flex items-center justify-center h-[80vh] md:h-full">
+                                        <img
+                                            src={img}
+                                            alt={`${post.caption || "Community post"} - ${idx + 1}`}
+                                            className="max-h-full max-w-full object-contain"
+                                        />
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            {post.images.length > 1 && (
+                                <>
+                                    <CarouselPrevious
+                                        className="!left-2 !-translate-x-0 !translate-y-[-50%] z-50 bg-black/50 hover:bg-black/70 border-none text-white h-10 w-10 rounded-full"
+                                        variant="ghost"
+                                    />
+                                    <CarouselNext
+                                        className="!right-2 !-translate-x-0 !translate-y-[-50%] z-50 bg-black/50 hover:bg-black/70 border-none text-white h-10 w-10 rounded-full"
+                                        variant="ghost"
+                                    />
+                                </>
+                            )}
+                        </Carousel>
+                    ) : (
+                        <img
+                            src={post.imageUrl || ""}
+                            alt={post.caption || "Community post"}
+                            className="max-h-full max-w-full object-contain"
+                        />
+                    )}
                 </div>
 
                 {/* Right: Content & Comments */}
