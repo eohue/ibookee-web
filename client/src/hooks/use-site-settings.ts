@@ -100,7 +100,7 @@ export function useCeoMessage() {
 
 const defaultPageImages: Record<string, Record<string, string>> = {
   home: {
-    hero: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    hero: "/hero-image.jpg",
   },
   about: {
     office: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
@@ -119,14 +119,37 @@ export function usePageImages() {
     staleTime: 60000,
   });
 
+  const getImageList = (pageKey: string, imageKey: string): PageImage[] => {
+    const dbImages = pageImages
+      ?.filter(img => img.pageKey === pageKey && img.imageKey === imageKey)
+      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+    if (dbImages && dbImages.length > 0) return dbImages;
+
+    // Fallback to default
+    const defaultUrl = defaultPageImages[pageKey]?.[imageKey];
+    if (defaultUrl) {
+      return [{
+        id: "default",
+        pageKey,
+        imageKey,
+        imageUrl: defaultUrl,
+        altText: null,
+        displayOrder: 0
+      }];
+    }
+    return [];
+  };
+
   const getImageUrl = (pageKey: string, imageKey: string): string => {
-    const dbImage = pageImages?.find(img => img.pageKey === pageKey && img.imageKey === imageKey);
-    if (dbImage) return dbImage.imageUrl;
-    return defaultPageImages[pageKey]?.[imageKey] || "";
+    const images = getImageList(pageKey, imageKey);
+    if (images.length > 0) return images[0].imageUrl;
+    return "";
   };
 
   return {
     getImageUrl,
+    getImageList,
     isLoading,
     pageImages,
   };

@@ -52,6 +52,7 @@ export const articles = pgTable("articles", {
   author: text("author").notNull(),
   category: text("category").notNull(), // column, media, library
   imageUrl: text("image_url"),
+  fileUrl: text("file_url"),
   publishedAt: timestamp("published_at").defaultNow(),
   featured: boolean("featured").default(false),
 });
@@ -80,7 +81,8 @@ export type SocialAccount = typeof socialAccounts.$inferSelect;
 export const communityPosts = pgTable("community_posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   accountId: varchar("account_id").references(() => socialAccounts.id), // 연결된 소셜 계정
-  imageUrl: text("image_url").notNull(),
+  imageUrl: text("image_url"), // nullable now
+  embedCode: text("embed_code"), // new field for iframe/blockquote
   caption: text("caption"),
   location: text("location"),
   likes: integer("likes").default(0),

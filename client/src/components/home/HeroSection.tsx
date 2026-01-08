@@ -1,23 +1,47 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePageImages } from "@/hooks/use-site-settings";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function HeroSection() {
-  const { getImageUrl } = usePageImages();
-  const heroImageUrl = getImageUrl("home", "hero");
+  const { getImageList } = usePageImages();
+  const heroImages = getImageList("home", "hero");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
 
   return (
     <section
       className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden"
       data-testid="section-hero"
     >
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url('${heroImageUrl}')`,
-        }}
-      />
+      <AnimatePresence mode="popLayout">
+        {heroImages.length > 0 ? (
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url('${heroImages[currentIndex].imageUrl}')`,
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-black" />
+        )}
+      </AnimatePresence>
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

@@ -16,14 +16,14 @@ const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
     fileFilter: (_req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png|gif|webp/;
+        const allowedTypes = /jpeg|jpg|png|gif|webp|pdf/;
         const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
         const mimetype = allowedTypes.test(file.mimetype);
 
         if (mimetype && extname) {
             return cb(null, true);
         }
-        cb(new Error("Only image files are allowed!"));
+        cb(new Error("Only image and PDF files are allowed!"));
     },
 });
 
@@ -41,10 +41,6 @@ export function registerUploadRoutes(app: Express) {
 
             // Generate unique filename
             const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-            // We'll normalize everything to webp or keep original extension if preferred.
-            // Let's stick to original extension unless it's huge, but sharp is good at optimizing.
-            // For simplicity and consistency, let's output webp for efficiency or keep jpg/png.
-            // Let's respect input type but optimize.
 
             const originalExt = path.extname(req.file.originalname).toLowerCase();
             let ext = originalExt;
@@ -53,20 +49,25 @@ export function registerUploadRoutes(app: Express) {
             const filename = req.file.fieldname + "-" + uniqueSuffix + ext;
             const filepath = path.join(uploadDir, filename);
 
-            // Process image
-            let pipeline = sharp(req.file.buffer);
+            let buffer = req.file.buffer;
 
-            // Get metadata to check width
-            const metadata = await pipeline.metadata();
+            // Only optimize images
+            if (req.file.mimetype.startsWith('image/')) {
+                // Process image
+                let pipeline = sharp(req.file.buffer);
 
-            if (metadata.width && metadata.width > 2560) {
-                pipeline = pipeline.resize(2560, null, { withoutEnlargement: true });
+                // Get metadata to check width
+                const metadata = await pipeline.metadata();
+
+                if (metadata.width && metadata.width > 2560) {
+                    pipeline = pipeline.resize(2560, null, { withoutEnlargement: true });
+                }
+
+                // Optimization based on format
+                buffer = await pipeline
+                    .withMetadata() // Preserve metadata like orientation
+                    .toBuffer();
             }
-
-            // Optimization based on format
-            const buffer = await pipeline
-                .withMetadata() // Preserve metadata like orientation
-                .toBuffer();
 
             let fileUrl: string;
 

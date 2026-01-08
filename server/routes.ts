@@ -15,6 +15,7 @@ import { registerPageRoutes } from "./routes/pages";
 import { registerStatsRoutes } from "./routes/stats";
 import { registerUploadRoutes } from "./routes/upload";
 import { registerUserRoutes } from "./routes/users";
+import { registerMetadataRoutes } from "./routes/metadata";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -25,6 +26,7 @@ export async function registerRoutes(
   registerAuthRoutes(app);
   registerUserRoutes(app);
   registerUploadRoutes(app);
+  registerMetadataRoutes(app);
 
   // Register domain routes
   registerProjectRoutes(app);

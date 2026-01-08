@@ -28,6 +28,7 @@ import { PartnersSection } from "@/components/dashboard/PartnersSection";
 import { HistorySection } from "@/components/dashboard/HistorySection";
 import { PageImagesSection } from "@/components/dashboard/PageImagesSection";
 import { SiteSettingsSection } from "@/components/dashboard/SiteSettingsSection";
+import { ResourcesSection } from "@/components/dashboard/ResourcesSection";
 import UsersSection from "@/pages/admin/users";
 import type { Stats } from "@/components/dashboard/types";
 
@@ -141,6 +142,7 @@ export default function Dashboard() {
             )}
             {activeSection === "projects" && <ProjectsSection />}
             {activeSection === "articles" && <ArticlesSection />}
+            {activeSection === "resources" && <ResourcesSection />}
             {activeSection === "events" && <EventsSection />}
             {activeSection === "programs" && <ProgramsSection />}
             {activeSection === "inquiries" && <InquiriesSection />}

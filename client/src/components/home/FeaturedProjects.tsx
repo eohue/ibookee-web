@@ -1,6 +1,8 @@
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, MapPin, AlertCircle, RefreshCw } from "lucide-react";
+import { ArrowRight, MapPin, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Project } from "@shared/schema";
@@ -12,8 +14,37 @@ export default function FeaturedProjects() {
     queryKey: ["/api/projects"],
   });
 
-  const featuredProjects = projects.filter((p) => p.featured).slice(0, 3);
-  const displayProjects = featuredProjects.length > 0 ? featuredProjects : projects.slice(0, 3);
+  // Take up to 10 projects, prioritizing featured ones
+  const featuredOnly = projects.filter((p) => p.featured);
+  const otherProjects = projects.filter((p) => !p.featured);
+  const displayProjects = [...featuredOnly, ...otherProjects].slice(0, 10);
+
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: "start",
+    slidesToScroll: 1,
+    breakpoints: {
+      '(min-width: 768px)': { slidesToScroll: 2 },
+      '(min-width: 1024px)': { slidesToScroll: 3 }
+    }
+  });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(true);
+
+  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
+
+  const onSelect = useCallback((api: any) => {
+    setCanScrollPrev(api.canScrollPrev());
+    setCanScrollNext(api.canScrollNext());
+  }, []);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect(emblaApi);
+    emblaApi.on("reInit", onSelect);
+    emblaApi.on("select", onSelect);
+  }, [emblaApi, onSelect]);
 
   return (
     <section className="py-20 md:py-24 bg-card" data-testid="section-featured-projects">
@@ -27,12 +58,36 @@ export default function FeaturedProjects() {
               공간에 삶을 담다
             </h2>
           </div>
-          <Link href="/space">
-            <Button variant="outline" className="group" data-testid="button-view-all-projects">
-              전체 프로젝트 보기
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full"
+                onClick={scrollPrev}
+                disabled={!canScrollPrev}
+                data-testid="button-featured-prev"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full"
+                onClick={scrollNext}
+                disabled={!canScrollNext}
+                data-testid="button-featured-next"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
+            <Link href="/space">
+              <Button variant="outline" className="group" data-testid="button-view-all-projects">
+                전체 프로젝트 보기
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {isError ? (
@@ -46,16 +101,20 @@ export default function FeaturedProjects() {
             </Button>
           </div>
         ) : isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-lg bg-background border border-border">
-                <Skeleton className="aspect-[4/3] w-full" />
-                <div className="p-5 space-y-3">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-full" />
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4 first:pl-0">
+                  <div className="overflow-hidden rounded-lg bg-background border border-border">
+                    <Skeleton className="aspect-[4/3] w-full" />
+                    <div className="p-5 space-y-3">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : displayProjects.length === 0 ? (
           <div className="text-center py-16">
@@ -64,49 +123,71 @@ export default function FeaturedProjects() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {displayProjects.map((project) => (
-              <Link
-                key={project.id}
-                href={`/space/${project.id}`}
-                className="group block overflow-hidden rounded-lg bg-background border border-border hover-elevate"
-                data-testid={`card-project-${project.id}`}
-              >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <img
-                    src={project.imageUrl}
-                    alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
-                        <span key={cat} className="inline-block px-3 py-1 text-xs font-medium bg-white/20 backdrop-blur-sm text-white rounded-full">
-                          {CATEGORY_LABELS[cat] || cat}
-                        </span>
-                      ))}
-                    </div>
-                    <h3 className="text-xl font-bold text-white">{project.title}</h3>
-                    {project.titleEn && (
-                      <p className="text-white/80 text-sm">{project.titleEn}</p>
-                    )}
+          <div className="relative group">
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex -ml-4">
+                {displayProjects.map((project) => (
+                  <div key={project.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4">
+                    <Link
+                      href={`/space/${project.id}`}
+                      className="group/card block h-full overflow-hidden rounded-lg bg-background border border-border hover-elevate transition-all duration-300"
+                      data-testid={`card-project-${project.id}`}
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <img
+                          src={project.imageUrl}
+                          alt={project.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
+                              <span key={cat} className="inline-block px-3 py-1 text-xs font-medium bg-white/20 backdrop-blur-sm text-white rounded-full">
+                                {CATEGORY_LABELS[cat] || cat}
+                              </span>
+                            ))}
+                          </div>
+                          <h3 className="text-xl font-bold text-white mb-1">{project.title}</h3>
+                          {project.titleEn && (
+                            <p className="text-white/80 text-sm line-clamp-1">{project.titleEn}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
+                          <MapPin className="w-4 h-4" />
+                          <span className="line-clamp-1">{project.location}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">{project.year}년 준공</span>
+                          {project.units && (
+                            <span className="font-medium text-foreground">{project.units}세대</span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
                   </div>
-                </div>
-                <div className="p-5">
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
-                    <MapPin className="w-4 h-4" />
-                    <span>{project.location}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{project.year}년 준공</span>
-                    {project.units && (
-                      <span className="font-medium text-foreground">{project.units}세대</span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
+                ))}
+              </div>
+            </div>
+            {/* Mobile Navigation Arrows (Visible on touch) */}
+            <Button
+              variant="secondary"
+              size="icon"
+              className={`absolute top-1/2 -left-4 -translate-y-1/2 shadow-lg rounded-full z-10 md:hidden transition-opacity duration-200 ${!canScrollPrev ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+              onClick={scrollPrev}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className={`absolute top-1/2 -right-4 -translate-y-1/2 shadow-lg rounded-full z-10 md:hidden transition-opacity duration-200 ${!canScrollNext ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+              onClick={scrollNext}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
           </div>
         )}
       </div>

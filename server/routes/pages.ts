@@ -99,6 +99,30 @@ export function registerPageRoutes(app: Express) {
         }
     });
 
+    app.put("/api/admin/page-images-list", isAuthenticated, async (req, res) => {
+        try {
+            const { pageKey, imageKey, images } = req.body;
+            if (!pageKey || !imageKey || !Array.isArray(images)) {
+                return res.status(400).json({ error: "Invalid request body" });
+            }
+
+            // Validate and prepare images
+            const imageRecords = images.map((img: any, index: number) => ({
+                pageKey,
+                imageKey,
+                imageUrl: img.imageUrl,
+                altText: img.altText,
+                displayOrder: index
+            }));
+
+            const result = await storage.replacePageImages(pageKey, imageKey, imageRecords);
+            res.json(result);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: "Failed to replace page images" });
+        }
+    });
+
     app.delete("/api/admin/page-images/:id", isAuthenticated, async (req, res) => {
         try {
             await storage.deletePageImage(req.params.id);

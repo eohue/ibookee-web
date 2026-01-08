@@ -143,6 +143,7 @@ export interface IStorage {
   getPageImagesByPage(pageKey: string): Promise<PageImage[]>;
   getPageImage(pageKey: string, imageKey: string): Promise<PageImage | undefined>;
   upsertPageImage(image: InsertPageImage): Promise<PageImage>;
+  replacePageImages(pageKey: string, imageKey: string, images: InsertPageImage[]): Promise<PageImage[]>;
   deletePageImage(id: string): Promise<void>;
 
   // Users
@@ -486,6 +487,21 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async replacePageImages(pageKey: string, imageKey: string, images: InsertPageImage[]): Promise<PageImage[]> {
+    // Transactional replacement: delete all matching, then insert new ones
+    return await db.transaction(async (tx) => {
+      // Delete existing images for this key
+      await tx.delete(pageImages)
+        .where(and(eq(pageImages.pageKey, pageKey), eq(pageImages.imageKey, imageKey)));
+
+      if (images.length === 0) return [];
+
+      // Insert new images
+      const results = await tx.insert(pageImages).values(images).returning();
+      return results;
+    });
+  }
+
   async deletePageImage(id: string): Promise<void> {
     await db.delete(pageImages).where(eq(pageImages.id, id));
   }
@@ -576,6 +592,19 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.load();
+    if (!this.siteSettings.has("company_stats")) {
+      this.siteSettings.set("company_stats", {
+        key: "company_stats",
+        value: {
+          projectCount: { value: "20+", label: "프로젝트" },
+          householdCount: { value: "1000+", label: "세대" },
+          yearsInBusiness: { value: "13", label: "년" },
+          awardCount: { value: "500+", label: "커뮤니티 지원" }
+        },
+        id: "13",
+        updatedAt: new Date()
+      });
+    }
   }
 
   private persist() {
@@ -616,8 +645,10 @@ export class MemStorage implements IStorage {
         this.projectImages = new Map(data.projectImages);
         this.partners = new Map(data.partners);
         this.historyMilestones = new Map(data.historyMilestones);
+        this.historyMilestones = new Map(data.historyMilestones);
         this.siteSettings = new Map(data.siteSettings);
-        this.pageImages = new Map(data.pageImages);
+        // Ensure pageImages is loaded correctly as a Map
+        this.pageImages = new Map(data.pageImages || []);
         this.users = new Map(data.users);
         this.idCounter = data.idCounter || 1;
       } catch (error) {
@@ -704,7 +735,14 @@ export class MemStorage implements IStorage {
 
   async createArticle(article: InsertArticle): Promise<Article> {
     const id = this.getId();
-    const newArticle: Article = { ...article, id, imageUrl: article.imageUrl ?? null, featured: article.featured ?? false, publishedAt: new Date() };
+    const newArticle: Article = {
+      ...article,
+      id,
+      imageUrl: article.imageUrl ?? null,
+      featured: article.featured ?? false,
+      publishedAt: new Date(),
+      fileUrl: article.fileUrl ?? null
+    };
     this.articles.set(id, newArticle);
     this.persist();
     return newArticle;
@@ -735,7 +773,14 @@ export class MemStorage implements IStorage {
 
   async createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount> {
     const id = this.getId();
-    const newAccount: SocialAccount = { ...account, id, isActive: account.isActive ?? true, profileUrl: account.profileUrl ?? null, profileImageUrl: account.profileImageUrl ?? null, createdAt: new Date() };
+    const newAccount: SocialAccount = {
+      ...account,
+      id,
+      isActive: account.isActive ?? true,
+      profileUrl: account.profileUrl ?? null,
+      profileImageUrl: account.profileImageUrl ?? null,
+      createdAt: new Date()
+    };
     this.socialAccounts.set(id, newAccount);
     this.persist();
     return newAccount;
@@ -776,12 +821,13 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       caption: post.caption ?? null,
       location: post.location ?? null,
-      imageUrl: post.imageUrl,
+      imageUrl: post.imageUrl ?? null,
       accountId: post.accountId ?? null,
       likes: 0,
       hashtags: post.hashtags ?? null,
       sourceUrl: post.sourceUrl ?? null,
       externalId: post.externalId ?? null,
+      embedCode: post.embedCode ?? null,
       postedAt: new Date()
     };
     this.communityPosts.set(id, newPost);
@@ -1090,6 +1136,33 @@ export class MemStorage implements IStorage {
     this.pageImages.delete(id);
     this.persist();
   }
+
+  async replacePageImages(pageKey: string, imageKey: string, images: InsertPageImage[]): Promise<PageImage[]> {
+    // 1. Remove existing
+    const entries = Array.from(this.pageImages.entries());
+    for (const [id, img] of entries) {
+      if (img.pageKey === pageKey && img.imageKey === imageKey) {
+        this.pageImages.delete(id);
+      }
+    }
+
+    // 2. Insert new
+    const results: PageImage[] = [];
+    for (const img of images) {
+      const id = this.getId();
+      const newImg: PageImage = {
+        ...img,
+        id,
+        displayOrder: img.displayOrder ?? 0,
+        altText: img.altText ?? null
+      };
+      this.pageImages.set(id, newImg);
+      results.push(newImg);
+    }
+    this.persist();
+    return results;
+  }
+
 
   // Users
   async getUser(id: string): Promise<User | undefined> {

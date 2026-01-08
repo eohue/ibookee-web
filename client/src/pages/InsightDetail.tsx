@@ -6,7 +6,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, User, AlertCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, Calendar, User, AlertCircle, RefreshCw, FileText, Download } from "lucide-react";
 
 const categoryLabels: Record<string, string> = {
   column: "칼럼",
@@ -135,6 +135,18 @@ export default function InsightDetail() {
               <p className="text-xl text-muted-foreground leading-relaxed mb-8 border-l-4 border-primary pl-4">
                 {article.excerpt}
               </p>
+            )}
+
+            {article.fileUrl && (
+              <div className="mb-8">
+                <a href={article.fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center no-underline">
+                  <Button variant="outline" className="gap-2 h-12 px-6">
+                    <FileText className="w-5 h-5 text-primary" />
+                    <span className="text-base">첨부파일 다운로드</span>
+                    <Download className="w-4 h-4 ml-2 opacity-50" />
+                  </Button>
+                </a>
+              </div>
             )}
 
             <div className="prose prose-lg max-w-none dark:prose-invert">

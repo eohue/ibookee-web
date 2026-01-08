@@ -24,7 +24,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Trash2, ExternalLink, RefreshCw } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import { ImageUpload } from "@/components/ui/image-upload";
 import type { SocialAccount, CommunityPost } from "@shared/schema";
@@ -33,6 +33,8 @@ export function CommunitySection() {
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [imageUrl, setImageUrl] = useState("");
+    const [isScanning, setIsScanning] = useState(false);
+    const [scannedData, setScannedData] = useState<{ caption?: string } | null>(null);
 
     const { data: accounts } = useQuery<SocialAccount[]>({
         queryKey: ["/api/admin/social-accounts"],
@@ -71,6 +73,38 @@ export function CommunitySection() {
         },
     });
 
+    const handleScan = async (url: string) => {
+        if (!url) return;
+        setIsScanning(true);
+        try {
+            // Updated to use the correct API endpoint path which should be /api/admin/extract-metadata
+            // But wait, my implementation plan and code used /api/admin/extract-metadata
+            const res = await fetch("/api/admin/extract-metadata", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url }),
+            });
+            const data = await res.json();
+
+            if (data.error) throw new Error(data.error);
+
+            if (data.imageUrl) {
+                setImageUrl(data.imageUrl);
+                toast({ title: "이미지를 가져왔습니다." });
+            }
+            // Optional: Auto-fill caption if empty? default to not overwriting for now unless we want to.
+            // Let's store it to suggest or fill if empty.
+            if (data.description || data.title) {
+                setScannedData({ caption: data.description || data.title });
+            }
+        } catch (error) {
+            console.error(error);
+            toast({ title: "메타데이터를 가져올 수 없습니다.", variant: "destructive" });
+        } finally {
+            setIsScanning(false);
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -81,7 +115,8 @@ export function CommunitySection() {
             .filter(Boolean);
         const accountId = formData.get("accountId") as string;
         const data = {
-            imageUrl: formData.get("imageUrl") as string,
+            imageUrl: (formData.get("imageUrl") as string) || undefined,
+            embedCode: (formData.get("embedCode") as string) || undefined,
             caption: formData.get("caption") as string,
             location: formData.get("location") as string,
             sourceUrl: formData.get("sourceUrl") as string || undefined,
@@ -130,7 +165,7 @@ export function CommunitySection() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label>이미지 URL</Label>
+                                <Label>이미지 URL (선택)</Label>
                                 <Input
                                     type="hidden"
                                     name="imageUrl"
@@ -144,13 +179,42 @@ export function CommunitySection() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="sourceUrl">원본 게시물 링크</Label>
-                                <Input
-                                    id="sourceUrl"
-                                    name="sourceUrl"
-                                    placeholder="https://instagram.com/p/..."
-                                    data-testid="input-community-source-url"
+                                <Label htmlFor="embedCode">임베드 코드 (이미지 대신 사용 가능)</Label>
+                                <Textarea
+                                    id="embedCode"
+                                    name="embedCode"
+                                    placeholder="Instagram/Youtube/Naver 등에서 복사한 임베드 코드를 붙여넣으세요. (iframe, blockquote 등)"
+                                    className="font-mono text-xs"
+                                    data-testid="input-community-embed-code"
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="sourceUrl">원본 게시물 링크</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="sourceUrl"
+                                        name="sourceUrl"
+                                        placeholder="https://instagram.com/p/..."
+                                        data-testid="input-community-source-url"
+                                        onBlur={(e) => {
+                                            if (e.target.value && !imageUrl) handleScan(e.target.value);
+                                        }}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        disabled={isScanning}
+                                        onClick={() => {
+                                            const input = document.getElementById("sourceUrl") as HTMLInputElement;
+                                            handleScan(input.value);
+                                        }}
+                                        title="이미지 자동 가져오기"
+                                    >
+                                        <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-muted-foreground">링크 입력 후 자동으로 이미지를 가져옵니다.</p>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="caption">설명</Label>
@@ -159,6 +223,7 @@ export function CommunitySection() {
                                     name="caption"
                                     placeholder="게시물 내용"
                                     data-testid="input-community-caption"
+                                    defaultValue={scannedData?.caption}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -212,13 +277,18 @@ export function CommunitySection() {
                         return (
                             <Card key={post.id} data-testid={`card-community-post-${post.id}`}>
                                 <CardContent className="p-0">
-                                    {post.imageUrl && (
+                                    {post.embedCode ? (
+                                        <div
+                                            className="w-full overflow-hidden rounded-t-md [&>iframe]:w-full [&>blockquote]:w-full"
+                                            dangerouslySetInnerHTML={{ __html: post.embedCode }}
+                                        />
+                                    ) : post.imageUrl ? (
                                         <img
                                             src={post.imageUrl}
                                             alt={post.caption || "커뮤니티 포스트"}
                                             className="w-full h-48 object-cover rounded-t-md"
                                         />
-                                    )}
+                                    ) : null}
                                     <div className="p-4 space-y-2">
                                         {account && (
                                             <div className="flex items-center gap-2 text-sm">
