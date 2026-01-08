@@ -91,11 +91,25 @@ export const communityPosts = pgTable("community_posts", {
   externalId: text("external_id"), // 외부 플랫폼 게시물 ID (API 연동용)
   postedAt: timestamp("posted_at").defaultNow(), // 원본 게시 시간
   createdAt: timestamp("created_at").defaultNow(),
+  commentCount: integer("comment_count").default(0),
 });
 
 export const insertCommunityPostSchema = createInsertSchema(communityPosts).omit({ id: true, createdAt: true });
 export type InsertCommunityPost = z.infer<typeof insertCommunityPostSchema>;
 export type CommunityPost = typeof communityPosts.$inferSelect;
+
+// Community Post Comments
+export const communityPostComments = pgTable("community_post_comments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: varchar("post_id").references(() => communityPosts.id, { onDelete: 'cascade' }).notNull(),
+  nickname: text("nickname").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCommunityPostCommentSchema = createInsertSchema(communityPostComments).omit({ id: true, createdAt: true });
+export type InsertCommunityPostComment = z.infer<typeof insertCommunityPostCommentSchema>;
+export type CommunityPostComment = typeof communityPostComments.$inferSelect;
 
 // Events
 export const events = pgTable("events", {

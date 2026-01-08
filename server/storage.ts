@@ -1,4 +1,4 @@
-import { eq, and, arrayContains } from "drizzle-orm";
+import { eq, and, arrayContains, sql } from "drizzle-orm";
 import { db } from "./db";
 import {
   projects,
@@ -46,6 +46,9 @@ import {
   users,
   type User,
   type UpsertUser,
+  communityPostComments,
+  type CommunityPostComment,
+  type InsertCommunityPostComment,
 } from "@shared/schema";
 import fs from "fs";
 import path from "path";
@@ -81,12 +84,18 @@ export interface IStorage {
   deleteSocialAccount(id: string): Promise<void>;
 
   // Community Posts
-  getCommunityPosts(): Promise<CommunityPost[]>;
+  getCommunityPosts(page?: number, limit?: number): Promise<{ posts: CommunityPost[], total: number }>;
   getCommunityPost(id: string): Promise<CommunityPost | undefined>;
-  getCommunityPostsByHashtag(hashtag: string): Promise<CommunityPost[]>;
+  getCommunityPostsByHashtag(hashtag: string, page?: number, limit?: number): Promise<{ posts: CommunityPost[], total: number }>;
   createCommunityPost(post: InsertCommunityPost): Promise<CommunityPost>;
   updateCommunityPost(id: string, post: Partial<InsertCommunityPost>): Promise<CommunityPost | undefined>;
   deleteCommunityPost(id: string): Promise<void>;
+  getCommunityPostComments(postId: string): Promise<CommunityPostComment[]>;
+  getCommunityPostComments(postId: string): Promise<CommunityPostComment[]>;
+  createCommunityPostComment(comment: InsertCommunityPostComment): Promise<CommunityPostComment>;
+  deleteCommunityPostComment(id: string): Promise<void>;
+  likeCommunityPost(id: string): Promise<void>;
+  likeCommunityPost(id: string): Promise<void>;
 
   // Events
   getEvents(): Promise<Event[]>;
@@ -257,8 +266,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Community Posts
-  async getCommunityPosts(): Promise<CommunityPost[]> {
-    return db.select().from(communityPosts);
+  async getCommunityPosts(page: number = 1, limit: number = 20): Promise<{ posts: CommunityPost[], total: number }> {
+    const offset = (page - 1) * limit;
+    const [totalResult] = await db.select({ count: sql<number>`count(*)` }).from(communityPosts);
+    const posts = await db.select().from(communityPosts)
+      .orderBy(communityPosts.postedAt, communityPosts.createdAt)
+      .limit(limit)
+      .offset(offset);
+    return { posts, total: Number(totalResult?.count || 0) };
   }
 
   async getCommunityPost(id: string): Promise<CommunityPost | undefined> {
@@ -266,9 +281,16 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async getCommunityPostsByHashtag(hashtag: string): Promise<CommunityPost[]> {
-    const allPosts = await db.select().from(communityPosts);
-    return allPosts.filter(post => post.hashtags?.includes(hashtag));
+  async getCommunityPostsByHashtag(hashtag: string, page: number = 1, limit: number = 20): Promise<{ posts: CommunityPost[], total: number }> {
+    const offset = (page - 1) * limit;
+    const [totalResult] = await db.select({ count: sql<number>`count(*)` }).from(communityPosts)
+      .where(arrayContains(communityPosts.hashtags, [hashtag]));
+    const posts = await db.select().from(communityPosts)
+      .where(arrayContains(communityPosts.hashtags, [hashtag]))
+      .orderBy(communityPosts.postedAt, communityPosts.createdAt)
+      .limit(limit)
+      .offset(offset);
+    return { posts, total: Number(totalResult?.count || 0) };
   }
 
   async createCommunityPost(post: InsertCommunityPost): Promise<CommunityPost> {
@@ -283,6 +305,43 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCommunityPost(id: string): Promise<void> {
     await db.delete(communityPosts).where(eq(communityPosts.id, id));
+  }
+
+  async getCommunityPostComments(postId: string): Promise<CommunityPostComment[]> {
+    return await db.select().from(communityPostComments).where(eq(communityPostComments.postId, postId)).orderBy(communityPostComments.createdAt);
+  }
+
+  async createCommunityPostComment(comment: InsertCommunityPostComment): Promise<CommunityPostComment> {
+    const [newComment] = await db
+      .insert(communityPostComments)
+      .values(comment)
+      .returning();
+
+    // Increment comment count
+    await db.update(communityPosts)
+      .set({ commentCount: sql`${communityPosts.commentCount} + 1` })
+      .where(eq(communityPosts.id, comment.postId));
+
+    return newComment;
+  }
+
+  async deleteCommunityPostComment(id: string): Promise<void> {
+    const [comment] = await db
+      .delete(communityPostComments)
+      .where(eq(communityPostComments.id, id))
+      .returning();
+
+    if (comment) {
+      await db.update(communityPosts)
+        .set({ commentCount: sql`${communityPosts.commentCount} - 1` })
+        .where(eq(communityPosts.id, comment.postId));
+    }
+  }
+
+  async likeCommunityPost(id: string): Promise<void> {
+    await db.update(communityPosts)
+      .set({ likes: sql`${communityPosts.likes} + 1` })
+      .where(eq(communityPosts.id, id));
   }
 
   // Events
@@ -576,6 +635,7 @@ export class MemStorage implements IStorage {
   private articles: Map<string, Article> = new Map();
   private socialAccounts: Map<string, SocialAccount> = new Map();
   private communityPosts: Map<string, CommunityPost> = new Map();
+  private communityPostComments: Map<string, CommunityPostComment> = new Map();
   private events: Map<string, Event> = new Map();
   private editablePages: Map<string, EditablePage> = new Map();
   private residentPrograms: Map<string, ResidentProgram> = new Map();
@@ -614,6 +674,7 @@ export class MemStorage implements IStorage {
       articles: Array.from(this.articles.entries()),
       socialAccounts: Array.from(this.socialAccounts.entries()),
       communityPosts: Array.from(this.communityPosts.entries()),
+      communityPostComments: Array.from(this.communityPostComments.entries()),
       events: Array.from(this.events.entries()),
       editablePages: Array.from(this.editablePages.entries()),
       residentPrograms: Array.from(this.residentPrograms.entries()),
@@ -638,6 +699,7 @@ export class MemStorage implements IStorage {
         this.articles = new Map(data.articles);
         this.socialAccounts = new Map(data.socialAccounts);
         this.communityPosts = new Map(data.communityPosts);
+        this.communityPostComments = new Map(data.communityPostComments || []);
         this.events = new Map(data.events);
         this.editablePages = new Map(data.editablePages);
         this.residentPrograms = new Map(data.residentPrograms);
@@ -651,6 +713,24 @@ export class MemStorage implements IStorage {
         this.pageImages = new Map(data.pageImages || []);
         this.users = new Map(data.users);
         this.idCounter = data.idCounter || 1;
+
+        // Sync comment counts
+        const commentCounts = new Map<string, number>();
+        this.communityPostComments.forEach(comment => {
+          const current = commentCounts.get(comment.postId) || 0;
+          commentCounts.set(comment.postId, current + 1);
+        });
+
+        this.communityPosts.forEach(post => {
+          const count = commentCounts.get(post.id) || 0;
+          // Only update if different or undefined to avoid unnecessary writes, but for MemStorage strict sync is fine.
+          // Also ensure we don't overwrite if DB has it but we want to trust the actual comments count? 
+          // Better to trust actual comments count for consistency.
+          if (post.commentCount !== count) {
+            post.commentCount = count;
+            this.communityPosts.set(post.id, post);
+          }
+        });
       } catch (error) {
         console.error("Failed to load db.json:", error);
       }
@@ -801,16 +881,33 @@ export class MemStorage implements IStorage {
   }
 
   // Community Posts
-  async getCommunityPosts(): Promise<CommunityPost[]> {
-    return Array.from(this.communityPosts.values());
+  async getCommunityPosts(page: number = 1, limit: number = 20): Promise<{ posts: CommunityPost[], total: number }> {
+    const allPosts = Array.from(this.communityPosts.values())
+      .sort((a, b) => {
+        const dateA = a.postedAt ? new Date(a.postedAt).getTime() : 0;
+        const dateB = b.postedAt ? new Date(b.postedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+    const offset = (page - 1) * limit;
+    const posts = allPosts.slice(offset, offset + limit);
+    return { posts, total: allPosts.length };
   }
 
   async getCommunityPost(id: string): Promise<CommunityPost | undefined> {
     return this.communityPosts.get(id);
   }
 
-  async getCommunityPostsByHashtag(hashtag: string): Promise<CommunityPost[]> {
-    return Array.from(this.communityPosts.values()).filter(p => p.hashtags?.includes(hashtag));
+  async getCommunityPostsByHashtag(hashtag: string, page: number = 1, limit: number = 20): Promise<{ posts: CommunityPost[], total: number }> {
+    const allPosts = Array.from(this.communityPosts.values())
+      .filter(p => p.hashtags?.includes(hashtag))
+      .sort((a, b) => {
+        const dateA = a.postedAt ? new Date(a.postedAt).getTime() : 0;
+        const dateB = b.postedAt ? new Date(b.postedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+    const offset = (page - 1) * limit;
+    const posts = allPosts.slice(offset, offset + limit);
+    return { posts, total: allPosts.length };
   }
 
   async createCommunityPost(post: InsertCommunityPost): Promise<CommunityPost> {
@@ -819,11 +916,12 @@ export class MemStorage implements IStorage {
       ...post,
       id,
       createdAt: new Date(),
+      likes: 0,
+      commentCount: 0,
       caption: post.caption ?? null,
       location: post.location ?? null,
       imageUrl: post.imageUrl ?? null,
       accountId: post.accountId ?? null,
-      likes: 0,
       hashtags: post.hashtags ?? null,
       sourceUrl: post.sourceUrl ?? null,
       externalId: post.externalId ?? null,
@@ -847,6 +945,58 @@ export class MemStorage implements IStorage {
   async deleteCommunityPost(id: string): Promise<void> {
     this.communityPosts.delete(id);
     this.persist();
+  }
+
+  // Community Post Comments
+  async getCommunityPostComments(postId: string): Promise<CommunityPostComment[]> {
+    return Array.from(this.communityPostComments.values()).filter(
+      (comment) => comment.postId === postId
+    );
+  }
+
+  async createCommunityPostComment(comment: InsertCommunityPostComment): Promise<CommunityPostComment> {
+    const id = this.getId(); // Use getId() for consistency
+    const newComment: CommunityPostComment = {
+      ...comment,
+      id,
+      createdAt: new Date(),
+    };
+    this.communityPostComments.set(newComment.id, newComment);
+
+    // Update comment count
+    const post = this.communityPosts.get(newComment.postId);
+    if (post) {
+      post.commentCount = (post.commentCount || 0) + 1;
+      this.communityPosts.set(post.id, post);
+    }
+
+    this.persist();
+    return newComment;
+  }
+
+  async deleteCommunityPostComment(id: string): Promise<void> {
+    const comment = this.communityPostComments.get(id);
+    if (!comment) return;
+
+    this.communityPostComments.delete(id);
+
+    // Update comment count
+    const post = this.communityPosts.get(comment.postId);
+    if (post) {
+      post.commentCount = Math.max((post.commentCount || 1) - 1, 0); // Ensure not negative
+      this.communityPosts.set(post.id, post);
+    }
+
+    this.persist();
+  }
+
+  async likeCommunityPost(id: string): Promise<void> {
+    const post = this.communityPosts.get(id);
+    if (post) {
+      post.likes = (post.likes || 0) + 1;
+      this.communityPosts.set(id, post);
+      this.persist();
+    }
   }
 
   // Events

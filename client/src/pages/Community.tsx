@@ -1,14 +1,14 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink } from "lucide-react";
+import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink, Loader2, MessageCircle } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import type { CommunityPost, Event, ResidentProgram, SocialAccount } from "@shared/schema";
+import { PostDetailModal } from "@/components/community/PostDetailModal";
 
 const defaultHashtags = [
   { id: "all", label: "전체" },
@@ -36,14 +36,47 @@ const programTypeBenefits: Record<string, string[]> = {
 
 export default function Community() {
   const [activeHashtag, setActiveHashtag] = useState("all");
+  const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
+  const observerRef = useRef<HTMLDivElement>(null);
 
   const { data: socialAccounts = [], isLoading: accountsLoading } = useQuery<SocialAccount[]>({
     queryKey: ["/api/social-accounts"],
   });
 
-  const { data: communityPosts = [], isLoading: postsLoading, isError: postsError, refetch: refetchPosts } = useQuery<CommunityPost[]>({
-    queryKey: ["/api/community-posts"],
+  const {
+    data: postsData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: postsLoading,
+    isError: postsError,
+    refetch: refetchPosts
+  } = useInfiniteQuery({
+    queryKey: ["/api/community-posts", activeHashtag],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params = new URLSearchParams();
+      params.append("page", String(pageParam));
+      params.append("limit", "20");
+      if (activeHashtag !== "all") {
+        params.append("hashtag", activeHashtag);
+      }
+      const response = await fetch(`/api/community-posts?${params.toString()}`);
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json() as Promise<{ posts: CommunityPost[], total: number }>;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const loadedPosts = allPages.flatMap(p => p.posts).length;
+      if (loadedPosts < lastPage.total) {
+        return allPages.length + 1;
+      }
+      return undefined;
+    },
   });
+
+  const communityPosts = useMemo(() => {
+    return postsData?.pages.flatMap(page => page.posts) || [];
+  }, [postsData]);
 
   const { data: events = [], isLoading: eventsLoading, isError: eventsError, refetch: refetchEvents } = useQuery<Event[]>({
     queryKey: ["/api/events"],
@@ -53,33 +86,60 @@ export default function Community() {
     queryKey: ["/api/programs"],
   });
 
+  // Intersection Observer for infinite scrolling
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Keep allHashtags logic for now, but it relies on fetched posts which might be partial.
+  // Ideally, hashtags should be fetched separately or fixed list.
+  // For now, we combine default with loaded tags, but since we lazy load, dynamic tags might be missing.
+  // We'll trust defaultHashtags + whatever we find in loaded posts + maybe activeHashtag itself if not in list.
   const allHashtags = useMemo(() => {
     const tagSet = new Set<string>();
     communityPosts.forEach(post => {
       post.hashtags?.forEach(tag => tagSet.add(tag));
     });
     const dynamicTags = Array.from(tagSet).map(tag => ({ id: tag, label: `#${tag}` }));
-    if (dynamicTags.length > 0) {
-      return [{ id: "all", label: "전체" }, ...dynamicTags];
-    }
-    return defaultHashtags;
+
+    // Ensure active hashtag is present if it's not "all" and not in default params
+    // Actually we just display defaults + found ones.
+    const combined = [...defaultHashtags];
+
+    // Add dynamic ones that are not duplicates
+    dynamicTags.forEach(tag => {
+      if (!combined.find(t => t.id === tag.id)) {
+        combined.push(tag);
+      }
+    });
+
+    return combined;
   }, [communityPosts]);
 
-  const filteredPosts = activeHashtag === "all"
-    ? communityPosts
-    : communityPosts.filter((post) => post.hashtags?.includes(activeHashtag));
-  
   const accountsById = useMemo(() => {
     const map: Record<string, SocialAccount> = {};
     socialAccounts.forEach(acc => { map[acc.id] = acc; });
     return map;
   }, [socialAccounts]);
 
-  const upcomingEvents = events.filter((event) => 
+  const upcomingEvents = events.filter((event) =>
     event.published && (event.status === "upcoming" || event.status === "ongoing")
   ).slice(0, 3);
 
-  const openPrograms = programs.filter((program) => 
+  const openPrograms = programs.filter((program) =>
     program.published && program.status === "open"
   );
 
@@ -121,7 +181,10 @@ export default function Community() {
                     key={tag.id}
                     variant={activeHashtag === tag.id ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setActiveHashtag(tag.id)}
+                    onClick={() => {
+                      setActiveHashtag(tag.id);
+                      // Reset scroll or similar if needed, query key change handles fetch
+                    }}
                     className="rounded-full"
                     data-testid={`filter-hashtag-${tag.id}`}
                   >
@@ -141,68 +204,82 @@ export default function Community() {
                   다시 시도
                 </Button>
               </div>
-            ) : postsLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {[...Array(8)].map((_, i) => (
-                  <Skeleton key={i} className="aspect-square rounded-lg" />
-                ))}
-              </div>
-            ) : filteredPosts.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-muted-foreground">
-                  등록된 게시물이 없습니다.
-                </p>
-              </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredPosts.map((post) => {
-                  const account = post.accountId ? accountsById[post.accountId] : null;
-                  return (
-                    <div
-                      key={post.id}
-                      className="group relative aspect-square overflow-hidden rounded-lg bg-muted cursor-pointer"
-                      data-testid={`post-${post.id}`}
-                      onClick={() => post.sourceUrl && window.open(post.sourceUrl, '_blank')}
-                    >
-                      <img
-                        src={post.imageUrl}
-                        alt={post.caption || "Community post"}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300" />
-                      <div className="absolute inset-0 p-4 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="flex items-center justify-between text-white">
-                          <div className="flex items-center gap-1">
-                            <Heart className="w-5 h-5 fill-white" />
-                            <span className="font-medium">{post.likes || 0}</span>
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {communityPosts.map((post) => {
+                    const account = post.accountId ? accountsById[post.accountId] : null;
+                    return (
+                      <div
+                        key={post.id}
+                        className="group relative aspect-square overflow-hidden rounded-lg bg-muted cursor-pointer"
+                        data-testid={`post-${post.id}`}
+                        onClick={() => setSelectedPost(post)}
+                      >
+                        <img
+                          src={post.imageUrl || undefined}
+                          alt={post.caption || "Community post"}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300" />
+                        <div className="absolute inset-0 p-4 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="flex items-center justify-between text-white">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-1">
+                                <Heart className="w-5 h-5 fill-white" />
+                                <span className="font-medium">{post.likes || 0}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MessageCircle className="w-5 h-5 text-white" />
+                                <span className="font-medium text-white">{post.commentCount || 0}</span>
+                              </div>
+                            </div>
+                            {post.sourceUrl && (
+                              <ExternalLink className="w-4 h-4" />
+                            )}
                           </div>
-                          {post.sourceUrl && (
-                            <ExternalLink className="w-4 h-4" />
-                          )}
-                        </div>
-                        <div>
-                          {account && (
-                            <div className="flex items-center gap-2 mb-2">
-                              {account.platform === 'instagram' && <SiInstagram className="w-4 h-4 text-white" />}
-                              <span className="text-white text-xs font-medium">{account.name}</span>
-                            </div>
-                          )}
-                          {post.caption && (
-                            <p className="text-white text-sm line-clamp-2 mb-1">{post.caption}</p>
-                          )}
-                          {post.hashtags && post.hashtags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {post.hashtags.slice(0, 3).map(tag => (
-                                <span key={tag} className="text-white/80 text-xs">#{tag}</span>
-                              ))}
-                            </div>
-                          )}
+                          <div>
+                            {account && (
+                              <div className="flex items-center gap-2 mb-2">
+                                {account.platform === 'instagram' && <SiInstagram className="w-4 h-4 text-white" />}
+                                <span className="text-white text-xs font-medium">{account.name}</span>
+                              </div>
+                            )}
+                            {post.caption && (
+                              <p className="text-white text-sm line-clamp-2 mb-1">{post.caption}</p>
+                            )}
+                            {post.hashtags && post.hashtags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {post.hashtags.slice(0, 3).map(tag => (
+                                  <span key={tag} className="text-white/80 text-xs">#{tag}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+
+                  {/* Loading Skeletons for next page */}
+                  {(postsLoading || isFetchingNextPage) && (
+                    [...Array(4)].map((_, i) => (
+                      <Skeleton key={`skeleton-${i}`} className="aspect-square rounded-lg" />
+                    ))
+                  )}
+                </div>
+
+                {!postsLoading && communityPosts.length === 0 && (
+                  <div className="text-center py-16">
+                    <p className="text-muted-foreground">
+                      등록된 게시물이 없습니다.
+                    </p>
+                  </div>
+                )}
+
+                {/* Intersection Observer Sentinel */}
+                <div ref={observerRef} className="h-10 w-full" />
+              </>
             )}
           </div>
         </section>
@@ -367,6 +444,12 @@ export default function Community() {
         </section>
       </main>
       <Footer />
+      <PostDetailModal
+        post={selectedPost}
+        isOpen={!!selectedPost}
+        onClose={() => setSelectedPost(null)}
+        account={selectedPost?.accountId ? accountsById[selectedPost.accountId] : null}
+      />
     </div>
   );
 }

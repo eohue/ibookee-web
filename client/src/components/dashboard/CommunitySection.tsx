@@ -24,7 +24,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, ExternalLink, RefreshCw } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Pencil } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import { ImageUpload } from "@/components/ui/image-upload";
 import type { SocialAccount, CommunityPost } from "@shared/schema";
@@ -33,8 +33,9 @@ export function CommunitySection() {
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [imageUrl, setImageUrl] = useState("");
-    const [isScanning, setIsScanning] = useState(false);
-    const [scannedData, setScannedData] = useState<{ caption?: string } | null>(null);
+    const [editingPost, setEditingPost] = useState<CommunityPost | null>(null);
+    // Scanned data state removed
+
 
     const { data: accounts } = useQuery<SocialAccount[]>({
         queryKey: ["/api/admin/social-accounts"],
@@ -53,9 +54,29 @@ export function CommunitySection() {
             queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
             toast({ title: "포스트가 생성되었습니다." });
             setIsDialogOpen(false);
+            setEditingPost(null);
+            setImageUrl("");
         },
         onError: () => {
             toast({ title: "생성 실패", variant: "destructive" });
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: async (data: any) => {
+            const { id, ...rest } = data;
+            await apiRequest("PUT", `/api/admin/community-posts/${id}`, rest);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/community-posts"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+            toast({ title: "포스트가 수정되었습니다." });
+            setIsDialogOpen(false);
+            setEditingPost(null);
+            setImageUrl("");
+        },
+        onError: () => {
+            toast({ title: "수정 실패", variant: "destructive" });
         },
     });
 
@@ -73,37 +94,8 @@ export function CommunitySection() {
         },
     });
 
-    const handleScan = async (url: string) => {
-        if (!url) return;
-        setIsScanning(true);
-        try {
-            // Updated to use the correct API endpoint path which should be /api/admin/extract-metadata
-            // But wait, my implementation plan and code used /api/admin/extract-metadata
-            const res = await fetch("/api/admin/extract-metadata", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url }),
-            });
-            const data = await res.json();
+    // handleScan function removed
 
-            if (data.error) throw new Error(data.error);
-
-            if (data.imageUrl) {
-                setImageUrl(data.imageUrl);
-                toast({ title: "이미지를 가져왔습니다." });
-            }
-            // Optional: Auto-fill caption if empty? default to not overwriting for now unless we want to.
-            // Let's store it to suggest or fill if empty.
-            if (data.description || data.title) {
-                setScannedData({ caption: data.description || data.title });
-            }
-        } catch (error) {
-            console.error(error);
-            toast({ title: "메타데이터를 가져올 수 없습니다.", variant: "destructive" });
-        } finally {
-            setIsScanning(false);
-        }
-    };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -116,7 +108,6 @@ export function CommunitySection() {
         const accountId = formData.get("accountId") as string;
         const data = {
             imageUrl: (formData.get("imageUrl") as string) || undefined,
-            embedCode: (formData.get("embedCode") as string) || undefined,
             caption: formData.get("caption") as string,
             location: formData.get("location") as string,
             sourceUrl: formData.get("sourceUrl") as string || undefined,
@@ -124,7 +115,25 @@ export function CommunitySection() {
             hashtags: hashtags.length > 0 ? hashtags : undefined,
         };
 
-        createMutation.mutate(data);
+        if (editingPost) {
+            updateMutation.mutate({ ...data, id: editingPost.id });
+        } else {
+            createMutation.mutate(data);
+        }
+    };
+
+    const handleEdit = (post: CommunityPost) => {
+        setEditingPost(post);
+        setImageUrl(post.imageUrl || "");
+        setIsDialogOpen(true);
+    };
+
+    const handleOpenChange = (open: boolean) => {
+        setIsDialogOpen(open);
+        if (!open) {
+            setEditingPost(null);
+            setImageUrl("");
+        }
     };
 
     return (
@@ -136,7 +145,7 @@ export function CommunitySection() {
                         인스타그램/블로그 게시물을 등록하세요. 해시태그로 필터링됩니다.
                     </p>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
                     <DialogTrigger asChild>
                         <Button data-testid="button-add-community-post">
                             <Plus className="w-4 h-4 mr-2" />
@@ -145,12 +154,12 @@ export function CommunitySection() {
                     </DialogTrigger>
                     <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>새 소셜 포스트</DialogTitle>
+                            <DialogTitle>{editingPost ? "포스트 수정" : "새 소셜 포스트"}</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="accountId">소셜 계정 (선택)</Label>
-                                <Select name="accountId" defaultValue="none">
+                                <Select name="accountId" defaultValue={editingPost?.accountId || "none"}>
                                     <SelectTrigger data-testid="select-community-account">
                                         <SelectValue placeholder="계정 선택" />
                                     </SelectTrigger>
@@ -178,52 +187,26 @@ export function CommunitySection() {
                                     onChange={setImageUrl}
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="embedCode">임베드 코드 (이미지 대신 사용 가능)</Label>
-                                <Textarea
-                                    id="embedCode"
-                                    name="embedCode"
-                                    placeholder="Instagram/Youtube/Naver 등에서 복사한 임베드 코드를 붙여넣으세요. (iframe, blockquote 등)"
-                                    className="font-mono text-xs"
-                                    data-testid="input-community-embed-code"
-                                />
-                            </div>
+                            {/* Embed Code input removed */}
+
                             <div className="space-y-2">
                                 <Label htmlFor="sourceUrl">원본 게시물 링크</Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        id="sourceUrl"
-                                        name="sourceUrl"
-                                        placeholder="https://instagram.com/p/..."
-                                        data-testid="input-community-source-url"
-                                        onBlur={(e) => {
-                                            if (e.target.value && !imageUrl) handleScan(e.target.value);
-                                        }}
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="icon"
-                                        disabled={isScanning}
-                                        onClick={() => {
-                                            const input = document.getElementById("sourceUrl") as HTMLInputElement;
-                                            handleScan(input.value);
-                                        }}
-                                        title="이미지 자동 가져오기"
-                                    >
-                                        <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
-                                    </Button>
-                                </div>
-                                <p className="text-xs text-muted-foreground">링크 입력 후 자동으로 이미지를 가져옵니다.</p>
+                                <Input
+                                    id="sourceUrl"
+                                    name="sourceUrl"
+                                    defaultValue={editingPost?.sourceUrl || ""}
+                                    placeholder="https://instagram.com/p/..."
+                                    data-testid="input-community-source-url"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="caption">설명</Label>
                                 <Textarea
                                     id="caption"
                                     name="caption"
+                                    defaultValue={editingPost?.caption || ""}
                                     placeholder="게시물 내용"
                                     data-testid="input-community-caption"
-                                    defaultValue={scannedData?.caption}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -231,6 +214,7 @@ export function CommunitySection() {
                                 <Input
                                     id="location"
                                     name="location"
+                                    defaultValue={editingPost?.location || ""}
                                     placeholder="예: 안암생활 공유주방"
                                     data-testid="input-community-location"
                                 />
@@ -240,6 +224,7 @@ export function CommunitySection() {
                                 <Input
                                     id="hashtags"
                                     name="hashtags"
+                                    defaultValue={editingPost?.hashtags?.map(h => `#${h}`).join(", ") || ""}
                                     placeholder="소모임, 파티, 원데이클래스, 입주민일상"
                                     data-testid="input-community-hashtags"
                                 />
@@ -253,8 +238,8 @@ export function CommunitySection() {
                                         취소
                                     </Button>
                                 </DialogClose>
-                                <Button type="submit" disabled={createMutation.isPending} data-testid="button-submit-community-post">
-                                    생성
+                                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} data-testid="button-submit-community-post">
+                                    {editingPost ? "수정" : "생성"}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -324,6 +309,15 @@ export function CommunitySection() {
                                                 </Button>
                                             )}
                                             <div className="flex-1" />
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleEdit(post)}
+                                                className="mr-1"
+                                                data-testid={`button-edit-community-post-${post.id}`}
+                                            >
+                                                <Pencil className="w-4 h-4 text-muted-foreground" />
+                                            </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"

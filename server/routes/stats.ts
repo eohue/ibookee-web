@@ -9,7 +9,7 @@ export function registerStatsRoutes(app: Express) {
                 storage.getProjects(),
                 storage.getInquiries(),
                 storage.getArticles(),
-                storage.getCommunityPosts(),
+                storage.getCommunityPosts(1, 1), // Get generic count
                 storage.getEvents(),
                 storage.getResidentPrograms(),
             ]);
@@ -17,7 +17,7 @@ export function registerStatsRoutes(app: Express) {
                 projectCount: projects.length,
                 inquiryCount: inquiries.length,
                 articleCount: articles.length,
-                communityPostCount: communityPosts.length,
+                communityPostCount: communityPosts.total,
                 eventCount: events.length,
                 programCount: programs.length,
             });
