@@ -4,49 +4,68 @@ import { Input } from "@/components/ui/input";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 
 interface ImageUploadProps {
-    value?: string;
-    onChange: (value: string) => void;
+    value?: string | string[]; // Allow array of strings
+    onChange: (value: string | string[]) => void;
     disabled?: boolean;
+    maxFiles?: number; // Optional limit
 }
 
-export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, disabled, maxFiles = 1 }: ImageUploadProps) {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Normalize value to array for consistent handling internally
+    const values = Array.isArray(value) ? value : value ? [value] : [];
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        if (maxFiles > 1 && values.length + files.length > maxFiles) {
+            // alert or toast that limit reached
+            return;
+        }
 
         setIsUploading(true);
-        const formData = new FormData();
-        formData.append("image", file);
+        const newUrls: string[] = [];
 
         try {
-            const res = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-            });
-
-            if (!res.ok) {
-                throw new Error("Upload failed");
+            // Upload sequentially or parallel
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append("image", file);
+                const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+                if (!res.ok) throw new Error("Upload failed");
+                const data = await res.json();
+                newUrls.push(data.url);
             }
 
-            const data = await res.json();
-            onChange(data.url);
+            if (maxFiles > 1) {
+                onChange([...values, ...newUrls]);
+            } else {
+                onChange(newUrls[0]);
+            }
+
         } catch (error) {
             console.error("Upload error:", error);
-            // Ideally show toast here, but we'll leave it to parent or console for now
         } finally {
             setIsUploading(false);
-            // Reset input so same file can be selected again if needed
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
         }
     };
 
-    const clearImage = () => {
-        onChange("");
+    const removeImage = (indexToRemove: number) => {
+        if (maxFiles > 1) {
+            const newValues = values.filter((_, i) => i !== indexToRemove);
+            onChange(newValues);
+        } else {
+            onChange("");
+        }
     };
 
     return (
@@ -55,47 +74,54 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
                 type="file"
                 accept="image/*"
                 className="hidden"
+                multiple={maxFiles > 1}
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 disabled={disabled || isUploading}
             />
 
-            {!value ? (
+            {maxFiles > 1 || values.length === 0 ? (
                 <Button
                     type="button"
                     variant="outline"
                     className="w-full h-32 border-dashed flex flex-col gap-2"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={disabled || isUploading}
+                    disabled={disabled || isUploading || (maxFiles > 1 && values.length >= maxFiles)}
                 >
                     {isUploading ? (
                         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     ) : (
                         <>
                             <Upload className="h-6 w-6 text-muted-foreground" />
-                            <span className="text-muted-foreground">이미지 업로드</span>
+                            <span className="text-muted-foreground">
+                                {maxFiles > 1 ? `이미지 업로드 (${values.length}/${maxFiles})` : "이미지 업로드"}
+                            </span>
                         </>
                     )}
                 </Button>
-            ) : (
-                <div className="relative group">
-                    <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
-                        <img
-                            src={value}
-                            alt="Preview"
-                            className="h-full w-full object-cover"
-                        />
-                    </div>
-                    <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={clearImage}
-                        disabled={disabled}
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
+            ) : null}
+
+            {values.length > 0 && (
+                <div className={`grid gap-4 ${maxFiles > 1 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-1"}`}>
+                    {values.map((url, index) => (
+                        <div key={url + index} className="relative group aspect-square rounded-md border bg-muted overflow-hidden">
+                            <img
+                                src={url}
+                                alt={`Preview ${index + 1}`}
+                                className="h-full w-full object-cover"
+                            />
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => removeImage(index)}
+                                disabled={disabled}
+                            >
+                                <X className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    ))}
                 </div>
             )}
 

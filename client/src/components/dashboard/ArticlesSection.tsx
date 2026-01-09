@@ -212,7 +212,7 @@ export function ArticlesSection() {
                                 />
                                 <ImageUpload
                                     value={imageUrl}
-                                    onChange={setImageUrl}
+                                    onChange={(url) => setImageUrl(url as string)}
                                 />
                             </div>
                             <div className="flex items-center space-x-2">

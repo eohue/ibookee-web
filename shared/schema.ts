@@ -81,7 +81,8 @@ export type SocialAccount = typeof socialAccounts.$inferSelect;
 export const communityPosts = pgTable("community_posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   accountId: varchar("account_id").references(() => socialAccounts.id), // 연결된 소셜 계정
-  imageUrl: text("image_url"), // nullable now
+  imageUrl: text("image_url"), // primary/thumbnail image
+  images: text("images").array(), // multiple images support
   embedCode: text("embed_code"), // new field for iframe/blockquote
   caption: text("caption"),
   location: text("location"),

@@ -195,7 +195,7 @@ export function ResourcesSection() {
                                 />
                                 <ImageUpload
                                     value={imageUrl}
-                                    onChange={setImageUrl}
+                                    onChange={(url) => setImageUrl(url as string)}
                                 />
                             </div>
                             <div className="space-y-2">

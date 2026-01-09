@@ -100,7 +100,7 @@ export function ProjectsSection() {
             setSelectedCategories(categories);
             setImageUrl(project.imageUrl ?? "");
             setDescription(project.description);
-            setPartnerLogos(project.partnerLogos ?? []);
+            setPartnerLogos((project.partnerLogos as unknown as string[]) ?? []);
         } else {
             setSelectedCategories(["youth"]);
             setImageUrl("");
@@ -237,7 +237,7 @@ export function ProjectsSection() {
                                 />
                                 <ImageUpload
                                     value={imageUrl}
-                                    onChange={setImageUrl}
+                                    onChange={(url) => setImageUrl(url as string)}
                                 />
                             </div>
 

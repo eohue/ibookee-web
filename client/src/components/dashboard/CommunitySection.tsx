@@ -32,7 +32,7 @@ import type { SocialAccount, CommunityPost } from "@shared/schema";
 export function CommunitySection() {
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [imageUrl, setImageUrl] = useState("");
+    const [images, setImages] = useState<string[]>([]);
     const [editingPost, setEditingPost] = useState<CommunityPost | null>(null);
     // Scanned data state removed
 
@@ -55,7 +55,7 @@ export function CommunitySection() {
             toast({ title: "포스트가 생성되었습니다." });
             setIsDialogOpen(false);
             setEditingPost(null);
-            setImageUrl("");
+            setImages([]);
         },
         onError: () => {
             toast({ title: "생성 실패", variant: "destructive" });
@@ -73,7 +73,7 @@ export function CommunitySection() {
             toast({ title: "포스트가 수정되었습니다." });
             setIsDialogOpen(false);
             setEditingPost(null);
-            setImageUrl("");
+            setImages([]);
         },
         onError: () => {
             toast({ title: "수정 실패", variant: "destructive" });
@@ -106,13 +106,16 @@ export function CommunitySection() {
             .map((tag) => tag.trim().replace(/^#/, ""))
             .filter(Boolean);
         const accountId = formData.get("accountId") as string;
+
         const data = {
-            imageUrl: (formData.get("imageUrl") as string) || undefined,
+            imageUrl: images[0] || undefined, // First image as thumbnail
+            images: images.length > 0 ? images : undefined,
             caption: formData.get("caption") as string,
             location: formData.get("location") as string,
             sourceUrl: formData.get("sourceUrl") as string || undefined,
             accountId: accountId && accountId !== "none" ? accountId : undefined,
             hashtags: hashtags.length > 0 ? hashtags : undefined,
+            embedCode: formData.get("embedCode") as string || undefined,
         };
 
         if (editingPost) {
@@ -124,7 +127,7 @@ export function CommunitySection() {
 
     const handleEdit = (post: CommunityPost) => {
         setEditingPost(post);
-        setImageUrl(post.imageUrl || "");
+        setImages(post.images || (post.imageUrl ? [post.imageUrl] : []));
         setIsDialogOpen(true);
     };
 
@@ -132,7 +135,7 @@ export function CommunitySection() {
         setIsDialogOpen(open);
         if (!open) {
             setEditingPost(null);
-            setImageUrl("");
+            setImages([]);
         }
     };
 
@@ -174,20 +177,34 @@ export function CommunitySection() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label>이미지 URL (선택)</Label>
+                                <Label>이미지 (여러 장 선택 가능)</Label>
                                 <Input
                                     type="hidden"
-                                    name="imageUrl"
-                                    value={imageUrl}
+                                    name="images"
+                                    value={JSON.stringify(images)}
                                     readOnly
-                                    data-testid="input-community-image-hidden"
                                 />
                                 <ImageUpload
-                                    value={imageUrl}
-                                    onChange={setImageUrl}
+                                    value={images}
+                                    onChange={(val) => setImages(Array.isArray(val) ? val : [val])}
+                                    maxFiles={10}
                                 />
                             </div>
-                            {/* Embed Code input removed */}
+                            <div className="space-y-2">
+                                <Label htmlFor="embedCode">임베드 코드 (Instagram/Youtube 등)</Label>
+                                <Textarea
+                                    id="embedCode"
+                                    name="embedCode"
+                                    defaultValue={editingPost?.embedCode || ""}
+                                    placeholder="<blockquote... 또는 <iframe..."
+                                    className="font-mono text-xs"
+                                    rows={4}
+                                    data-testid="input-community-embed-code"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    이미지 대신 소셜 미디어 게시물을 직접 표시하려면 여기에 코드를 입력하세요.
+                                </p>
+                            </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="sourceUrl">원본 게시물 링크</Label>

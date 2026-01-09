@@ -253,7 +253,7 @@ export function ProgramsSection() {
                                     />
                                     <ImageUpload
                                         value={imageUrl}
-                                        onChange={setImageUrl}
+                                        onChange={(url) => setImageUrl(url as string)}
                                     />
                                 </div>
                             </div>

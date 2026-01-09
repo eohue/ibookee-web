@@ -119,7 +119,7 @@ export function PartnersSection() {
                                 />
                                 <ImageUpload
                                     value={logoUrl}
-                                    onChange={setLogoUrl}
+                                    onChange={(url) => setLogoUrl(url as string)}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -193,7 +193,7 @@ export function PartnersSection() {
                                                     />
                                                     <ImageUpload
                                                         value={logoUrl}
-                                                        onChange={setLogoUrl}
+                                                        onChange={(url) => setLogoUrl(url as string)}
                                                     />
                                                 </div>
                                                 <div className="space-y-2">

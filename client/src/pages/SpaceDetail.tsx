@@ -143,22 +143,27 @@ export default function SpaceDetail() {
               dangerouslySetInnerHTML={{ __html: project.description }}
             />
 
-            {project.partnerLogos && project.partnerLogos.length > 0 && (
-              <div className="border-t border-border pt-12">
-                <h3 className="text-lg font-semibold mb-6">Partners</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
-                  {project.partnerLogos.map((logo, index) => (
-                    <div key={index} className="w-full aspect-[3/2] flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100">
-                      <img
-                        src={logo}
-                        alt={`Partner ${index + 1}`}
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    </div>
-                  ))}
+            {(() => {
+              const partnerLogos = (project.partnerLogos as unknown as string[]) ?? [];
+              if (partnerLogos.length === 0) return null;
+
+              return (
+                <div className="border-t border-border pt-12">
+                  <h3 className="text-lg font-semibold mb-6">Partners</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
+                    {partnerLogos.map((logo, index) => (
+                      <div key={index} className="w-full aspect-[3/2] flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100">
+                        <img
+                          src={logo}
+                          alt={`Partner ${index + 1}`}
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       </main>

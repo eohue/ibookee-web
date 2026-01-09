@@ -169,7 +169,7 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // Projects
   async getProjects(): Promise<Project[]> {
-    return db.select().from(projects);
+    return db.select().from(projects).orderBy(sql`${projects.year} DESC`);
   }
 
   async getProject(id: string): Promise<Project | undefined> {
@@ -178,7 +178,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProjectsByCategory(category: string): Promise<Project[]> {
-    return db.select().from(projects).where(arrayContains(projects.category, [category]));
+    return db.select().from(projects).where(arrayContains(projects.category, [category])).orderBy(sql`${projects.year} DESC`);
   }
 
   async createProject(project: InsertProject): Promise<Project> {
@@ -745,7 +745,7 @@ export class MemStorage implements IStorage {
 
   // Projects
   async getProjects(): Promise<Project[]> {
-    return Array.from(this.projects.values());
+    return Array.from(this.projects.values()).sort((a, b) => b.year - a.year);
   }
 
   async getProject(id: string): Promise<Project | undefined> {
@@ -753,7 +753,7 @@ export class MemStorage implements IStorage {
   }
 
   async getProjectsByCategory(category: string): Promise<Project[]> {
-    return Array.from(this.projects.values()).filter(p => p.category.includes(category));
+    return Array.from(this.projects.values()).filter(p => p.category.includes(category)).sort((a, b) => b.year - a.year);
   }
 
   async createProject(project: InsertProject): Promise<Project> {
@@ -926,6 +926,7 @@ export class MemStorage implements IStorage {
       sourceUrl: post.sourceUrl ?? null,
       externalId: post.externalId ?? null,
       embedCode: post.embedCode ?? null,
+      images: post.images ?? null,
       postedAt: new Date()
     };
     this.communityPosts.set(id, newPost);

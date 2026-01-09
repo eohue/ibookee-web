@@ -214,7 +214,7 @@ export function PageImagesSection() {
                                                             </div>
                                                             <ImageUpload
                                                                 value={url}
-                                                                onChange={(newUrl) => updateHeroImage(idx, newUrl)}
+                                                                onChange={(newUrl) => updateHeroImage(idx, newUrl as string)}
                                                             />
                                                             {url && (
                                                                 <div className="aspect-video rounded-md overflow-hidden bg-muted mt-2 h-32">
@@ -239,7 +239,7 @@ export function PageImagesSection() {
                                                         <Label>이미지 URL</Label>
                                                         <ImageUpload
                                                             value={newUrl}
-                                                            onChange={setNewUrl}
+                                                            onChange={(url) => setNewUrl(url as string)}
                                                         />
                                                     </div>
                                                     {newUrl && (

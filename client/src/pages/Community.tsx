@@ -216,11 +216,22 @@ export default function Community() {
                         data-testid={`post-${post.id}`}
                         onClick={() => setSelectedPost(post)}
                       >
-                        <img
-                          src={post.imageUrl || undefined}
-                          alt={post.caption || "Community post"}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
+                        {post.imageUrl ? (
+                          <img
+                            src={post.imageUrl}
+                            alt={post.caption || "Community post"}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                        ) : post.embedCode ? (
+                          <div className="w-full h-full bg-muted flex flex-col items-center justify-center p-4 text-muted-foreground bg-gray-100">
+                            <SiInstagram className="w-8 h-8 mb-2 opacity-50" />
+                            <span className="text-xs font-medium">View Post</span>
+                          </div>
+                        ) : (
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <span className="text-muted-foreground text-xs">No Image</span>
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300" />
                         <div className="absolute inset-0 p-4 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <div className="flex items-center justify-between text-white">
@@ -253,6 +264,26 @@ export default function Community() {
                                 {post.hashtags.slice(0, 3).map(tag => (
                                   <span key={tag} className="text-white/80 text-xs">#{tag}</span>
                                 ))}
+                              </div>
+                            )}
+                            {post.images && post.images.length > 1 && (
+                              <div className="absolute top-2 right-2 bg-black/50 p-1 rounded-sm">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="text-white"
+                                >
+                                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                                  <path d="M3 9h18" />
+                                  <path d="M9 21V9" />
+                                </svg>
                               </div>
                             )}
                           </div>

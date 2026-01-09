@@ -241,7 +241,7 @@ export async function setupAuth(app: Express) {
         // Optional: Reset password if needed, but for now we rely on existence check.
         // To force password update, we would need to check hash or just force update.
         // Let's force update password to ensure login works if user forgot previous one.
-        const isPasswordMatch = await verifyPassword(adminPassword, adminUser.password);
+        const isPasswordMatch = adminUser.password ? await verifyPassword(adminPassword, adminUser.password) : false;
         if (!isPasswordMatch) {
           console.log(`[AdminSeed] Updating password for: ${adminEmail}`);
           const hashedPassword = await hashPassword(adminPassword);
