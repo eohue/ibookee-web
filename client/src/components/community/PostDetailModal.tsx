@@ -111,17 +111,17 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
             <DialogContent className="max-w-4xl p-0 overflow-hidden h-[80vh] flex flex-col md:flex-row gap-0">
                 <DialogTitle className="sr-only">Post Detail</DialogTitle>
                 {/* Left: Image */}
-                <div className="w-full md:w-3/5 bg-black flex items-center justify-center relative">
+                <div className="w-full md:w-3/5 bg-black flex items-center justify-center relative h-full">
                     {post.embedCode ? (
                         <div
                             className="w-full h-full flex items-center justify-center overflow-hidden [&>iframe]:max-w-full [&>iframe]:max-h-full [&>blockquote]:max-w-full [&>blockquote]:max-h-full [&>blockquote]:bg-white [&>blockquote]:mx-auto"
                             dangerouslySetInnerHTML={{ __html: post.embedCode }}
                         />
                     ) : (post.images && post.images.length > 0) ? (
-                        <Carousel className="w-full h-full overflow-hidden">
-                            <CarouselContent>
+                        <Carousel className="w-full h-full">
+                            <CarouselContent className="h-full">
                                 {post.images.map((img, idx) => (
-                                    <CarouselItem key={idx} className="flex items-center justify-center h-[80vh] md:h-full">
+                                    <CarouselItem key={idx} className="flex items-center justify-center h-full">
                                         <img
                                             src={img}
                                             alt={`${post.caption || "Community post"} - ${idx + 1}`}
@@ -133,12 +133,10 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                             {post.images.length > 1 && (
                                 <>
                                     <CarouselPrevious
-                                        className="!left-2 !-translate-x-0 !translate-y-[-50%] z-50 bg-black/50 hover:bg-black/70 border-none text-white h-10 w-10 rounded-full"
-                                        variant="ghost"
+                                        className="!absolute !left-4 !top-1/2 !-translate-y-1/2 z-50 h-12 w-12 rounded-full backdrop-blur-md bg-white/20 hover:bg-white/40 border border-white/30 text-white shadow-lg transition-all duration-200 disabled:opacity-30"
                                     />
                                     <CarouselNext
-                                        className="!right-2 !-translate-x-0 !translate-y-[-50%] z-50 bg-black/50 hover:bg-black/70 border-none text-white h-10 w-10 rounded-full"
-                                        variant="ghost"
+                                        className="!absolute !right-4 !top-1/2 !-translate-y-1/2 z-50 h-12 w-12 rounded-full backdrop-blur-md bg-white/20 hover:bg-white/40 border border-white/30 text-white shadow-lg transition-all duration-200 disabled:opacity-30"
                                     />
                                 </>
                             )}
