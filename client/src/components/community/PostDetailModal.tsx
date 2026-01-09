@@ -159,7 +159,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                             <AvatarFallback>{account?.name?.charAt(0) || "U"}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm truncate">{account?.name || "Anonymous"}</p>
+                            <p className="font-semibold text-sm truncate">{account?.name || "ibookee"}</p>
                             {post.location && (
                                 <p className="text-xs text-muted-foreground flex items-center truncate">
                                     <MapPin className="w-3 h-3 mr-1" />
@@ -184,7 +184,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                                     <AvatarFallback>{account?.name?.charAt(0) || "U"}</AvatarFallback>
                                 </Avatar>
                                 <div className="text-sm">
-                                    <span className="font-semibold mr-2">{account?.name || "Anonymous"}</span>
+                                    <span className="font-semibold mr-2">{account?.name || "ibookee"}</span>
                                     <span className="whitespace-pre-wrap">{post.caption}</span>
                                     <div className="flex flex-wrap gap-1 mt-2">
                                         {post.hashtags?.map((tag) => (

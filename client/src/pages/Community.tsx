@@ -34,6 +34,28 @@ const programTypeBenefits: Record<string, string[]> = {
   "space-sharing": ["최대 50만원 실행 예산", "전문가 멘토링", "기획 컨설팅"],
 };
 
+// Helper function to extract YouTube video ID from embed code
+const getYouTubeVideoId = (embedCode: string): string | null => {
+  // Match youtube.com/embed/VIDEO_ID pattern
+  const embedMatch = embedCode.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (embedMatch) return embedMatch[1];
+
+  // Match youtube.com/watch?v=VIDEO_ID pattern
+  const watchMatch = embedCode.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
+  if (watchMatch) return watchMatch[1];
+
+  // Match youtu.be/VIDEO_ID pattern
+  const shortMatch = embedCode.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (shortMatch) return shortMatch[1];
+
+  // Match youtube.com/shorts/VIDEO_ID pattern
+  const shortsMatch = embedCode.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/);
+  if (shortsMatch) return shortsMatch[1];
+
+  return null;
+};
+
+
 export default function Community() {
   const [activeHashtag, setActiveHashtag] = useState("all");
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
@@ -223,11 +245,26 @@ export default function Community() {
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
                         ) : post.embedCode ? (
-                          <div className="w-full h-full bg-muted flex flex-col items-center justify-center p-4 text-muted-foreground bg-gray-100">
-                            <SiInstagram className="w-8 h-8 mb-2 opacity-50" />
-                            <span className="text-xs font-medium">View Post</span>
-                          </div>
+                          (() => {
+                            const youtubeId = getYouTubeVideoId(post.embedCode);
+                            if (youtubeId) {
+                              return (
+                                <img
+                                  src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
+                                  alt={post.caption || "YouTube video"}
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                />
+                              );
+                            }
+                            return (
+                              <div className="w-full h-full bg-muted flex flex-col items-center justify-center p-4 text-muted-foreground bg-gray-100">
+                                <SiInstagram className="w-8 h-8 mb-2 opacity-50" />
+                                <span className="text-xs font-medium">View Post</span>
+                              </div>
+                            );
+                          })()
                         ) : (
+
                           <div className="w-full h-full bg-muted flex items-center justify-center">
                             <span className="text-muted-foreground text-xs">No Image</span>
                           </div>

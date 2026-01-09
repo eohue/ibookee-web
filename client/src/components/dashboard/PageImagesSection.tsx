@@ -100,7 +100,9 @@ export function PageImagesSection() {
         if (!editingImage) return;
 
         if (editingImage.pageKey === "home" && editingImage.imageKey === "hero") {
-            const imagesPayload = heroImages.map((url, index) => ({
+            // Filter out empty URLs before saving
+            const validImages = heroImages.filter(url => url && url.trim() !== "");
+            const imagesPayload = validImages.map((url, index) => ({
                 imageUrl: url,
                 displayOrder: index
             }));
@@ -118,6 +120,7 @@ export function PageImagesSection() {
             });
         }
     };
+
 
     const addHeroImage = () => {
         if (heroImages.length < 5) {
