@@ -102,6 +102,10 @@ export function PageImagesSection() {
         if (editingImage.pageKey === "home" && editingImage.imageKey === "hero") {
             // Filter out empty URLs before saving
             const validImages = heroImages.filter(url => url && url.trim() !== "");
+            if (validImages.length === 0) {
+                toast({ title: "최소 1개 이상의 이미지를 등록해주세요", variant: "destructive" });
+                return;
+            }
             const imagesPayload = validImages.map((url, index) => ({
                 imageUrl: url,
                 displayOrder: index

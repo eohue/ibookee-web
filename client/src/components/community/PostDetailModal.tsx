@@ -111,7 +111,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
             <DialogContent className="max-w-4xl p-0 overflow-hidden h-[80vh] flex flex-col md:flex-row gap-0">
                 <DialogTitle className="sr-only">Post Detail</DialogTitle>
                 {/* Left: Image */}
-                <div className="w-full md:w-3/5 bg-black flex items-center justify-center relative h-full">
+                <div className="w-full md:w-3/5 bg-black flex items-center justify-center relative h-[50%] md:h-full shrink-0">
                     {post.embedCode ? (
                         <div
                             className="w-full h-full flex items-center justify-center overflow-hidden [&>iframe]:max-w-full [&>iframe]:max-h-full [&>blockquote]:max-w-full [&>blockquote]:max-h-full [&>blockquote]:bg-white [&>blockquote]:mx-auto"
@@ -151,7 +151,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                 </div>
 
                 {/* Right: Content & Comments */}
-                <div className="w-full md:w-2/5 flex flex-col bg-background h-full max-h-[50vh] md:max-h-full">
+                <div className="w-full md:w-2/5 flex flex-col bg-background h-[50%] md:h-full min-h-0">
                     {/* Header */}
                     <div className="p-4 flex items-center border-b shrink-0">
                         <Avatar className="h-8 w-8 mr-3">

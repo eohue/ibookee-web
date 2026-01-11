@@ -58,36 +58,12 @@ export default function FeaturedProjects() {
               공간에 삶을 담다
             </h2>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full"
-                onClick={scrollPrev}
-                disabled={!canScrollPrev}
-                data-testid="button-featured-prev"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full"
-                onClick={scrollNext}
-                disabled={!canScrollNext}
-                data-testid="button-featured-next"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </Button>
-            </div>
-            <Link href="/space">
-              <Button variant="outline" className="group" data-testid="button-view-all-projects">
-                전체 프로젝트 보기
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </div>
+          <Link href="/space">
+            <Button variant="outline" className="group" data-testid="button-view-all-projects">
+              전체 프로젝트 보기
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </div>
 
         {isError ? (
@@ -171,23 +147,21 @@ export default function FeaturedProjects() {
                 ))}
               </div>
             </div>
-            {/* Mobile Navigation Arrows (Visible on touch) */}
-            <Button
-              variant="secondary"
-              size="icon"
-              className={`absolute top-1/2 -left-4 -translate-y-1/2 shadow-lg rounded-full z-10 md:hidden transition-opacity duration-200 ${!canScrollPrev ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+            {/* Navigation Arrows - Glassmorphism style */}
+            <button
+              className={`absolute top-1/2 left-2 md:left-4 -translate-y-1/2 z-10 h-12 w-12 rounded-full backdrop-blur-md bg-black/20 hover:bg-black/40 border border-white/30 text-white shadow-lg transition-all duration-200 flex items-center justify-center ${!canScrollPrev ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
               onClick={scrollPrev}
+              data-testid="button-featured-prev"
             >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="icon"
-              className={`absolute top-1/2 -right-4 -translate-y-1/2 shadow-lg rounded-full z-10 md:hidden transition-opacity duration-200 ${!canScrollNext ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              className={`absolute top-1/2 right-2 md:right-4 -translate-y-1/2 z-10 h-12 w-12 rounded-full backdrop-blur-md bg-black/20 hover:bg-black/40 border border-white/30 text-white shadow-lg transition-all duration-200 flex items-center justify-center ${!canScrollNext ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
               onClick={scrollNext}
+              data-testid="button-featured-next"
             >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
+              <ChevronRight className="w-6 h-6" />
+            </button>
           </div>
         )}
       </div>
