@@ -109,14 +109,14 @@ export function CommunitySection() {
         const accountId = formData.get("accountId") as string;
 
         const data = {
-            imageUrl: images[0] || undefined, // First image as thumbnail
-            images: images.length > 0 ? images : undefined,
+            imageUrl: images[0] || null, // First image as thumbnail
+            images: images.length > 0 ? images : null,
             caption: formData.get("caption") as string,
             location: formData.get("location") as string,
-            sourceUrl: formData.get("sourceUrl") as string || undefined,
-            accountId: accountId && accountId !== "none" ? accountId : undefined,
-            hashtags: hashtags.length > 0 ? hashtags : undefined,
-            embedCode: formData.get("embedCode") as string || undefined,
+            sourceUrl: (formData.get("sourceUrl") as string) || null,
+            accountId: accountId && accountId !== "none" ? accountId : null,
+            hashtags: hashtags.length > 0 ? hashtags : null,
+            embedCode: (formData.get("embedCode") as string) || null,
             postedAt: formData.get("postedAt") ? new Date(formData.get("postedAt") as string).toISOString() : new Date().toISOString(),
         };
 
