@@ -122,12 +122,17 @@ export function registerCommunityRoutes(app: Express) {
 
     app.put("/api/admin/community-posts/:id", isAuthenticated, async (req, res) => {
         try {
-            const post = await storage.updateCommunityPost(req.params.id, req.body);
+            const parsed = insertCommunityPostSchema.partial().safeParse(req.body);
+            if (!parsed.success) {
+                return res.status(400).json({ error: "Invalid post data", details: parsed.error });
+            }
+            const post = await storage.updateCommunityPost(req.params.id, parsed.data);
             if (!post) {
                 return res.status(404).json({ error: "Community post not found" });
             }
             res.json(post);
         } catch (error) {
+            console.error("Update community post failed:", error); // Added logging
             res.status(500).json({ error: "Failed to update community post" });
         }
     });
