@@ -114,11 +114,11 @@ export function ImageUpload({ value, onChange, disabled, maxFiles = 1 }: ImageUp
                                 type="button"
                                 variant="destructive"
                                 size="icon"
-                                className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-2 right-2 h-6 w-6 z-10 opacity-100 bg-destructive hover:bg-destructive/90 text-white rounded-full p-1"
                                 onClick={() => removeImage(index)}
                                 disabled={disabled}
                             >
-                                <X className="h-3 w-3" />
+                                <X className="h-4 w-4" />
                             </Button>
                         </div>
                     ))}

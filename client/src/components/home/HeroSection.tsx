@@ -7,7 +7,19 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function HeroSection() {
   const { getImageList } = usePageImages();
-  const heroImages = getImageList("home", "hero");
+  const apiImages = getImageList("home", "hero");
+
+  // Default hardcoded images
+  const defaultImages = [
+    { imageUrl: "/images/home-hero/hero-1.jpg" },
+    { imageUrl: "/images/home-hero/hero-2.jpg" },
+    { imageUrl: "/images/home-hero/hero-3.jpg" },
+    { imageUrl: "/images/home-hero/hero-4.jpg" },
+    { imageUrl: "/images/home-hero/hero-5.jpg" },
+  ];
+
+  const heroImages = apiImages.length > 0 ? apiImages : defaultImages;
+
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -18,7 +30,7 @@ export default function HeroSection() {
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [heroImages.length]);
+  }, []);
 
   return (
     <section

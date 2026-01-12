@@ -21,12 +21,20 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import type { PageImage } from "@shared/schema";
 
 const defaultPageImages = [
-    { pageKey: "home", imageKey: "hero", label: "홈 - 히어로 배경", currentUrl: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
+    { pageKey: "home", imageKey: "hero", label: "홈 - 히어로 배경", currentUrl: "/images/home-hero/hero-1.jpg" },
     { pageKey: "about", imageKey: "office", label: "About - 오피스 이미지", currentUrl: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" },
     { pageKey: "about", imageKey: "ceo", label: "About - CEO 프로필", currentUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
     { pageKey: "business", imageKey: "solution-youth", label: "Business - 청년주택 솔루션", currentUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
     { pageKey: "business", imageKey: "solution-single", label: "Business - 1인가구 솔루션", currentUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
     { pageKey: "business", imageKey: "solution-family", label: "Business - 가족형 솔루션", currentUrl: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
+];
+
+const defaultHeroImages = [
+    "/images/home-hero/hero-1.jpg",
+    "/images/home-hero/hero-2.jpg",
+    "/images/home-hero/hero-3.jpg",
+    "/images/home-hero/hero-4.jpg",
+    "/images/home-hero/hero-5.jpg"
 ];
 
 export function PageImagesSection() {
@@ -83,8 +91,7 @@ export function PageImagesSection() {
             .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
         if (images && images.length > 0) return images.map(img => img.imageUrl);
-        const defaultUrl = defaultPageImages.find(img => img.pageKey === "home" && img.imageKey === "hero")?.currentUrl;
-        return defaultUrl ? [defaultUrl] : [];
+        return defaultHeroImages;
     };
 
     const handleOpenEdit = (item: typeof defaultPageImages[0]) => {
@@ -102,10 +109,7 @@ export function PageImagesSection() {
         if (editingImage.pageKey === "home" && editingImage.imageKey === "hero") {
             // Filter out empty URLs before saving
             const validImages = heroImages.filter(url => url && url.trim() !== "");
-            if (validImages.length === 0) {
-                toast({ title: "최소 1개 이상의 이미지를 등록해주세요", variant: "destructive" });
-                return;
-            }
+            // If empty, it will clear database records and fall back to defaults
             const imagesPayload = validImages.map((url, index) => ({
                 imageUrl: url,
                 displayOrder: index
