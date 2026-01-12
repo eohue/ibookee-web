@@ -97,7 +97,9 @@ export const communityPosts = pgTable("community_posts", {
   commentCount: integer("comment_count").default(0),
 });
 
-export const insertCommunityPostSchema = createInsertSchema(communityPosts).omit({ id: true, createdAt: true });
+export const insertCommunityPostSchema = createInsertSchema(communityPosts, {
+  postedAt: z.coerce.date(),
+}).omit({ id: true, createdAt: true });
 export type InsertCommunityPost = z.infer<typeof insertCommunityPostSchema>;
 export type CommunityPost = typeof communityPosts.$inferSelect;
 

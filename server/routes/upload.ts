@@ -40,14 +40,13 @@ export function registerUploadRoutes(app: Express) {
             }
 
             // Generate unique filename
+            // Generate unique filename
             const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
 
+            // Default extension
             const originalExt = path.extname(req.file.originalname).toLowerCase();
             let ext = originalExt;
             if (ext === '.jpeg') ext = '.jpg';
-
-            const filename = req.file.fieldname + "-" + uniqueSuffix + ext;
-            const filepath = path.join(uploadDir, filename);
 
             let buffer = req.file.buffer;
 
@@ -63,11 +62,18 @@ export function registerUploadRoutes(app: Express) {
                     pipeline = pipeline.resize(2560, null, { withoutEnlargement: true });
                 }
 
-                // Optimization based on format
-                buffer = await pipeline
-                    .withMetadata() // Preserve metadata like orientation
-                    .toBuffer();
+                // Optimization: Convert to WebP, quality 80%
+                pipeline = pipeline.webp({ quality: 80 });
+
+                buffer = await pipeline.toBuffer();
+
+                // Update extension to webp
+                ext = '.webp';
+                req.file.mimetype = 'image/webp';
             }
+
+            const filename = req.file.fieldname + "-" + uniqueSuffix + ext;
+            const filepath = path.join(uploadDir, filename);
 
             let fileUrl: string;
 

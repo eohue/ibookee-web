@@ -23,28 +23,16 @@ export default function FeaturedProjects() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
     slidesToScroll: 1,
+    loop: true,
     breakpoints: {
       '(min-width: 768px)': { slidesToScroll: 2 },
       '(min-width: 1024px)': { slidesToScroll: 3 }
     }
   });
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(true);
 
+  // Navigation handlers
   const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
-
-  const onSelect = useCallback((api: any) => {
-    setCanScrollPrev(api.canScrollPrev());
-    setCanScrollNext(api.canScrollNext());
-  }, []);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    onSelect(emblaApi);
-    emblaApi.on("reInit", onSelect);
-    emblaApi.on("select", onSelect);
-  }, [emblaApi, onSelect]);
 
   return (
     <section className="py-20 md:py-24 bg-card" data-testid="section-featured-projects">
@@ -147,16 +135,16 @@ export default function FeaturedProjects() {
                 ))}
               </div>
             </div>
-            {/* Navigation Arrows - Glassmorphism style */}
+            {/* Navigation Arrows - Glassmorphism style - Always visible for loop */}
             <button
-              className={`absolute top-1/2 left-2 md:left-4 -translate-y-1/2 z-10 h-12 w-12 rounded-full backdrop-blur-md bg-black/20 hover:bg-black/40 border border-white/30 text-white shadow-lg transition-all duration-200 flex items-center justify-center ${!canScrollPrev ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+              className="absolute top-1/2 left-2 md:left-4 -translate-y-1/2 z-10 h-12 w-12 rounded-full backdrop-blur-md bg-black/20 hover:bg-black/40 border border-white/30 text-white shadow-lg transition-all duration-200 flex items-center justify-center opacity-100"
               onClick={scrollPrev}
               data-testid="button-featured-prev"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             <button
-              className={`absolute top-1/2 right-2 md:right-4 -translate-y-1/2 z-10 h-12 w-12 rounded-full backdrop-blur-md bg-black/20 hover:bg-black/40 border border-white/30 text-white shadow-lg transition-all duration-200 flex items-center justify-center ${!canScrollNext ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+              className="absolute top-1/2 right-2 md:right-4 -translate-y-1/2 z-10 h-12 w-12 rounded-full backdrop-blur-md bg-black/20 hover:bg-black/40 border border-white/30 text-white shadow-lg transition-all duration-200 flex items-center justify-center opacity-100"
               onClick={scrollNext}
               data-testid="button-featured-next"
             >

@@ -28,6 +28,7 @@ import { Plus, Trash2, ExternalLink, Pencil } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import { ImageUpload } from "@/components/ui/image-upload";
 import type { SocialAccount, CommunityPost } from "@shared/schema";
+import { format } from "date-fns";
 
 export function CommunitySection() {
     const { toast } = useToast();
@@ -116,6 +117,7 @@ export function CommunitySection() {
             accountId: accountId && accountId !== "none" ? accountId : undefined,
             hashtags: hashtags.length > 0 ? hashtags : undefined,
             embedCode: formData.get("embedCode") as string || undefined,
+            postedAt: formData.get("postedAt") ? new Date(formData.get("postedAt") as string).toISOString() : new Date().toISOString(),
         };
 
         if (editingPost) {
@@ -160,21 +162,37 @@ export function CommunitySection() {
                             <DialogTitle>{editingPost ? "포스트 수정" : "새 소셜 포스트"}</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="accountId">소셜 계정 (선택)</Label>
-                                <Select name="accountId" defaultValue={editingPost?.accountId || "none"}>
-                                    <SelectTrigger data-testid="select-community-account">
-                                        <SelectValue placeholder="계정 선택" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">계정 없음</SelectItem>
-                                        {accounts?.map(account => (
-                                            <SelectItem key={account.id} value={account.id}>
-                                                {account.name} ({account.platform})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="accountId">소셜 계정 (선택)</Label>
+                                    <Select name="accountId" defaultValue={editingPost?.accountId || "none"}>
+                                        <SelectTrigger data-testid="select-community-account">
+                                            <SelectValue placeholder="계정 선택" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">계정 없음</SelectItem>
+                                            {accounts?.map(account => (
+                                                <SelectItem key={account.id} value={account.id}>
+                                                    {account.name} ({account.platform})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="postedAt">게시 날짜</Label>
+                                    <Input
+                                        id="postedAt"
+                                        name="postedAt"
+                                        type="date"
+                                        defaultValue={
+                                            editingPost?.postedAt
+                                                ? format(new Date(editingPost.postedAt), 'yyyy-MM-dd')
+                                                : format(new Date(), 'yyyy-MM-dd')
+                                        }
+                                        data-testid="input-community-date"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>이미지 (여러 장 선택 가능)</Label>
