@@ -49,6 +49,7 @@ import {
   communityPostComments,
   type CommunityPostComment,
   type InsertCommunityPostComment,
+  type CommunityFeedItem,
 } from "@shared/schema";
 import fs from "fs";
 import path from "path";
@@ -96,6 +97,7 @@ export interface IStorage {
   deleteCommunityPostComment(id: string): Promise<void>;
   likeCommunityPost(id: string): Promise<void>;
   likeCommunityPost(id: string): Promise<void>;
+  getUnifiedCommunityFeed(limit: number): Promise<CommunityFeedItem[]>;
 
   // Events
   getEvents(): Promise<Event[]>;
@@ -120,6 +122,7 @@ export interface IStorage {
   // Program Applications
   getProgramApplications(): Promise<ProgramApplication[]>;
   getProgramApplicationsByProgram(programId: string): Promise<ProgramApplication[]>;
+  getProgramApplicationsByUser(userId: string): Promise<ProgramApplication[]>;
   createProgramApplication(application: InsertProgramApplication): Promise<ProgramApplication>;
   updateProgramApplicationStatus(id: string, status: string): Promise<ProgramApplication | undefined>;
   deleteProgramApplication(id: string): Promise<void>;
@@ -344,6 +347,47 @@ export class DatabaseStorage implements IStorage {
       .where(eq(communityPosts.id, id));
   }
 
+  async getUnifiedCommunityFeed(limit: number): Promise<CommunityFeedItem[]> {
+    const socialPosts = await db.select().from(communityPosts).orderBy(sql`${communityPosts.postedAt} DESC`).limit(limit);
+    const programList = await db.select().from(residentPrograms).where(eq(residentPrograms.published, true)).orderBy(sql`${residentPrograms.createdAt} DESC`).limit(limit);
+    const eventList = await db.select().from(events).where(eq(events.published, true)).orderBy(sql`${events.date} DESC`).limit(limit);
+
+    const items: CommunityFeedItem[] = [
+      ...socialPosts.map(post => ({
+        id: post.id,
+        type: 'social' as const,
+        title: post.caption || "",
+        imageUrl: post.imageUrl || (post.images && post.images.length > 0 ? post.images[0] : null),
+        date: post.postedAt,
+        likes: post.likes || 0,
+        comments: post.commentCount || 0,
+        hashtags: post.hashtags || []
+      })),
+      ...programList.map(program => ({
+        id: program.id,
+        type: 'program' as const,
+        title: program.title,
+        imageUrl: program.imageUrl,
+        date: program.createdAt, // or startDate? using createdAt for feed usually
+      })),
+      ...eventList.map(event => ({
+        id: event.id,
+        type: 'event' as const,
+        title: event.title,
+        imageUrl: event.imageUrl,
+        date: event.date
+      }))
+    ];
+
+    return items
+      .sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return dateB - dateA;
+      })
+      .slice(0, limit);
+  }
+
   // Events
   async getEvents(): Promise<Event[]> {
     return db.select().from(events);
@@ -426,6 +470,10 @@ export class DatabaseStorage implements IStorage {
 
   async getProgramApplicationsByProgram(programId: string): Promise<ProgramApplication[]> {
     return db.select().from(programApplications).where(eq(programApplications.programId, programId));
+  }
+
+  async getProgramApplicationsByUser(userId: string): Promise<ProgramApplication[]> {
+    return db.select().from(programApplications).where(eq(programApplications.userId, userId));
   }
 
   async createProgramApplication(application: InsertProgramApplication): Promise<ProgramApplication> {
@@ -646,6 +694,47 @@ export class MemStorage implements IStorage {
   private siteSettings: Map<string, SiteSetting> = new Map();
   private pageImages: Map<string, PageImage> = new Map();
   private users: Map<string, User> = new Map();
+
+  async getUnifiedCommunityFeed(limit: number): Promise<CommunityFeedItem[]> {
+    const socialPosts = Array.from(this.communityPosts.values()).map(post => ({
+      id: post.id,
+      type: 'social' as const,
+      title: post.caption || "",
+      imageUrl: post.imageUrl || (post.images && post.images.length > 0 ? post.images[0] : null),
+      date: post.postedAt,
+      likes: post.likes || 0,
+      comments: post.commentCount || 0,
+      hashtags: post.hashtags || []
+    }));
+
+    const programs = Array.from(this.residentPrograms.values())
+      .filter(p => p.published)
+      .map(program => ({
+        id: program.id,
+        type: 'program' as const,
+        title: program.title,
+        imageUrl: program.imageUrl,
+        date: program.createdAt
+      }));
+
+    const events = Array.from(this.events.values())
+      .filter(e => e.published)
+      .map(event => ({
+        id: event.id,
+        type: 'event' as const,
+        title: event.title,
+        imageUrl: event.imageUrl,
+        date: event.date
+      }));
+
+    return [...socialPosts, ...programs, ...events]
+      .sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return dateB - dateA;
+      })
+      .slice(0, limit);
+  }
 
   private idCounter = 1;
   private dbFile = path.resolve(process.cwd(), "db.json");
@@ -1123,11 +1212,16 @@ export class MemStorage implements IStorage {
     return Array.from(this.programApplications.values()).filter(a => a.programId === programId);
   }
 
+  async getProgramApplicationsByUser(userId: string): Promise<ProgramApplication[]> {
+    return Array.from(this.programApplications.values()).filter(a => a.userId === userId);
+  }
+
   async createProgramApplication(application: InsertProgramApplication): Promise<ProgramApplication> {
     const id = this.getId();
     const newApp: ProgramApplication = {
       ...application,
       id,
+      userId: application.userId ?? null,
       status: application.status ?? "pending",
       createdAt: new Date(),
       phone: application.phone ?? null,

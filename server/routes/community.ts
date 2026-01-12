@@ -4,6 +4,17 @@ import { insertCommunityPostSchema, insertCommunityPostCommentSchema } from "@sh
 import { isAuthenticated } from "../replit_integrations/auth";
 
 export function registerCommunityRoutes(app: Express) {
+    // Unified Community Feed
+    app.get("/api/community-feed", async (req, res) => {
+        try {
+            const limit = parseInt(req.query.limit as string) || 20;
+            const feed = await storage.getUnifiedCommunityFeed(limit);
+            res.json(feed);
+        } catch (error) {
+            res.status(500).json({ error: "Failed to fetch community feed" });
+        }
+    });
+
     // Public Community Posts API
     app.get("/api/community-posts", async (req, res) => {
         try {

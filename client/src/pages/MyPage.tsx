@@ -3,9 +3,85 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, User, ShieldCheck, Mail, Phone, Calendar } from "lucide-react";
+import { Loader2, User, ShieldCheck, Mail, Phone, Calendar, ClipboardList, CheckCircle2, XCircle, Clock } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { useQuery } from "@tanstack/react-query";
+import type { ProgramApplication } from "@shared/schema";
+
+function ApplicationHistory() {
+    const { data: applications, isLoading } = useQuery<ProgramApplication[]>({
+        queryKey: ["/api/my-applications"],
+    });
+
+    if (isLoading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <ClipboardList className="h-5 w-5" /> 신청 내역
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="py-8 text-center">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5" /> 신청 내역
+                </CardTitle>
+                <CardDescription>
+                    참여 신청한 프로그램 및 입주 문의 내역입니다.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {applications && applications.length > 0 ? (
+                    <div className="space-y-4">
+                        {applications.map((app) => (
+                            <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 gap-4">
+                                <div className="space-y-1">
+                                    <h4 className="font-medium text-gray-900">{app.name}</h4>
+                                    <p className="text-sm text-gray-500">
+                                        신청일: {new Date(app.createdAt!).toLocaleDateString()}
+                                    </p>
+                                    {app.message && (
+                                        <p className="text-sm text-gray-600 mt-1 line-clamp-1">"{app.message}"</p>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {app.status === 'approved' && (
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <CheckCircle2 className="w-3 h-3" /> 승인됨
+                                        </span>
+                                    )}
+                                    {app.status === 'rejected' && (
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <XCircle className="w-3 h-3" /> 반려됨
+                                        </span>
+                                    )}
+                                    {app.status === 'pending' && (
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <Clock className="w-3 h-3" /> 검토중
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-8 text-gray-500">
+                        신청한 내역이 없습니다.
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function MyPage() {
     const { user, isLoading } = useAuth();
@@ -168,11 +244,13 @@ export default function MyPage() {
                                     </div>
                                 </CardContent>
                             </Card>
+
+                            <ApplicationHistory />
                         </div>
                     </div>
                 </div>
-            </main>
+            </main >
             <Footer />
-        </div>
+        </div >
     );
 }

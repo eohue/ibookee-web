@@ -1,67 +1,22 @@
 import { Link } from "wouter";
-import { ArrowRight, Heart, MessageCircle } from "lucide-react";
+import { ArrowRight, Heart, MessageCircle, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const communityPosts = [
-  {
-    id: 1,
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    likes: 42,
-    comments: 8,
-    hashtag: "#요리클래스",
-  },
-  {
-    id: 2,
-    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    likes: 67,
-    comments: 12,
-    hashtag: "#커뮤니티파티",
-  },
-  {
-    id: 3,
-    image: "https://images.unsplash.com/photo-1571624436279-b272aff752b5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    likes: 35,
-    comments: 5,
-    hashtag: "#텃밭가꾸기",
-  },
-  {
-    id: 4,
-    image: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    likes: 89,
-    comments: 23,
-    hashtag: "#플리마켓",
-  },
-  {
-    id: 5,
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    likes: 54,
-    comments: 9,
-    hashtag: "#독서모임",
-  },
-  {
-    id: 6,
-    image: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    likes: 78,
-    comments: 15,
-    hashtag: "#요가클래스",
-  },
-  {
-    id: 7,
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    likes: 93,
-    comments: 19,
-    hashtag: "#영화모임",
-  },
-  {
-    id: 8,
-    image: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    likes: 61,
-    comments: 11,
-    hashtag: "#공유주방",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import type { CommunityFeedItem } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
 
 export default function CommunityPreview() {
+  const { data: feedData, isLoading } = useQuery<CommunityFeedItem[]>({
+    queryKey: ["/api/community-feed", { limit: 8 }],
+    queryFn: async () => {
+      const res = await fetch("/api/community-feed?limit=8");
+      if (!res.ok) throw new Error("Failed to fetch feed");
+      return res.json();
+    },
+  });
+
+  const posts = feedData || [];
+
   return (
     <section className="py-20 md:py-24 bg-background" data-testid="section-community-preview">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -86,32 +41,59 @@ export default function CommunityPreview() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {communityPosts.map((post) => (
-            <div
-              key={post.id}
-              className="group relative aspect-square overflow-hidden rounded-lg bg-muted cursor-pointer"
-              data-testid={`card-community-${post.id}`}
-            >
-              <img
-                src={post.image}
-                alt={post.hashtag}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors duration-300" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="flex items-center gap-4 text-white mb-2">
-                  <div className="flex items-center gap-1">
-                    <Heart className="w-5 h-5 fill-white" />
-                    <span className="font-medium">{post.likes}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="w-5 h-5" />
-                    <span className="font-medium">{post.comments}</span>
-                  </div>
+          {isLoading ? (
+            Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-muted animate-pulse rounded-lg" />
+            ))
+          ) : posts.slice(0, 8).map((item) => (
+            <Link key={item.id} href={`/community`}>
+              <div
+                className="group relative aspect-square overflow-hidden rounded-lg bg-muted cursor-pointer"
+                data-testid={`card-community-${item.id}`}
+              >
+                <img
+                  src={item.imageUrl || "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"}
+                  alt={item.title || "Community Post"}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors duration-300" />
+
+                {/* Type Badge */}
+                <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Badge variant="secondary" className="bg-white/90 text-black hover:bg-white">
+                    {item.type === 'social' ? '소셜' : item.type === 'program' ? '프로그램' : '행사'}
+                  </Badge>
                 </div>
-                <span className="text-white/90 text-sm font-medium">{post.hashtag}</span>
+
+                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 text-center">
+                  {item.type === 'social' ? (
+                    <>
+                      <div className="flex items-center gap-4 text-white mb-2">
+                        <div className="flex items-center gap-1">
+                          <Heart className="w-5 h-5 fill-white" />
+                          <span className="font-medium">{item.likes || 0}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="w-5 h-5" />
+                          <span className="font-medium">{item.comments || 0}</span>
+                        </div>
+                      </div>
+                      {item.hashtags && item.hashtags.length > 0 && (
+                        <span className="text-white/90 text-sm font-medium line-clamp-1">#{item.hashtags[0]}</span>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-white flex flex-col items-center gap-2">
+                      {item.type === 'program' ? <Users className="w-8 h-8 mb-1" /> : <Calendar className="w-8 h-8 mb-1" />}
+                      <h3 className="font-bold line-clamp-2 text-sm md:text-base leading-tight">{item.title}</h3>
+                      <span className="text-xs text-white/80">
+                        {item.date ? new Date(item.date).toLocaleDateString() : ""}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

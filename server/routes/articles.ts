@@ -47,7 +47,11 @@ export function registerArticleRoutes(app: Express) {
 
     app.post("/api/admin/articles", isAuthenticated, async (req, res) => {
         try {
-            const parsed = insertArticleSchema.safeParse(req.body);
+            const data = { ...req.body };
+            if (data.publishedAt && typeof data.publishedAt === 'string') {
+                data.publishedAt = new Date(data.publishedAt);
+            }
+            const parsed = insertArticleSchema.safeParse(data);
             if (!parsed.success) {
                 return res.status(400).json({ error: "Invalid article data", details: parsed.error });
             }
@@ -60,7 +64,16 @@ export function registerArticleRoutes(app: Express) {
 
     app.put("/api/admin/articles/:id", isAuthenticated, async (req, res) => {
         try {
-            const article = await storage.updateArticle(req.params.id, req.body);
+            const data = { ...req.body };
+            if (data.publishedAt && typeof data.publishedAt === 'string') {
+                data.publishedAt = new Date(data.publishedAt);
+            }
+            // Note: updateArticle might not use parse, but let's see. 
+            // Storage likely expects Partial<Article> or similar. 
+            // If we just pass data, storage should handle it? 
+            // Storage.updateArticle expects Partial<InsertArticle> usually.
+            // Let's check storage.ts signature for updateArticle.
+            const article = await storage.updateArticle(req.params.id, data);
             if (!article) {
                 return res.status(404).json({ error: "Article not found" });
             }

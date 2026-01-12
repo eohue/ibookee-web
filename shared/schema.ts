@@ -3,6 +3,8 @@ import { pgTable, text, varchar, integer, timestamp, boolean, jsonb } from "driz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+import { users } from "./models/auth";
+
 // Projects (Space)
 export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -57,7 +59,7 @@ export const articles = pgTable("articles", {
   featured: boolean("featured").default(false),
 });
 
-export const insertArticleSchema = createInsertSchema(articles).omit({ id: true, publishedAt: true });
+export const insertArticleSchema = createInsertSchema(articles).omit({ id: true });
 export type InsertArticle = z.infer<typeof insertArticleSchema>;
 export type Article = typeof articles.$inferSelect;
 
@@ -253,6 +255,7 @@ export type ResidentProgram = typeof residentPrograms.$inferSelect;
 export const programApplications = pgTable("program_applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   programId: varchar("program_id").notNull(),
+  userId: varchar("user_id").references(() => users.id), // Link to users table
   name: text("name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
@@ -294,3 +297,14 @@ export type PageImage = typeof pageImages.$inferSelect;
 
 // Re-export auth models
 export * from "./models/auth";
+
+export interface CommunityFeedItem {
+  id: string;
+  type: 'social' | 'program' | 'event';
+  title: string;
+  imageUrl: string | null;
+  date: Date | null;
+  likes?: number; // only for social
+  comments?: number; // only for social
+  hashtags?: string[]; // only for social
+}

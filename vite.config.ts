@@ -37,6 +37,10 @@ export default defineConfig({
         target: "http://0.0.0.0:5001",
         changeOrigin: true,
       },
+      "/assets": {
+        target: "http://0.0.0.0:5001",
+        changeOrigin: true,
+      },
     },
     fs: {
       strict: true,

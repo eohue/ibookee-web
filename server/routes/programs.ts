@@ -31,6 +31,17 @@ export function registerProgramRoutes(app: Express) {
         }
     });
 
+    // Get User's Applications
+    app.get("/api/my-applications", isAuthenticated, async (req, res) => {
+        try {
+            const userId = (req.user as any)!.id; // isAuthenticated middleware ensures user exists
+            const applications = await storage.getProgramApplicationsByUser(userId);
+            res.json(applications);
+        } catch (error) {
+            res.status(500).json({ error: "Failed to fetch applications" });
+        }
+    });
+
     // Admin Resident Programs CRUD
     app.get("/api/admin/programs", isAuthenticated, async (req, res) => {
         try {

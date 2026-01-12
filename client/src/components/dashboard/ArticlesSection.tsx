@@ -37,6 +37,7 @@ export function ArticlesSection() {
     const [isFeatured, setIsFeatured] = useState(false);
     const [imageUrl, setImageUrl] = useState("");
     const [content, setContent] = useState("");
+    const [publishedAt, setPublishedAt] = useState("");
 
     const { data: articles, isLoading } = useQuery<Article[]>({
         queryKey: ["/api/admin/articles"],
@@ -93,11 +94,13 @@ export function ArticlesSection() {
             setIsFeatured(article.featured ?? false);
             setImageUrl(article.imageUrl ?? "");
             setContent(article.content);
+            setPublishedAt(article.publishedAt ? new Date(article.publishedAt).toISOString().split('T')[0] : "");
         } else {
             setSelectedCategory("column");
             setIsFeatured(false);
             setImageUrl("");
             setContent("");
+            setPublishedAt("");
         }
         setIsDialogOpen(true);
     };
@@ -115,6 +118,10 @@ export function ArticlesSection() {
             category: selectedCategory,
             featured: isFeatured,
         };
+
+        if (publishedAt) {
+            data.publishedAt = new Date(publishedAt).toISOString();
+        }
 
         if (imageUrlStr) data.imageUrl = imageUrlStr;
 
@@ -181,6 +188,16 @@ export function ArticlesSection() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="publishedAt">날짜</Label>
+                                <Input
+                                    id="publishedAt"
+                                    type="date"
+                                    value={publishedAt}
+                                    onChange={(e) => setPublishedAt(e.target.value)}
+                                    data-testid="input-article-date"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="excerpt">요약</Label>

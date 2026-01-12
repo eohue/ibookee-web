@@ -83,7 +83,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["'Noto Sans KR'", "'Inter'", "sans-serif"],
+        sans: ["'Pretendard'", "'Noto Sans KR'", "'Inter'", "sans-serif"],
         serif: ["Georgia", "serif"],
         mono: ["Menlo", "monospace"],
       },
