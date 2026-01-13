@@ -40,7 +40,6 @@ export function registerUploadRoutes(app: Express) {
             }
 
             // Generate unique filename
-            // Generate unique filename
             const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
 
             // Default extension
@@ -77,17 +76,9 @@ export function registerUploadRoutes(app: Express) {
 
             let fileUrl: string;
 
-            // Check if S3 is configured, otherwise fallback to local (or error if strictly migration)
-            // But strict migration requested so we prioritize S3 check logic inside.
-            // However, to keep it runnable locally if keys aren't set yet (for dev), we can do a check.
-
-            // Note: The user wants persistence on Render. We should strongly suggest S3.
-            // I'll import isS3Configured and uploadToS3.
-
             if (isS3Configured()) {
                 fileUrl = await uploadToS3(buffer, filename, req.file.mimetype);
             } else {
-                // Fallback to local for development if keys are missing
                 console.warn("S3 not configured, falling back to local storage. Files will be ephemeral.");
                 await fs.promises.writeFile(filepath, buffer);
                 fileUrl = `/assets/${filename}`;

@@ -144,7 +144,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                             className="max-h-full max-w-full object-contain"
                         />
                     )}
-                    )}
+
                 </div>
 
                 {/* Right: Content & Comments */}
