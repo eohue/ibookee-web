@@ -117,7 +117,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                             className="w-full h-full flex items-center justify-center overflow-hidden [&>iframe]:max-w-full [&>iframe]:max-h-full [&>blockquote]:max-w-full [&>blockquote]:max-h-full [&>blockquote]:bg-white [&>blockquote]:mx-auto"
                             dangerouslySetInnerHTML={{ __html: post.embedCode }}
                         />
-                    ) : (post.images && post.images.length > 0) ? (
+                    ) : (post.images && post.images.length > 1) ? (
                         <Carousel className="w-full h-full">
                             <CarouselContent className="h-full">
                                 {post.images.map((img, idx) => (
@@ -130,23 +130,20 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                                     </CarouselItem>
                                 ))}
                             </CarouselContent>
-                            {post.images.length > 1 && (
-                                <>
-                                    <CarouselPrevious
-                                        className="!absolute !left-4 !top-1/2 !-translate-y-1/2 z-50 h-12 w-12 rounded-full backdrop-blur-md bg-white/20 hover:bg-white/40 border border-white/30 text-white shadow-lg transition-all duration-200 disabled:opacity-30"
-                                    />
-                                    <CarouselNext
-                                        className="!absolute !right-4 !top-1/2 !-translate-y-1/2 z-50 h-12 w-12 rounded-full backdrop-blur-md bg-white/20 hover:bg-white/40 border border-white/30 text-white shadow-lg transition-all duration-200 disabled:opacity-30"
-                                    />
-                                </>
-                            )}
+                            <CarouselPrevious
+                                className="!absolute !left-4 !top-1/2 !-translate-y-1/2 z-50 h-12 w-12 rounded-full backdrop-blur-md bg-white/20 hover:bg-white/40 border border-white/30 text-white shadow-lg transition-all duration-200 disabled:opacity-30"
+                            />
+                            <CarouselNext
+                                className="!absolute !right-4 !top-1/2 !-translate-y-1/2 z-50 h-12 w-12 rounded-full backdrop-blur-md bg-white/20 hover:bg-white/40 border border-white/30 text-white shadow-lg transition-all duration-200 disabled:opacity-30"
+                            />
                         </Carousel>
                     ) : (
                         <img
-                            src={post.imageUrl || ""}
+                            src={post.images && post.images.length > 0 ? post.images[0] : (post.imageUrl || "")}
                             alt={post.caption || "Community post"}
                             className="max-h-full max-w-full object-contain"
                         />
+                    )}
                     )}
                 </div>
 

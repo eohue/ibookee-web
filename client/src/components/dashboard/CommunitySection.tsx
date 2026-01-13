@@ -109,8 +109,8 @@ export function CommunitySection() {
         const accountId = formData.get("accountId") as string;
 
         const data = {
-            imageUrl: images[0] || null, // First image as thumbnail
-            images: images.length > 0 ? images : null,
+            imageUrl: images.filter(Boolean)[0] || null, // First valid image as thumbnail
+            images: images.filter(Boolean).length > 0 ? images.filter(Boolean) : null,
             caption: formData.get("caption") as string,
             location: formData.get("location") as string,
             sourceUrl: (formData.get("sourceUrl") as string) || null,

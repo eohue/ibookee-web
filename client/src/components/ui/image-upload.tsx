@@ -40,7 +40,9 @@ export function ImageUpload({ value, onChange, disabled, maxFiles = 1 }: ImageUp
                 });
                 if (!res.ok) throw new Error("Upload failed");
                 const data = await res.json();
-                newUrls.push(data.url);
+                if (data.url) {
+                    newUrls.push(data.url);
+                }
             }
 
             if (maxFiles > 1) {
