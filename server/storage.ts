@@ -1,4 +1,4 @@
-import { eq, and, arrayContains, sql } from "drizzle-orm";
+import { eq, and, arrayContains, sql, desc } from "drizzle-orm";
 import { db } from "./db";
 import {
   projects,
@@ -218,7 +218,7 @@ export class DatabaseStorage implements IStorage {
 
   // Articles
   async getArticles(): Promise<Article[]> {
-    return db.select().from(articles);
+    return db.select().from(articles).orderBy(desc(articles.publishedAt));
   }
 
   async getArticle(id: string): Promise<Article | undefined> {
@@ -227,7 +227,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArticlesByCategory(category: string): Promise<Article[]> {
-    return db.select().from(articles).where(eq(articles.category, category));
+    return db.select().from(articles).where(eq(articles.category, category)).orderBy(desc(articles.publishedAt));
   }
 
   async createArticle(article: InsertArticle): Promise<Article> {
@@ -891,7 +891,11 @@ export class MemStorage implements IStorage {
 
   // Articles
   async getArticles(): Promise<Article[]> {
-    return Array.from(this.articles.values());
+    return Array.from(this.articles.values()).sort((a, b) => {
+      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return dateB - dateA;
+    });
   }
 
   async getArticle(id: string): Promise<Article | undefined> {
@@ -899,7 +903,13 @@ export class MemStorage implements IStorage {
   }
 
   async getArticlesByCategory(category: string): Promise<Article[]> {
-    return Array.from(this.articles.values()).filter(a => a.category === category);
+    return Array.from(this.articles.values())
+      .filter(a => a.category === category)
+      .sort((a, b) => {
+        const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+        return dateB - dateA;
+      });
   }
 
   async createArticle(article: InsertArticle): Promise<Article> {
