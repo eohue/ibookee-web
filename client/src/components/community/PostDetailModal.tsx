@@ -185,7 +185,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                                     <span className="whitespace-pre-wrap">{post.caption}</span>
                                     <div className="flex flex-wrap gap-1 mt-2">
                                         {post.hashtags?.map((tag) => (
-                                            <span key={tag} className="text-blue-500">#{tag}</span>
+                                            <span key={tag} className="text-primary">#{tag}</span>
                                         ))}
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-2">

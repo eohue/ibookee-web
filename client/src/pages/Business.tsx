@@ -78,8 +78,8 @@ const esgMetrics = [
   {
     category: "Social",
     icon: Users,
-    color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-blue-100 dark:bg-blue-900/30",
+    color: "text-primary",
+    bgColor: "bg-primary/10",
     metrics: [
       { label: "소셜믹스", value: "40%", desc: "사회 배려계층" },
       { label: "커뮤니티 프로그램", value: "500+", desc: "연간 운영" },
@@ -101,7 +101,7 @@ const esgMetrics = [
 
 export default function Business() {
   const { getImageUrl } = usePageImages();
-  
+
   const solutions = solutionsData.map(s => ({
     ...s,
     case: {
@@ -149,8 +149,8 @@ export default function Business() {
             <div className="relative max-w-4xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <Card className="p-6 text-center">
-                  <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <Building2 className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                  <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Building2 className="w-7 h-7 text-primary" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">Public</h3>
                   <p className="text-sm text-muted-foreground">
@@ -195,9 +195,8 @@ export default function Business() {
               {solutions.map((solution, index) => (
                 <div
                   key={solution.id}
-                  className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center ${
-                    index % 2 === 1 ? "lg:flex-row-reverse" : ""
-                  }`}
+                  className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center ${index % 2 === 1 ? "lg:flex-row-reverse" : ""
+                    }`}
                   data-testid={`solution-${solution.id}`}
                 >
                   <div className={index % 2 === 1 ? "lg:order-2" : ""}>

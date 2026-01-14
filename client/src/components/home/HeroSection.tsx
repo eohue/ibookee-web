@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,15 @@ export default function HeroSection() {
     { imageUrl: "/images/home-hero/hero-5.jpg" },
   ];
 
-  const heroImages = apiImages.length > 0 ? apiImages : defaultImages;
+  // Shuffle images on mount
+  const heroImages = useMemo(() => {
+    const images = [...(apiImages.length > 0 ? apiImages : defaultImages)];
+    for (let i = images.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [images[i], images[j]] = [images[j], images[i]];
+    }
+    return images;
+  }, [apiImages]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -74,7 +82,7 @@ export default function HeroSection() {
             <Link href="/space">
               <Button
                 size="lg"
-                className="px-8 py-6 text-base font-semibold rounded-full bg-white text-foreground hover:bg-white/90"
+                className="px-8 py-6 text-base font-semibold rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
                 data-testid="button-explore-projects"
               >
                 프로젝트 둘러보기
