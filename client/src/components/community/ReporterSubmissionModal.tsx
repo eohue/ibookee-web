@@ -46,7 +46,7 @@ export function ReporterSubmissionModal({ isOpen, onClose }: ReporterSubmissionM
         onError: (error) => {
             toast({
                 title: "제보 실패",
-                description: "기사 제보 중 오류가 발생했습니다.",
+                description: error.message || "기사 제보 중 오류가 발생했습니다.",
                 variant: "destructive",
             });
         },
@@ -64,7 +64,7 @@ export function ReporterSubmissionModal({ isOpen, onClose }: ReporterSubmissionM
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto w-full">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-full">
                 <DialogHeader>
                     <DialogTitle>입주민 리포터 기사 제보</DialogTitle>
                     <DialogDescription>
