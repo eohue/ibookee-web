@@ -106,26 +106,16 @@ export function ReporterSubmissionModal({ isOpen, onClose }: ReporterSubmissionM
                     </div>
 
                     <div className="space-y-2">
-                        <Label>이미지 첨부 (선택)</Label>
-                        <div className="flex items-center gap-2">
-                            <Input
-                                value={imageUrl}
-                                onChange={(e) => setImageUrl(e.target.value)}
-                                placeholder="이미지 URL을 입력하세요"
-                            />
-                        </div>
-                        {/* Ideally verify ImageUpload component usage, but using Input URL for simplicity / robustness for now */}
-                        {imageUrl && (
-                            <div className="relative mt-2 rounded-md overflow-hidden aspect-video border">
-                                <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                                <button
-                                    type="button"
-                                    onClick={() => setImageUrl("")}
-                                    className="absolute top-1 right-1 bg-black/50 p-1 rounded-full text-white hover:bg-black/70"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
+                        <Label>이미지 첨부 (필수)</Label>
+                        <ImageUpload
+                            value={imageUrl}
+                            onChange={(url) => setImageUrl(typeof url === 'string' ? url : url[0])}
+                            maxFiles={1}
+                        />
+                        {!imageUrl && (
+                            <p className="text-xs text-destructive">
+                                기사에는 이미지가 반드시 포함되어야 합니다.
+                            </p>
                         )}
                     </div>
 
@@ -133,7 +123,7 @@ export function ReporterSubmissionModal({ isOpen, onClose }: ReporterSubmissionM
                         <Button type="button" variant="outline" onClick={onClose}>
                             취소
                         </Button>
-                        <Button type="submit" disabled={submitMutation.isPending}>
+                        <Button type="submit" disabled={submitMutation.isPending || !imageUrl}>
                             {submitMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                             제보하기
                         </Button>
