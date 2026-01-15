@@ -43,10 +43,32 @@ export function ReporterSubmissionModal({ isOpen, onClose }: ReporterSubmissionM
             setAuthorName("");
             setImageUrl("");
         },
-        onError: (error) => {
+        onError: (error: any) => {
+            // Error handling in apiRequest throws an Error object with the response text
+            // The format from lib/queryClient is usually "Status: Text"
+            // But if we return JSON, we might want to parse it if possible, or just rely on the message.
+            // Let's rely on the message for now, assuming apiRequest might have parsed it or just use what we have.
+            // Actually, queryClient's throwIfResNotOk throws "500: {...json string...}"
+
+            let message = "기사 제보 중 오류가 발생했습니다.";
+            try {
+                // Try to extract JSON from error message if it looks like "500: {...}"
+                const parts = error.message.split(': ');
+                if (parts.length > 1) {
+                    const jsonStr = parts.slice(1).join(': ');
+                    const data = JSON.parse(jsonStr);
+                    if (data.details) message = `오류: ${data.details}`;
+                    else if (data.error) message = `오류: ${data.error}`;
+                } else {
+                    message = error.message;
+                }
+            } catch (e) {
+                message = error.message;
+            }
+
             toast({
                 title: "제보 실패",
-                description: error.message || "기사 제보 중 오류가 발생했습니다.",
+                description: message,
                 variant: "destructive",
             });
         },

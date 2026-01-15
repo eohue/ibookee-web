@@ -21,7 +21,8 @@ export function registerReporterRoutes(app: Express) {
             res.status(201).json(article);
         } catch (error) {
             console.error("Failed to create reporter article:", error);
-            res.status(500).json({ error: "Failed to create article" });
+            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            res.status(500).json({ error: "Failed to create article", details: errorMessage });
         }
     });
 
