@@ -47,4 +47,27 @@ export function registerUserRoutes(app: Express) {
             res.status(500).json({ message: "Internal Server Error" });
         }
     });
+
+    // Verify Real Name 
+    app.post("/api/users/verify-real-name", isAuthenticated, async (req, res) => {
+        try {
+            const userId = (req.user as any).id;
+            const { realName, phoneNumber } = req.body;
+
+            if (!realName || !phoneNumber) {
+                return res.status(400).json({ message: "Name and phone number are required" });
+            }
+
+            const updatedUser = await storage.verifyUserRealName(userId, realName, phoneNumber);
+
+            if (!updatedUser) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            res.json(updatedUser);
+        } catch (error) {
+            console.error("Error verifying user:", error);
+            res.status(500).json({ message: "Internal Server Error" });
+        }
+    });
 }

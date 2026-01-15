@@ -167,6 +167,7 @@ export interface IStorage {
   getUsers(): Promise<User[]>;
   updateUserRole(id: string, role: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  verifyUserRealName(userId: string, realName: string, phoneNumber: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -671,6 +672,20 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async verifyUserRealName(id: string, realName: string, phoneNumber: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({
+        realName,
+        phoneNumber,
+        isVerified: true,
+        updatedAt: new Date()
+      })
       .where(eq(users.id, id))
       .returning();
     return user;
@@ -1476,6 +1491,21 @@ export class MemStorage implements IStorage {
     if (!user) return undefined;
     const updated = { ...user, role, updatedAt: new Date() };
     this.users.set(id, updated);
+    this.persist();
+    return updated;
+  }
+
+  async verifyUserRealName(userId: string, realName: string, phoneNumber: string): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+    const updated = {
+      ...user,
+      realName,
+      phoneNumber,
+      isVerified: true,
+      updatedAt: new Date()
+    };
+    this.users.set(userId, updated);
     this.persist();
     return updated;
   }

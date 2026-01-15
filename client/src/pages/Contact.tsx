@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/layout/Header";
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
-type FormType = "move-in" | "business" | "recruit";
+type FormType = "move-in" | "business" | "recruit" | "resident-auth";
 
 const formTypes = [
   {
@@ -39,10 +40,17 @@ const formTypes = [
     description: "아이부키와 함께하실 분",
     icon: Users,
   },
+  {
+    id: "resident-auth" as FormType,
+    title: "입주민 인증",
+    description: "입주민 권한 신청",
+    icon: CheckCircle,
+  },
 ];
 
 export default function Contact() {
   const { toast } = useToast();
+  const [location] = useLocation();
   const [activeForm, setActiveForm] = useState<FormType>("move-in");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -70,6 +78,20 @@ export default function Contact() {
     position: "",
     message: "",
   });
+
+  const [residentAuthData, setResidentAuthData] = useState({
+    name: "",
+    phone: "",
+    unitInfo: "", // Dong-Ho
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("type");
+    if (type === "resident_auth" || type === "resident-auth") {
+      setActiveForm("resident-auth");
+    }
+  }, []);
 
   const inquiryMutation = useMutation({
     mutationFn: async (data: { type: string; name: string; email: string; phone?: string; company?: string; message: string }) => {
@@ -121,6 +143,15 @@ export default function Contact() {
         phone: recruitData.phone,
         message: `지원직무: ${recruitData.position}\n\n${recruitData.message}`,
       };
+    } else {
+      // resident-auth
+      data = {
+        type: "resident-auth",
+        name: residentAuthData.name,
+        email: "resident-auth@ibookee.kr", // Placeholder or fetch from user
+        phone: residentAuthData.phone,
+        message: `입주민 인증 신청: ${residentAuthData.unitInfo}`,
+      }
     }
 
     inquiryMutation.mutate(data);
@@ -132,7 +163,9 @@ export default function Contact() {
     setIsSubmitted(false);
     setMoveInData({ name: "", email: "", phone: "", preferredLocation: "", message: "" });
     setBusinessData({ name: "", company: "", email: "", phone: "", inquiryType: "", message: "" });
+    setBusinessData({ name: "", company: "", email: "", phone: "", inquiryType: "", message: "" });
     setRecruitData({ name: "", email: "", phone: "", position: "", message: "" });
+    setResidentAuthData({ name: "", phone: "", unitInfo: "" });
   };
 
   return (
@@ -195,11 +228,10 @@ export default function Contact() {
                   {formTypes.map((type) => (
                     <Card
                       key={type.id}
-                      className={`p-4 cursor-pointer transition-all ${
-                        activeForm === type.id
-                          ? "border-primary bg-primary/5"
-                          : "hover-elevate"
-                      }`}
+                      className={`p-4 cursor-pointer transition-all ${activeForm === type.id
+                        ? "border-primary bg-primary/5"
+                        : "hover-elevate"
+                        }`}
                       onClick={() => {
                         setActiveForm(type.id);
                         resetForm();
@@ -207,11 +239,10 @@ export default function Contact() {
                       data-testid={`tab-${type.id}`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          activeForm === type.id
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
-                        }`}>
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${activeForm === type.id
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                          }`}>
                           <type.icon className="w-6 h-6" />
                         </div>
                         <div>
@@ -478,6 +509,49 @@ export default function Contact() {
                           </div>
                           <Button type="submit" className="w-full" disabled={isSubmitting} data-testid="button-submit-recruit">
                             {isSubmitting ? "전송 중..." : "지원하기"}
+                            {!isSubmitting && <ArrowRight className="w-4 h-4 ml-2" />}
+                          </Button>
+                        </form>
+                      )}
+
+                      {activeForm === "resident-auth" && (
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                          <div>
+                            <Label htmlFor="resident-name">이름 (실명)</Label>
+                            <Input
+                              id="resident-name"
+                              value={residentAuthData.name}
+                              onChange={(e) => setResidentAuthData({ ...residentAuthData, name: e.target.value })}
+                              required
+                              className="mt-1.5"
+                              placeholder="홍길동"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="resident-phone">연락처</Label>
+                            <Input
+                              id="resident-phone"
+                              type="tel"
+                              value={residentAuthData.phone}
+                              onChange={(e) => setResidentAuthData({ ...residentAuthData, phone: e.target.value })}
+                              required
+                              className="mt-1.5"
+                              placeholder="010-1234-5678"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="resident-unit">동/호수 정보</Label>
+                            <Input
+                              id="resident-unit"
+                              value={residentAuthData.unitInfo}
+                              onChange={(e) => setResidentAuthData({ ...residentAuthData, unitInfo: e.target.value })}
+                              required
+                              className="mt-1.5"
+                              placeholder="예: 101동 1004호"
+                            />
+                          </div>
+                          <Button type="submit" className="w-full" disabled={isSubmitting}>
+                            {isSubmitting ? "전송 중..." : "인증 신청하기"}
                             {!isSubmitting && <ArrowRight className="w-4 h-4 ml-2" />}
                           </Button>
                         </form>

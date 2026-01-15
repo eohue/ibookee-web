@@ -8,6 +8,86 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useQuery } from "@tanstack/react-query";
 import type { ProgramApplication } from "@shared/schema";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+
+function RealNameVerificationModal({ children }: { children: React.ReactNode }) {
+    const { toast } = useToast();
+    const [open, setOpen] = useState(false);
+    const [name, setName] = useState("");
+    const [phone, setPhone] = useState("");
+
+    const mutation = useMutation({
+        mutationFn: async (data: { realName: string; phoneNumber: string }) => {
+            const res = await apiRequest("POST", "/api/users/verify-real-name", data);
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+            toast({ title: "실명 인증이 완료되었습니다." });
+            setOpen(false);
+        },
+        onError: () => {
+            toast({
+                title: "인증 실패",
+                description: "다시 시도해주세요.",
+                variant: "destructive"
+            });
+        }
+    });
+
+    const handleVerify = () => {
+        if (!name || !phone) {
+            toast({ title: "이름과 연락처를 모두 입력해주세요.", variant: "destructive" });
+            return;
+        }
+        mutation.mutate({ realName: name, phoneNumber: phone });
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                {children}
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>실명 인증</DialogTitle>
+                    <DialogDescription>
+                        원활한 서비스 이용을 위해 실명 인증을 진행해주세요.<br />
+                        (현재는 테스트 모드로 입력한 정보로 즉시 인증됩니다.)
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="name">이름</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="phone">연락처</Label>
+                        <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-1234-5678" />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button type="submit" onClick={handleVerify} disabled={mutation.isPending}>
+                        {mutation.isPending ? "인증 중..." : "인증하기"}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 function ApplicationHistory() {
     const { data: applications, isLoading } = useQuery<ProgramApplication[]>({
@@ -85,6 +165,7 @@ function ApplicationHistory() {
 
 export default function MyPage() {
     const { user, isLoading } = useAuth();
+    const { toast } = useToast();
 
     if (isLoading) {
         return (
@@ -217,7 +298,9 @@ export default function MyPage() {
                                                     인증됨
                                                 </span>
                                             ) : (
-                                                <Button variant="outline" size="sm" disabled>인증하기</Button>
+                                                <RealNameVerificationModal>
+                                                    <Button variant="outline" size="sm">인증하기</Button>
+                                                </RealNameVerificationModal>
                                             )}
                                         </div>
                                     </div>
@@ -236,7 +319,21 @@ export default function MyPage() {
                                                     인증됨
                                                 </span>
                                             ) : (
-                                                <Button variant="secondary" size="sm" onClick={() => window.location.href = "/contact?type=resident_auth"}>
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        if (!user.isVerified) {
+                                                            toast({
+                                                                title: "실명 인증 필요",
+                                                                description: "입주민 인증 신청을 위해 먼저 실명 인증을 완료해주세요.",
+                                                                variant: "destructive"
+                                                            });
+                                                            return;
+                                                        }
+                                                        window.location.href = "/contact?type=resident_auth";
+                                                    }}
+                                                >
                                                     신청하기
                                                 </Button>
                                             )}
