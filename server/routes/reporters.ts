@@ -7,7 +7,7 @@ export function registerReporterRoutes(app: Express) {
     // Submit a new article (Resident only, but checks auth)
     app.post("/api/resident-reporter", isAuthenticated, async (req, res) => {
         try {
-            const parsed = insertResidentReporterSchema.safeParse(req.body);
+            const parsed = insertResidentReporterSchema.omit({ userId: true, status: true }).safeParse(req.body);
             if (!parsed.success) {
                 return res.status(400).json({ error: "Invalid article data", details: parsed.error });
             }
@@ -17,7 +17,7 @@ export function registerReporterRoutes(app: Express) {
             // But insert schema might expect it in body?
             // storage.createReporterArticle takes userId as first arg.
 
-            const article = await storage.createReporterArticle((req.user as any).id, parsed.data);
+            const article = await storage.createReporterArticle((req.user as any).id, { ...parsed.data, userId: (req.user as any).id });
             res.status(201).json(article);
         } catch (error) {
             console.error("Failed to create reporter article:", error);

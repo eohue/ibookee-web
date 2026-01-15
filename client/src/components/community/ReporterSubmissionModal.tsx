@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, ImagePlus, X } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload"; // Assuming this exists or similar
 
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+
 interface ReporterSubmissionModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -62,7 +64,7 @@ export function ReporterSubmissionModal({ isOpen, onClose }: ReporterSubmissionM
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto w-full">
                 <DialogHeader>
                     <DialogTitle>입주민 리포터 기사 제보</DialogTitle>
                     <DialogDescription>
@@ -95,13 +97,10 @@ export function ReporterSubmissionModal({ isOpen, onClose }: ReporterSubmissionM
 
                     <div className="space-y-2">
                         <Label htmlFor="content">기사 내용</Label>
-                        <Textarea
-                            id="content"
-                            placeholder="어떤 일이 있었나요?"
-                            className="min-h-[200px]"
+                        <RichTextEditor
                             value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            required
+                            onChange={setContent}
+                            className="min-h-[200px]"
                         />
                     </div>
 
