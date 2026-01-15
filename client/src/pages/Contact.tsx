@@ -163,7 +163,6 @@ export default function Contact() {
     setIsSubmitted(false);
     setMoveInData({ name: "", email: "", phone: "", preferredLocation: "", message: "" });
     setBusinessData({ name: "", company: "", email: "", phone: "", inquiryType: "", message: "" });
-    setBusinessData({ name: "", company: "", email: "", phone: "", inquiryType: "", message: "" });
     setRecruitData({ name: "", email: "", phone: "", position: "", message: "" });
     setResidentAuthData({ name: "", phone: "", unitInfo: "" });
   };
