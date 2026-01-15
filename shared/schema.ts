@@ -130,7 +130,10 @@ export const events = pgTable("events", {
   published: boolean("published").default(true),
 });
 
-export const insertEventSchema = createInsertSchema(events).omit({ id: true });
+export const insertEventSchema = createInsertSchema(events, {
+  date: z.coerce.date(),
+  endDate: z.coerce.date().optional(),
+}).omit({ id: true });
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type Event = typeof events.$inferSelect;
 
@@ -191,6 +194,7 @@ export interface FooterSettings {
   address: string;
   phone: string;
   email: string;
+  query?: string;
 }
 
 export interface CeoMessage {
@@ -249,7 +253,10 @@ export const residentPrograms = pgTable("resident_programs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertResidentProgramSchema = createInsertSchema(residentPrograms).omit({ id: true, createdAt: true });
+export const insertResidentProgramSchema = createInsertSchema(residentPrograms, {
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+}).omit({ id: true, createdAt: true });
 export type InsertResidentProgram = z.infer<typeof insertResidentProgramSchema>;
 export type ResidentProgram = typeof residentPrograms.$inferSelect;
 
