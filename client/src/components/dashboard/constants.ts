@@ -13,13 +13,14 @@ import {
     UserCog,
 } from "lucide-react";
 
-export type Section = "overview" | "projects" | "articles" | "resources" | "events" | "programs" | "inquiries" | "social-accounts" | "community" | "site-settings" | "history" | "partners" | "page-images" | "users";
+export type Section = "overview" | "projects" | "articles" | "resources" | "events" | "programs" | "inquiries" | "social-accounts" | "community" | "site-settings" | "history" | "partners" | "page-images" | "users" | "reporter";
 
 export const menuItems = [
     { id: "overview" as Section, title: "개요", icon: LayoutDashboard },
     { id: "users" as Section, title: "사용자 관리", icon: UserCog },
     { id: "projects" as Section, title: "프로젝트(Space)", icon: Building2 },
     { id: "articles" as Section, title: "인사이트", icon: FileText },
+    { id: "reporter" as Section, title: "입주민 기자단", icon: FileText }, // Added
     { id: "resources" as Section, title: "자료실 관리", icon: FileText },
     { id: "events" as Section, title: "행사 관리", icon: CalendarDays },
     { id: "programs" as Section, title: "입주민 프로그램", icon: BookOpen },

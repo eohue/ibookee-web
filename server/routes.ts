@@ -16,6 +16,7 @@ import { registerStatsRoutes } from "./routes/stats";
 import { registerUploadRoutes } from "./routes/upload";
 import { registerUserRoutes } from "./routes/users";
 import { registerMetadataRoutes } from "./routes/metadata";
+import { registerReporterRoutes } from "./routes/reporters";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -40,7 +41,9 @@ export async function registerRoutes(
   registerSocialRoutes(app);
   registerSettingsRoutes(app);
   registerPageRoutes(app);
+  registerPageRoutes(app);
   registerStatsRoutes(app);
+  registerReporterRoutes(app);
 
   return httpServer;
 }

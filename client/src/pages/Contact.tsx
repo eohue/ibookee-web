@@ -135,7 +135,7 @@ export default function Contact() {
         company: businessData.company,
         message: `문의유형: ${businessData.inquiryType}\n\n${businessData.message}`,
       };
-    } else {
+    } else if (activeForm === "recruit") {
       data = {
         type: "recruit",
         name: recruitData.name,

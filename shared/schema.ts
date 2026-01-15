@@ -305,6 +305,23 @@ export const insertPageImageSchema = createInsertSchema(pageImages).omit({ id: t
 export type InsertPageImage = z.infer<typeof insertPageImageSchema>;
 export type PageImage = typeof pageImages.$inferSelect;
 
+// Resident Reporters (입주민 기자단)
+export const residentReporters = pgTable("resident_reporters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  authorName: text("author_name").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  imageUrl: text("image_url"),
+  status: text("status").default("pending"), // pending, approved, rejected
+  createdAt: timestamp("created_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+});
+
+export const insertResidentReporterSchema = createInsertSchema(residentReporters).omit({ id: true, createdAt: true, approvedAt: true });
+export type InsertResidentReporter = z.infer<typeof insertResidentReporterSchema>;
+export type ResidentReporter = typeof residentReporters.$inferSelect;
+
 // Re-export auth models
 export * from "./models/auth";
 

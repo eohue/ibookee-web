@@ -15,6 +15,9 @@ import {
   historyMilestones,
   siteSettings,
   pageImages,
+  users,
+  communityPostComments,
+  residentReporters, // Added residentReporters table
   type Project,
   type InsertProject,
   type Inquiry,
@@ -43,16 +46,17 @@ import {
   type InsertSiteSetting,
   type PageImage,
   type InsertPageImage,
-  users,
   type User,
   type UpsertUser,
-  communityPostComments,
   type CommunityPostComment,
   type InsertCommunityPostComment,
   type CommunityFeedItem,
+  type ResidentReporter, // Added ResidentReporter type
+  type InsertResidentReporter, // Added InsertResidentReporter type
 } from "@shared/schema";
 import fs from "fs";
 import path from "path";
+import { nanoid } from "nanoid"; // Added nanoid import
 
 export interface IStorage {
   // Projects
@@ -92,10 +96,8 @@ export interface IStorage {
   updateCommunityPost(id: string, post: Partial<InsertCommunityPost>): Promise<CommunityPost | undefined>;
   deleteCommunityPost(id: string): Promise<void>;
   getCommunityPostComments(postId: string): Promise<CommunityPostComment[]>;
-  getCommunityPostComments(postId: string): Promise<CommunityPostComment[]>;
   createCommunityPostComment(comment: InsertCommunityPostComment): Promise<CommunityPostComment>;
   deleteCommunityPostComment(id: string): Promise<void>;
-  likeCommunityPost(id: string): Promise<void>;
   likeCommunityPost(id: string): Promise<void>;
   getUnifiedCommunityFeed(limit: number): Promise<CommunityFeedItem[]>;
 
@@ -168,6 +170,11 @@ export interface IStorage {
   updateUserRole(id: string, role: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   verifyUserRealName(userId: string, realName: string, phoneNumber: string): Promise<User | undefined>;
+
+  // Resident Reporter
+  createReporterArticle(userId: string, data: InsertResidentReporter): Promise<ResidentReporter>;
+  getReporterArticles(status?: string): Promise<ResidentReporter[]>;
+  updateReporterArticleStatus(id: string, status: string): Promise<ResidentReporter | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -690,6 +697,33 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
+
+  // Resident Reporter
+  async createReporterArticle(userId: string, data: InsertResidentReporter): Promise<ResidentReporter> {
+    const [article] = await db.insert(residentReporters).values({
+      ...data,
+      userId,
+      status: "pending",
+      createdAt: new Date(),
+      approvedAt: null,
+    }).returning();
+    return article;
+  }
+
+  async getReporterArticles(status?: string): Promise<ResidentReporter[]> {
+    if (status) {
+      return db.select().from(residentReporters).where(eq(residentReporters.status, status)).orderBy(desc(residentReporters.createdAt));
+    }
+    return db.select().from(residentReporters).orderBy(desc(residentReporters.createdAt));
+  }
+
+  async updateReporterArticleStatus(id: string, status: string): Promise<ResidentReporter | undefined> {
+    const [updatedArticle] = await db.update(residentReporters).set({
+      status,
+      approvedAt: status === 'approved' ? new Date() : null,
+    }).where(eq(residentReporters.id, id)).returning();
+    return updatedArticle;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -709,6 +743,7 @@ export class MemStorage implements IStorage {
   private siteSettings: Map<string, SiteSetting> = new Map();
   private pageImages: Map<string, PageImage> = new Map();
   private users: Map<string, User> = new Map();
+  private residentReporters: Map<string, ResidentReporter> = new Map(); // Added residentReporters map
 
   async getUnifiedCommunityFeed(limit: number): Promise<CommunityFeedItem[]> {
     const socialPosts = Array.from(this.communityPosts.values()).map(post => ({
@@ -789,6 +824,7 @@ export class MemStorage implements IStorage {
       siteSettings: Array.from(this.siteSettings.entries()),
       pageImages: Array.from(this.pageImages.entries()),
       users: Array.from(this.users.entries()),
+      residentReporters: Array.from(this.residentReporters.entries()), // Added to persist
       idCounter: this.idCounter
     };
     fs.writeFileSync(this.dbFile, JSON.stringify(data, null, 2));
@@ -816,6 +852,7 @@ export class MemStorage implements IStorage {
         // Ensure pageImages is loaded correctly as a Map
         this.pageImages = new Map(data.pageImages || []);
         this.users = new Map(data.users);
+        this.residentReporters = new Map(data.residentReporters || []); // Added to load
         this.idCounter = data.idCounter || 1;
 
         // Sync comment counts
@@ -828,7 +865,7 @@ export class MemStorage implements IStorage {
         this.communityPosts.forEach(post => {
           const count = commentCounts.get(post.id) || 0;
           // Only update if different or undefined to avoid unnecessary writes, but for MemStorage strict sync is fine.
-          // Also ensure we don't overwrite if DB has it but we want to trust the actual comments count? 
+          // Also ensure we don't overwrite if DB has it but we want to trust the actual comments count?
           // Better to trust actual comments count for consistency.
           if (post.commentCount !== count) {
             post.commentCount = count;
@@ -1455,27 +1492,27 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find(u => u.kakaoId === kakaoId);
   }
 
-  async upsertUser(user: UpsertUser): Promise<User> {
-    const email = user.email!;
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const email = userData.email!;
     const existing = await this.getUserByEmail(email);
-    const id = existing ? existing.id : (user.id ?? this.getId());
+    const id = existing ? existing.id : (userData.id ?? this.getId());
     const newUser: User = {
-      ...user,
+      ...userData,
       id,
       email: email,
-      password: user.password ?? existing?.password ?? null,
+      password: userData.password ?? existing?.password ?? null,
       createdAt: existing?.createdAt ?? new Date(),
       updatedAt: new Date(),
-      firstName: user.firstName ?? null,
-      lastName: user.lastName ?? null,
-      profileImageUrl: user.profileImageUrl ?? null,
-      role: user.role ?? "user",
-      googleId: user.googleId ?? existing?.googleId ?? null,
-      naverId: user.naverId ?? existing?.naverId ?? null,
-      kakaoId: user.kakaoId ?? existing?.kakaoId ?? null,
-      isVerified: user.isVerified ?? existing?.isVerified ?? false,
-      realName: user.realName ?? existing?.realName ?? null,
-      phoneNumber: user.phoneNumber ?? existing?.phoneNumber ?? null,
+      firstName: userData.firstName ?? null,
+      lastName: userData.lastName ?? null,
+      profileImageUrl: userData.profileImageUrl ?? null,
+      role: userData.role ?? "user",
+      googleId: userData.googleId ?? existing?.googleId ?? null,
+      naverId: userData.naverId ?? existing?.naverId ?? null,
+      kakaoId: userData.kakaoId ?? existing?.kakaoId ?? null,
+      isVerified: userData.isVerified ?? existing?.isVerified ?? false,
+      realName: userData.realName ?? existing?.realName ?? null,
+      phoneNumber: userData.phoneNumber ?? existing?.phoneNumber ?? null,
     };
     this.users.set(id, newUser);
     this.persist();
@@ -1506,6 +1543,43 @@ export class MemStorage implements IStorage {
       updatedAt: new Date()
     };
     this.users.set(userId, updated);
+    this.persist();
+    return updated;
+  }
+
+  // Resident Reporter
+  async createReporterArticle(userId: string, data: InsertResidentReporter): Promise<ResidentReporter> {
+    const id = nanoid();
+    const article: ResidentReporter = {
+      ...data,
+      id,
+      userId,
+      status: "pending",
+      createdAt: new Date(),
+      approvedAt: null,
+      imageUrl: data.imageUrl || null,
+    };
+    this.residentReporters.set(id, article);
+    this.persist();
+    return article;
+  }
+
+  async getReporterArticles(status?: string): Promise<ResidentReporter[]> {
+    const articles = Array.from(this.residentReporters.values());
+    const filtered = status ? articles.filter(a => a.status === status) : articles;
+    return filtered.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async updateReporterArticleStatus(id: string, status: string): Promise<ResidentReporter | undefined> {
+    const article = this.residentReporters.get(id);
+    if (!article) return undefined;
+
+    const updated = {
+      ...article,
+      status,
+      approvedAt: status === 'approved' ? new Date() : null
+    };
+    this.residentReporters.set(id, updated);
     this.persist();
     return updated;
   }

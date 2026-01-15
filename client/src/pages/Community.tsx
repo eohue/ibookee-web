@@ -9,6 +9,13 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CommunityPost, Event, ResidentProgram, SocialAccount } from "@shared/schema";
 import { PostDetailModal } from "@/components/community/PostDetailModal";
+// TODO: Resident Reporter Feature Tasks
+// - [x] Create Admin Dashboard for Reporter (`/admin/reporter`) <!-- id: 7 -->
+// - [x] Update Community Page with Reporter Section & Submission Modal <!-- id: 8 -->
+// - [/] Verify functionality <!-- id: 9 -->
+import { ReporterSubmissionModal } from "@/components/community/ReporterSubmissionModal";
+import { useAuth } from "@/hooks/use-auth";
+import type { ResidentReporter } from "@shared/schema";
 
 const defaultHashtags = [
   { id: "all", label: "전체" },
@@ -57,8 +64,10 @@ const getYouTubeVideoId = (embedCode: string): string | null => {
 
 
 export default function Community() {
+  const { user } = useAuth();
   const [activeHashtag, setActiveHashtag] = useState("all");
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
+  const [isReporterModalOpen, setIsReporterModalOpen] = useState(false);
   const observerRef = useRef<HTMLDivElement>(null);
 
   const { data: socialAccounts = [], isLoading: accountsLoading } = useQuery<SocialAccount[]>({
@@ -164,6 +173,10 @@ export default function Community() {
   const openPrograms = programs.filter((program) =>
     program.published && program.status === "open"
   );
+
+  const { data: reporterArticles = [] } = useQuery<ResidentReporter[]>({
+    queryKey: ["/api/resident-reporter"],
+  });
 
   return (
     <div className="min-h-screen" data-testid="page-community">
@@ -352,6 +365,54 @@ export default function Community() {
           </div>
         </section>
 
+        {/* Resident Reporter Section */}
+        <section className="py-20 bg-background" data-testid="section-resident-reporter">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-12">
+              <div>
+                <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
+                  Resident Reporter
+                </p>
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+                  입주민 기자단
+                </h2>
+              </div>
+              {user && (
+                <Button onClick={() => setIsReporterModalOpen(true)}>
+                  기사 제보하기
+                </Button>
+              )}
+            </div>
+
+            {reporterArticles.length === 0 ? (
+              <div className="text-center py-12 bg-muted/30 rounded-lg">
+                <p className="text-muted-foreground">아직 등록된 기사가 없습니다.</p>
+                <p className="text-sm text-muted-foreground mt-2">첫 번째 기사의 주인공이 되어보세요!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {reporterArticles.map(article => (
+                  <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    {article.imageUrl && (
+                      <div className="aspect-video w-full overflow-hidden">
+                        <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                      </div>
+                    )}
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm text-primary font-medium">{article.authorName} 기자</span>
+                        <span className="text-xs text-muted-foreground">{new Date(article.createdAt || "").toLocaleDateString()}</span>
+                      </div>
+                      <h3 className="text-xl font-bold mb-3 line-clamp-1">{article.title}</h3>
+                      <p className="text-muted-foreground line-clamp-3 text-sm">{article.content}</p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
         <section className="py-20 bg-card" data-testid="section-support-programs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
@@ -517,6 +578,10 @@ export default function Community() {
         isOpen={!!selectedPost}
         onClose={() => setSelectedPost(null)}
         account={selectedPost?.accountId ? accountsById[selectedPost.accountId] : null}
+      />
+      <ReporterSubmissionModal
+        isOpen={isReporterModalOpen}
+        onClose={() => setIsReporterModalOpen(false)}
       />
     </div>
   );
