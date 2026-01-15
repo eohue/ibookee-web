@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { MultiImageUpload } from "@/components/ui/multi-image-upload";
+import { FileUpload } from "@/components/ui/file-upload";
 
 import {
     Dialog,
@@ -39,6 +40,7 @@ export function ProjectsSection() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState<string[]>(["youth"]);
     const [imageUrl, setImageUrl] = useState("");
+    const [pdfUrl, setPdfUrl] = useState("");
     const [description, setDescription] = useState("");
     const [partnerLogos, setPartnerLogos] = useState<string[]>([]);
 
@@ -99,11 +101,13 @@ export function ProjectsSection() {
                 : [project.category as unknown as string];
             setSelectedCategories(categories);
             setImageUrl(project.imageUrl ?? "");
+            setPdfUrl(project.pdfUrl ?? "");
             setDescription(project.description);
             setPartnerLogos((project.partnerLogos as unknown as string[]) ?? []);
         } else {
             setSelectedCategories(["youth"]);
             setImageUrl("");
+            setPdfUrl("");
             setDescription("");
             setPartnerLogos([]);
         }
@@ -126,6 +130,7 @@ export function ProjectsSection() {
             category: selectedCategories,
             description: description,
             imageUrl: formData.get("imageUrl") as string,
+            pdfUrl: pdfUrl || null,
             year: isNaN(year) ? new Date().getFullYear() : year,
             units: typeof units === 'number' && !isNaN(units) ? units : undefined,
             featured: false,
@@ -246,6 +251,16 @@ export function ProjectsSection() {
                                 <MultiImageUpload
                                     value={partnerLogos}
                                     onChange={setPartnerLogos}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>프로젝트 소개서 (PDF)</Label>
+                                <FileUpload
+                                    value={pdfUrl}
+                                    onChange={setPdfUrl}
+                                    accept=".pdf"
+                                    label="PDF 업로드"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">

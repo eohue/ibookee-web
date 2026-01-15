@@ -18,6 +18,7 @@ export const projects = pgTable("projects", {
   units: integer("units"),
   featured: boolean("featured").default(false),
   partnerLogos: jsonb("partner_logos"), // Array of PartnerLogo objects
+  pdfUrl: text("pdf_url"),
 });
 
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true });

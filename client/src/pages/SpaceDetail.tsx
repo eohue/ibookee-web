@@ -6,7 +6,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MapPin, Calendar, Home, Users, AlertCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Calendar, Home, Users, AlertCircle, RefreshCw } from "lucide-react";
 
 import { CATEGORY_LABELS } from "@/lib/constants";
 
@@ -132,6 +132,20 @@ export default function SpaceDetail() {
                 </div>
                 <p className="font-medium text-foreground">{project.units}세대</p>
               </div>
+            )}
+            {project.pdfUrl && (
+              <a
+                href={project.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-card rounded-lg p-4 border border-border hover:bg-accent transition-colors block group"
+              >
+                <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground mb-1">
+                  <ArrowRight className="w-4 h-4 -rotate-45" />
+                  <span className="text-sm">소개서</span>
+                </div>
+                <p className="font-medium text-foreground group-hover:text-primary">PDF 다운로드</p>
+              </a>
             )}
           </div>
 
