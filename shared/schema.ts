@@ -316,9 +316,10 @@ export const residentReporters = pgTable("resident_reporters", {
   status: text("status").default("pending"), // pending, approved, rejected
   createdAt: timestamp("created_at").defaultNow(),
   approvedAt: timestamp("approved_at"),
+  updatedAt: timestamp("updated_at"),
 });
 
-export const insertResidentReporterSchema = createInsertSchema(residentReporters).omit({ id: true, createdAt: true, approvedAt: true });
+export const insertResidentReporterSchema = createInsertSchema(residentReporters).omit({ id: true, createdAt: true, approvedAt: true, updatedAt: true });
 export type InsertResidentReporter = z.infer<typeof insertResidentReporterSchema>;
 export type ResidentReporter = typeof residentReporters.$inferSelect;
 

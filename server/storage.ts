@@ -177,6 +177,8 @@ export interface IStorage {
   getReporterArticlesByUser(userId: string): Promise<ResidentReporter[]>;
   updateReporterArticle(id: string, userId: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined>;
   updateReporterArticleStatus(id: string, status: string): Promise<ResidentReporter | undefined>;
+  adminUpdateReporterArticle(id: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined>;
+  deleteReporterArticle(id: string): Promise<boolean>;
   updateUserProfileImage(userId: string, profileImageUrl: string): Promise<User | undefined>;
 }
 
@@ -744,6 +746,28 @@ export class DatabaseStorage implements IStorage {
       imageUrl: data.imageUrl ?? existing.imageUrl,
     }).where(eq(residentReporters.id, id)).returning();
     return updatedArticle;
+  }
+
+  async adminUpdateReporterArticle(id: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {
+    const [existing] = await db.select().from(residentReporters).where(eq(residentReporters.id, id));
+    if (!existing) return undefined;
+
+    const [updatedArticle] = await db.update(residentReporters).set({
+      title: data.title ?? existing.title,
+      content: data.content ?? existing.content,
+      authorName: data.authorName ?? existing.authorName,
+      imageUrl: data.imageUrl ?? existing.imageUrl,
+      updatedAt: new Date(),
+    }).where(eq(residentReporters.id, id)).returning();
+    return updatedArticle;
+  }
+
+  async deleteReporterArticle(id: string): Promise<boolean> {
+    const [existing] = await db.select().from(residentReporters).where(eq(residentReporters.id, id));
+    if (!existing) return false;
+
+    await db.delete(residentReporters).where(eq(residentReporters.id, id));
+    return true;
   }
 
   async updateUserProfileImage(userId: string, profileImageUrl: string): Promise<User | undefined> {
@@ -1586,6 +1610,7 @@ export class MemStorage implements IStorage {
       status: "pending",
       createdAt: new Date(),
       approvedAt: null,
+      updatedAt: null,
       imageUrl: data.imageUrl || null,
     };
     this.residentReporters.set(id, article);
@@ -1632,6 +1657,32 @@ export class MemStorage implements IStorage {
     this.residentReporters.set(id, updated);
     this.persist();
     return updated;
+  }
+
+  async adminUpdateReporterArticle(id: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {
+    const article = this.residentReporters.get(id);
+    if (!article) return undefined;
+
+    const updated = {
+      ...article,
+      title: data.title ?? article.title,
+      content: data.content ?? article.content,
+      authorName: data.authorName ?? article.authorName,
+      imageUrl: data.imageUrl ?? article.imageUrl,
+      updatedAt: new Date(),
+    };
+    this.residentReporters.set(id, updated);
+    this.persist();
+    return updated;
+  }
+
+  async deleteReporterArticle(id: string): Promise<boolean> {
+    const article = this.residentReporters.get(id);
+    if (!article) return false;
+
+    this.residentReporters.delete(id);
+    this.persist();
+    return true;
   }
 
   async updateUserProfileImage(userId: string, profileImageUrl: string): Promise<User | undefined> {

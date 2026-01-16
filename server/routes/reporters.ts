@@ -97,4 +97,44 @@ export function registerReporterRoutes(app: Express) {
             res.status(500).json({ error: "Failed to update article status" });
         }
     });
+
+    // Admin: Update article (edit content)
+    app.put("/api/admin/resident-reporter/:id", isAuthenticated, async (req, res) => {
+        if ((req.user as any).role !== "admin") {
+            return res.status(403).json({ error: "Unauthorized" });
+        }
+        try {
+            const { title, content, authorName, imageUrl } = req.body;
+            const article = await storage.adminUpdateReporterArticle(req.params.id, {
+                title,
+                content,
+                authorName,
+                imageUrl,
+            });
+            if (!article) {
+                return res.status(404).json({ error: "Article not found" });
+            }
+            res.json(article);
+        } catch (error) {
+            console.error("Failed to update article:", error);
+            res.status(500).json({ error: "Failed to update article" });
+        }
+    });
+
+    // Admin: Delete article
+    app.delete("/api/admin/resident-reporter/:id", isAuthenticated, async (req, res) => {
+        if ((req.user as any).role !== "admin") {
+            return res.status(403).json({ error: "Unauthorized" });
+        }
+        try {
+            const success = await storage.deleteReporterArticle(req.params.id);
+            if (!success) {
+                return res.status(404).json({ error: "Article not found" });
+            }
+            res.json({ success: true });
+        } catch (error) {
+            console.error("Failed to delete article:", error);
+            res.status(500).json({ error: "Failed to delete article" });
+        }
+    });
 }
