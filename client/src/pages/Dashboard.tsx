@@ -29,6 +29,7 @@ import { HistorySection } from "@/components/dashboard/HistorySection";
 import { PageImagesSection } from "@/components/dashboard/PageImagesSection";
 import { SiteSettingsSection } from "@/components/dashboard/SiteSettingsSection";
 import { ResourcesSection } from "@/components/dashboard/ResourcesSection";
+import { ReporterSection } from "@/components/dashboard/ReporterSection";
 import UsersSection from "@/pages/admin/users";
 import type { Stats } from "@/components/dashboard/types";
 
@@ -153,6 +154,7 @@ export default function Dashboard() {
             {activeSection === "page-images" && <PageImagesSection />}
             {activeSection === "site-settings" && <SiteSettingsSection />}
             {activeSection === "users" && <UsersSection />}
+            {activeSection === "reporter" && <ReporterSection />}
           </main>
         </div>
       </div>
