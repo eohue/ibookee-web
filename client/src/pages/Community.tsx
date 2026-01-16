@@ -14,6 +14,7 @@ import { PostDetailModal } from "@/components/community/PostDetailModal";
 // - [x] Update Community Page with Reporter Section & Submission Modal <!-- id: 8 -->
 // - [/] Verify functionality <!-- id: 9 -->
 import { ReporterSubmissionModal } from "@/components/community/ReporterSubmissionModal";
+import { ReporterArticleModal } from "@/components/community/ReporterArticleModal";
 import { useAuth } from "@/hooks/use-auth";
 import type { ResidentReporter } from "@shared/schema";
 
@@ -68,6 +69,7 @@ export default function Community() {
   const [activeHashtag, setActiveHashtag] = useState("all");
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [isReporterModalOpen, setIsReporterModalOpen] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<ResidentReporter | null>(null);
   const observerRef = useRef<HTMLDivElement>(null);
 
   const { data: socialAccounts = [], isLoading: accountsLoading } = useQuery<SocialAccount[]>({
@@ -392,7 +394,7 @@ export default function Community() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {reporterArticles.map(article => (
-                  <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedArticle(article)}>
                     {article.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden relative">
                         <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
@@ -588,6 +590,11 @@ export default function Community() {
       <ReporterSubmissionModal
         isOpen={isReporterModalOpen}
         onClose={() => setIsReporterModalOpen(false)}
+      />
+      <ReporterArticleModal
+        article={selectedArticle}
+        isOpen={!!selectedArticle}
+        onClose={() => setSelectedArticle(null)}
       />
     </div>
   );
