@@ -20,7 +20,7 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-3xl max-h-[90vh] p-0 overflow-hidden flex flex-col">
+            <DialogContent className="max-w-3xl h-[90vh] p-0 overflow-hidden flex flex-col">
                 <DialogHeader className="p-6 pb-0 shrink-0">
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -43,21 +43,23 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
                     </div>
                 </DialogHeader>
 
-                <ScrollArea className="flex-1 px-6 pb-6">
-                    {article.imageUrl && (
-                        <div className="my-6 rounded-lg overflow-hidden">
-                            <img
-                                src={article.imageUrl}
-                                alt={article.title}
-                                className="w-full h-auto object-cover"
-                            />
-                        </div>
-                    )}
+                <ScrollArea className="flex-1 min-h-0 overflow-auto">
+                    <div className="px-6 pb-6">
+                        {article.imageUrl && (
+                            <div className="my-6 rounded-lg overflow-hidden">
+                                <img
+                                    src={article.imageUrl}
+                                    alt={article.title}
+                                    className="w-full h-auto object-cover"
+                                />
+                            </div>
+                        )}
 
-                    <div
-                        className="prose prose-sm max-w-none dark:prose-invert"
-                        dangerouslySetInnerHTML={{ __html: article.content || "" }}
-                    />
+                        <div
+                            className="prose prose-sm max-w-none dark:prose-invert"
+                            dangerouslySetInnerHTML={{ __html: article.content || "" }}
+                        />
+                    </div>
                 </ScrollArea>
             </DialogContent>
         </Dialog>
