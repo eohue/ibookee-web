@@ -139,7 +139,7 @@ export default function Dashboard() {
 
           <main className="flex-1 overflow-auto p-6">
             {activeSection === "overview" && (
-              <OverviewSection stats={stats} statsLoading={statsLoading} />
+              <OverviewSection stats={stats} statsLoading={statsLoading} setActiveSection={setActiveSection} />
             )}
             {activeSection === "projects" && <ProjectsSection />}
             {activeSection === "articles" && <ArticlesSection />}

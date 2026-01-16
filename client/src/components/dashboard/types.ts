@@ -5,6 +5,16 @@ export interface Stats {
     communityPostCount: number;
     eventCount: number;
     programCount: number;
+    partnerCount: number;
+    userCount: number;
+    adminCount: number;
+    residentCount: number;
+    milestoneCount: number;
+    reporterArticleCount: number;
+    pendingReporterCount: number;
+    approvedReporterCount: number;
+    applicationCount: number;
+    pendingApplicationCount: number;
 }
 
 export interface CompanyStats {

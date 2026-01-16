@@ -13,7 +13,7 @@ import {
     UserCog,
 } from "lucide-react";
 
-export type Section = "overview" | "projects" | "articles" | "resources" | "events" | "programs" | "inquiries" | "social-accounts" | "community" | "site-settings" | "history" | "partners" | "page-images" | "users" | "reporter";
+export type Section = "overview" | "projects" | "articles" | "resources" | "events" | "programs" | "inquiries" | "social-accounts" | "community" | "site-settings" | "history" | "partners" | "page-images" | "users" | "reporter" | "applications";
 
 export const menuItems = [
     { id: "overview" as Section, title: "개요", icon: LayoutDashboard },
