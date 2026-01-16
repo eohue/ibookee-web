@@ -70,4 +70,28 @@ export function registerUserRoutes(app: Express) {
             res.status(500).json({ message: "Internal Server Error" });
         }
     });
+
+    // Update Profile Image
+    app.post("/api/users/profile-image", isAuthenticated, async (req, res) => {
+        try {
+            const userId = (req.user as any).id;
+            const { profileImageUrl } = req.body;
+
+            if (!profileImageUrl) {
+                return res.status(400).json({ message: "Profile image URL is required" });
+            }
+
+            const updatedUser = await storage.updateUserProfileImage(userId, profileImageUrl);
+
+            if (!updatedUser) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            res.json(updatedUser);
+        } catch (error) {
+            console.error("Error updating profile image:", error);
+            res.status(500).json({ message: "Internal Server Error" });
+        }
+    });
 }
+

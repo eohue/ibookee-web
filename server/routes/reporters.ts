@@ -12,11 +12,6 @@ export function registerReporterRoutes(app: Express) {
                 return res.status(400).json({ error: "Invalid article data", details: parsed.error });
             }
 
-            // Ensure userId matches the authenticated user
-            // Although schema has userId, we should probably set it from req.user.id to be safe
-            // But insert schema might expect it in body?
-            // storage.createReporterArticle takes userId as first arg.
-
             const article = await storage.createReporterArticle((req.user as any).id, { ...parsed.data, userId: (req.user as any).id });
             res.status(201).json(article);
         } catch (error) {
@@ -26,7 +21,37 @@ export function registerReporterRoutes(app: Express) {
         }
     });
 
-    // Get public approved articles
+    // Get user's own articles (all statuses)
+    app.get("/api/my/reporter-articles", isAuthenticated, async (req, res) => {
+        try {
+            const articles = await storage.getReporterArticlesByUser((req.user as any).id);
+            res.json(articles);
+        } catch (error) {
+            console.error("Failed to fetch user's reporter articles:", error);
+            res.status(500).json({ error: "Failed to fetch articles" });
+        }
+    });
+
+    // Update user's own article (only if pending)
+    app.put("/api/resident-reporter/:id", isAuthenticated, async (req, res) => {
+        try {
+            const parsed = insertResidentReporterSchema.omit({ userId: true, status: true }).partial().safeParse(req.body);
+            if (!parsed.success) {
+                return res.status(400).json({ error: "Invalid article data", details: parsed.error });
+            }
+
+            const article = await storage.updateReporterArticle(req.params.id, (req.user as any).id, parsed.data);
+            if (!article) {
+                return res.status(404).json({ error: "Article not found or not editable" });
+            }
+            res.json(article);
+        } catch (error) {
+            console.error("Failed to update reporter article:", error);
+            res.status(500).json({ error: "Failed to update article" });
+        }
+    });
+
+    // Get public approved articles (optionally include user's own pending articles)
     app.get("/api/resident-reporter", async (req, res) => {
         try {
             const articles = await storage.getReporterArticles("approved");

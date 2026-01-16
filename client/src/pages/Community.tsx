@@ -394,8 +394,13 @@ export default function Community() {
                 {reporterArticles.map(article => (
                   <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     {article.imageUrl && (
-                      <div className="aspect-video w-full overflow-hidden">
+                      <div className="aspect-video w-full overflow-hidden relative">
                         <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                        {article.status === 'approved' && (
+                          <span className="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-500 text-white shadow-sm">
+                            승인됨
+                          </span>
+                        )}
                       </div>
                     )}
                     <div className="p-6">
@@ -404,7 +409,7 @@ export default function Community() {
                         <span className="text-xs text-muted-foreground">{new Date(article.createdAt || "").toLocaleDateString()}</span>
                       </div>
                       <h3 className="text-xl font-bold mb-3 line-clamp-1">{article.title}</h3>
-                      <p className="text-muted-foreground line-clamp-3 text-sm">{article.content}</p>
+                      <p className="text-muted-foreground line-clamp-3 text-sm">{article.content?.replace(/<[^>]*>/g, '')}</p>
                     </div>
                   </Card>
                 ))}
@@ -412,6 +417,7 @@ export default function Community() {
             )}
           </div>
         </section>
+
 
         <section className="py-20 bg-card" data-testid="section-support-programs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

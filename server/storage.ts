@@ -174,7 +174,10 @@ export interface IStorage {
   // Resident Reporter
   createReporterArticle(userId: string, data: InsertResidentReporter): Promise<ResidentReporter>;
   getReporterArticles(status?: string): Promise<ResidentReporter[]>;
+  getReporterArticlesByUser(userId: string): Promise<ResidentReporter[]>;
+  updateReporterArticle(id: string, userId: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined>;
   updateReporterArticleStatus(id: string, status: string): Promise<ResidentReporter | undefined>;
+  updateUserProfileImage(userId: string, profileImageUrl: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -723,6 +726,32 @@ export class DatabaseStorage implements IStorage {
       approvedAt: status === 'approved' ? new Date() : null,
     }).where(eq(residentReporters.id, id)).returning();
     return updatedArticle;
+  }
+
+  async getReporterArticlesByUser(userId: string): Promise<ResidentReporter[]> {
+    return db.select().from(residentReporters).where(eq(residentReporters.userId, userId)).orderBy(desc(residentReporters.createdAt));
+  }
+
+  async updateReporterArticle(id: string, userId: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {
+    // Only allow update if the article belongs to the user and is still pending
+    const [existing] = await db.select().from(residentReporters).where(and(eq(residentReporters.id, id), eq(residentReporters.userId, userId)));
+    if (!existing || existing.status !== 'pending') return undefined;
+
+    const [updatedArticle] = await db.update(residentReporters).set({
+      title: data.title ?? existing.title,
+      content: data.content ?? existing.content,
+      authorName: data.authorName ?? existing.authorName,
+      imageUrl: data.imageUrl ?? existing.imageUrl,
+    }).where(eq(residentReporters.id, id)).returning();
+    return updatedArticle;
+  }
+
+  async updateUserProfileImage(userId: string, profileImageUrl: string): Promise<User | undefined> {
+    const [user] = await db.update(users).set({
+      profileImageUrl,
+      updatedAt: new Date()
+    }).where(eq(users.id, userId)).returning();
+    return user;
   }
 }
 
@@ -1580,6 +1609,41 @@ export class MemStorage implements IStorage {
       approvedAt: status === 'approved' ? new Date() : null
     };
     this.residentReporters.set(id, updated);
+    this.persist();
+    return updated;
+  }
+
+  async getReporterArticlesByUser(userId: string): Promise<ResidentReporter[]> {
+    const articles = Array.from(this.residentReporters.values()).filter(a => a.userId === userId);
+    return articles.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async updateReporterArticle(id: string, userId: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {
+    const article = this.residentReporters.get(id);
+    if (!article || article.userId !== userId || article.status !== 'pending') return undefined;
+
+    const updated = {
+      ...article,
+      title: data.title ?? article.title,
+      content: data.content ?? article.content,
+      authorName: data.authorName ?? article.authorName,
+      imageUrl: data.imageUrl ?? article.imageUrl,
+    };
+    this.residentReporters.set(id, updated);
+    this.persist();
+    return updated;
+  }
+
+  async updateUserProfileImage(userId: string, profileImageUrl: string): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+
+    const updated = {
+      ...user,
+      profileImageUrl,
+      updatedAt: new Date()
+    };
+    this.users.set(userId, updated);
     this.persist();
     return updated;
   }
