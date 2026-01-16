@@ -390,7 +390,7 @@ export default function MyPage() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="mt-12 lg:mt-16">
+                                    <div className="mt-14 lg:mt-18 pt-2">
                                         <h2 className="text-xl lg:text-2xl font-bold text-foreground">{user.firstName} {user.lastName}</h2>
                                         <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
                                         <div className="mt-3 lg:mt-4 inline-flex items-center gap-1.5 px-3 lg:px-4 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium bg-primary/10 text-primary">
