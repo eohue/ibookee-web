@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowRight, Newspaper, Heart, MessageCircle } from "lucide-react";
+import { ArrowRight, Newspaper, Heart, MessageCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import type { ResidentReporter } from "@shared/schema";
@@ -35,12 +35,20 @@ export default function ReporterPreview() {
                             안암생활의 생생한 이야기를 입주민 기자가 직접 전해드립니다.
                         </p>
                     </div>
-                    <Link href="/community">
-                        <Button variant="outline" className="group">
-                            기사 더보기
-                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                    </Link>
+                    <div className="flex gap-2">
+                        <Link href="/resident-reporter-guide">
+                            <Button variant="ghost" className="group text-muted-foreground hover:text-primary">
+                                <Info className="w-4 h-4 mr-2" />
+                                기자단이란?
+                            </Button>
+                        </Link>
+                        <Link href="/community">
+                            <Button variant="outline" className="group">
+                                기사 더보기
+                                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
 
                 {isLoading ? (

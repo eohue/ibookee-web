@@ -15,6 +15,7 @@ import InsightDetail from "@/pages/InsightDetail";
 import Contact from "@/pages/Contact";
 import Dashboard from "@/pages/Dashboard";
 import MyPage from "@/pages/MyPage";
+import ResidentReporterGuide from "@/pages/ResidentReporterGuide";
 
 import AuthPage from "@/pages/auth/AuthPage";
 import NotFound from "@/pages/not-found";
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/community" component={Community} />
       <Route path="/insight" component={Insight} />
       <Route path="/insight/:id" component={InsightDetail} />
+      <Route path="/resident-reporter-guide" component={ResidentReporterGuide} />
       <Route path="/contact" component={Contact} />
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/mypage" component={MyPage} />
