@@ -48,6 +48,23 @@ export function registerArticleRoutes(app: Express) {
     app.post("/api/admin/articles", isAuthenticated, async (req, res) => {
         try {
             const data = { ...req.body };
+
+            // Sanitize all string fields to remove null bytes (0x00)
+            // PostgreSQL text columns don't allow null bytes
+            const sanitizeString = (str: string | null | undefined): string | null => {
+                if (str === null || str === undefined) return null;
+                if (typeof str !== 'string') return str;
+                return str.replace(/\x00/g, '');
+            };
+
+            data.title = sanitizeString(data.title);
+            data.excerpt = sanitizeString(data.excerpt);
+            data.content = sanitizeString(data.content);
+            data.author = sanitizeString(data.author);
+            data.category = sanitizeString(data.category);
+            data.imageUrl = sanitizeString(data.imageUrl);
+            data.fileUrl = sanitizeString(data.fileUrl);
+
             if (data.publishedAt && typeof data.publishedAt === 'string') {
                 data.publishedAt = new Date(data.publishedAt);
             }
@@ -71,6 +88,22 @@ export function registerArticleRoutes(app: Express) {
     app.put("/api/admin/articles/:id", isAuthenticated, async (req, res) => {
         try {
             const data = { ...req.body };
+
+            // Sanitize all string fields to remove null bytes (0x00)
+            const sanitizeString = (str: string | null | undefined): string | null => {
+                if (str === null || str === undefined) return null;
+                if (typeof str !== 'string') return str;
+                return str.replace(/\x00/g, '');
+            };
+
+            if (data.title !== undefined) data.title = sanitizeString(data.title);
+            if (data.excerpt !== undefined) data.excerpt = sanitizeString(data.excerpt);
+            if (data.content !== undefined) data.content = sanitizeString(data.content);
+            if (data.author !== undefined) data.author = sanitizeString(data.author);
+            if (data.category !== undefined) data.category = sanitizeString(data.category);
+            if (data.imageUrl !== undefined) data.imageUrl = sanitizeString(data.imageUrl);
+            if (data.fileUrl !== undefined) data.fileUrl = sanitizeString(data.fileUrl);
+
             if (data.publishedAt && typeof data.publishedAt === 'string') {
                 data.publishedAt = new Date(data.publishedAt);
             }
