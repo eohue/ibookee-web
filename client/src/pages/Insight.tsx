@@ -33,6 +33,10 @@ export default function Insight() {
   const featuredArticles = articles.filter((a) => a.featured);
   const regularArticles = filteredArticles.filter((a) => !a.featured);
 
+  const libraryDisplayArticles = activeCategory === "library"
+    ? filteredArticles.filter((a) => a.fileUrl && a.fileUrl.trim() !== "")
+    : [];
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "column":
@@ -268,13 +272,13 @@ export default function Insight() {
           <section className="py-12 bg-background" data-testid="section-library">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-2xl font-bold text-foreground mb-8">자료실</h2>
-              {filteredArticles.length === 0 ? (
+              {libraryDisplayArticles.length === 0 ? (
                 <div className="text-center py-16">
                   <p className="text-muted-foreground">등록된 자료가 없습니다.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredArticles.filter(a => a.fileUrl && a.fileUrl.trim() !== "").map((article) => (
+                  {libraryDisplayArticles.map((article) => (
                     <Card
                       key={article.id}
                       className="p-5 flex items-center justify-between hover-elevate transition-all"
