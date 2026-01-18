@@ -552,28 +552,44 @@ export default function Community() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {upcomingEvents.map((event) => (
-                  <Card
+                  <a
                     key={event.id}
-                    className="p-6 hover-elevate"
-                    data-testid={`event-${event.id}`}
+                    href={`/community/event/${event.id}`}
+                    className="block"
                   >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Calendar className="w-6 h-6 text-primary" />
+                    <Card
+                      className="overflow-hidden hover-elevate cursor-pointer h-full"
+                      data-testid={`event-${event.id}`}
+                    >
+                      {event.imageUrl && (
+                        <div className="aspect-video w-full overflow-hidden">
+                          <img
+                            src={event.imageUrl}
+                            alt={event.title}
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                          />
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Calendar className="w-6 h-6 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-primary">
+                              {new Date(event.date).toLocaleDateString("ko-KR", {
+                                month: "long",
+                                day: "numeric",
+                              })}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{event.location}</p>
+                          </div>
+                        </div>
+                        <h3 className="font-semibold text-foreground mb-2">{event.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-primary">
-                          {new Date(event.date).toLocaleDateString("ko-KR", {
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{event.location}</p>
-                      </div>
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-2">{event.title}</h3>
-                    <p className="text-sm text-muted-foreground">{event.description}</p>
-                  </Card>
+                    </Card>
+                  </a>
                 ))}
               </div>
             )}

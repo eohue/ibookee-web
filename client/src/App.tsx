@@ -10,6 +10,7 @@ import Business from "@/pages/Business";
 import Space from "@/pages/Space";
 import SpaceDetail from "@/pages/SpaceDetail";
 import Community from "@/pages/Community";
+import EventDetail from "@/pages/EventDetail";
 import Insight from "@/pages/Insight";
 import InsightDetail from "@/pages/InsightDetail";
 import Contact from "@/pages/Contact";
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/space" component={Space} />
       <Route path="/space/:id" component={SpaceDetail} />
       <Route path="/community" component={Community} />
+      <Route path="/community/event/:id" component={EventDetail} />
       <Route path="/insight" component={Insight} />
       <Route path="/insight/:id" component={InsightDetail} />
       <Route path="/resident-reporter-guide" component={ResidentReporterGuide} />

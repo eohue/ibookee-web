@@ -14,6 +14,18 @@ export function registerEventRoutes(app: Express) {
         }
     });
 
+    app.get("/api/events/:id", async (req, res) => {
+        try {
+            const event = await storage.getEvent(req.params.id);
+            if (!event) {
+                return res.status(404).json({ error: "Event not found" });
+            }
+            res.json(event);
+        } catch (error) {
+            res.status(500).json({ error: "Failed to fetch event" });
+        }
+    });
+
     // Admin Events CRUD
     app.get("/api/admin/events", isAuthenticated, async (_req, res) => {
         try {
