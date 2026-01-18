@@ -139,12 +139,19 @@ export default function InsightDetail() {
 
             {article.fileUrl && (
               <div className="mb-8">
-                <a href={article.fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center no-underline">
-                  <Button variant="outline" className="gap-2 h-12 px-6">
-                    <FileText className="w-5 h-5 text-primary" />
-                    <span className="text-base">첨부파일 다운로드</span>
-                    <Download className="w-4 h-4 ml-2 opacity-50" />
-                  </Button>
+                <a href={article.fileUrl} download target="_blank" rel="noopener noreferrer" className="inline-flex items-center no-underline w-full sm:w-auto">
+                  <div className="flex items-center justify-between w-full p-4 rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-colors group cursor-pointer">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <FileText className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium text-foreground group-hover:text-primary transition-colors">첨부파일 다운로드</p>
+                        <p className="text-xs text-muted-foreground">{article.title}.pdf</p>
+                      </div>
+                    </div>
+                    <Download className="w-5 h-5 text-primary opacity-50 group-hover:opacity-100 transition-opacity ml-4" />
+                  </div>
                 </a>
               </div>
             )}

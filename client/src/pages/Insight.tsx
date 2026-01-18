@@ -274,7 +274,7 @@ export default function Insight() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredArticles.map((article) => (
+                  {filteredArticles.filter(a => a.fileUrl && a.fileUrl.trim() !== "").map((article) => (
                     <Card
                       key={article.id}
                       className="p-5 flex items-center justify-between hover-elevate transition-all"

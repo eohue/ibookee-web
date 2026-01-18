@@ -101,9 +101,6 @@ export function ResourcesSection() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        const imageUrlStr = (formData.get("imageUrl") as string)?.trim();
-        const fileUrlStr = (formData.get("fileUrl") as string)?.trim();
-
         const data: Record<string, any> = {
             title: formData.get("title") as string,
             excerpt: formData.get("excerpt") as string,
@@ -111,10 +108,9 @@ export function ResourcesSection() {
             author: formData.get("author") as string,
             category: "library", // Hardcoded category
             featured: isFeatured,
+            imageUrl: imageUrl || null, // Send null if empty string
+            fileUrl: fileUrl || null,   // Send null if empty string
         };
-
-        if (imageUrlStr) data.imageUrl = imageUrlStr;
-        if (fileUrlStr) data.fileUrl = fileUrlStr;
 
         if (editingArticle) {
             updateMutation.mutate({ id: editingArticle.id, data });
