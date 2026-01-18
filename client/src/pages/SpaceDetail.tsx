@@ -138,13 +138,13 @@ export default function SpaceDetail() {
                 href={project.pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-card rounded-lg p-4 border border-border hover:bg-accent transition-colors block group"
+                className="bg-primary/5 rounded-lg p-4 border border-primary/20 hover:bg-primary/10 transition-colors block group"
               >
-                <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground mb-1">
+                <div className="flex items-center gap-2 text-primary/70 group-hover:text-primary mb-1">
                   <ArrowRight className="w-4 h-4 -rotate-45" />
                   <span className="text-sm">소개서</span>
                 </div>
-                <p className="font-medium text-foreground group-hover:text-primary">PDF 다운로드</p>
+                <p className="font-bold text-primary">PDF 다운로드</p>
               </a>
             )}
           </div>

@@ -17,32 +17,7 @@ const categories = [
   { id: "library", label: "자료실" },
 ];
 
-const libraryItems = [
-  {
-    id: 1,
-    title: "아이부키 회사 소개서 2025",
-    type: "PDF",
-    size: "4.2MB",
-  },
-  {
-    id: 2,
-    title: "사회주택 사업 안내서",
-    type: "PDF",
-    size: "8.1MB",
-  },
-  {
-    id: 3,
-    title: "ESG 경영 보고서 2024",
-    type: "PDF",
-    size: "12.3MB",
-  },
-  {
-    id: 4,
-    title: "안암생활 프로젝트 백서",
-    type: "PDF",
-    size: "15.7MB",
-  },
-];
+
 
 export default function Insight() {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -172,48 +147,48 @@ export default function Insight() {
                               className="overflow-hidden hover-elevate cursor-pointer h-full"
                               data-testid={`featured-article-${article.id}`}
                             >
-                            <div className="grid grid-cols-1 md:grid-cols-2">
-                              <div className="aspect-[4/3] md:aspect-auto">
-                                {article.imageUrl ? (
-                                  <img
-                                    src={article.imageUrl}
-                                    alt={article.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                                    <FileText className="w-12 h-12 text-muted-foreground" />
-                                  </div>
-                                )}
-                              </div>
-                              <div className="p-6 flex flex-col justify-between">
-                                <div>
-                                  <Badge variant="secondary" className="mb-3">
-                                    {getCategoryLabel(article.category)}
-                                  </Badge>
-                                  <h3 className="text-xl font-semibold text-foreground mb-3 line-clamp-2">
-                                    {article.title}
-                                  </h3>
-                                  <p className="text-sm text-muted-foreground line-clamp-3">
-                                    {article.excerpt}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border text-sm text-muted-foreground">
-                                  <div className="flex items-center gap-1">
-                                    <User className="w-4 h-4" />
-                                    <span>{article.author}</span>
-                                  </div>
-                                  {article.publishedAt && (
-                                    <div className="flex items-center gap-1">
-                                      <Calendar className="w-4 h-4" />
-                                      <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
+                              <div className="grid grid-cols-1 md:grid-cols-2">
+                                <div className="aspect-[4/3] md:aspect-auto">
+                                  {article.imageUrl ? (
+                                    <img
+                                      src={article.imageUrl}
+                                      alt={article.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                                      <FileText className="w-12 h-12 text-muted-foreground" />
                                     </div>
                                   )}
                                 </div>
+                                <div className="p-6 flex flex-col justify-between">
+                                  <div>
+                                    <Badge variant="secondary" className="mb-3">
+                                      {getCategoryLabel(article.category)}
+                                    </Badge>
+                                    <h3 className="text-xl font-semibold text-foreground mb-3 line-clamp-2">
+                                      {article.title}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground line-clamp-3">
+                                      {article.excerpt}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                      <User className="w-4 h-4" />
+                                      <span>{article.author}</span>
+                                    </div>
+                                    {article.publishedAt && (
+                                      <div className="flex items-center gap-1">
+                                        <Calendar className="w-4 h-4" />
+                                        <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </Card>
-                        </Link>
+                            </Card>
+                          </Link>
                         ))}
                       </div>
                     </div>
@@ -243,41 +218,41 @@ export default function Insight() {
                                 className="overflow-hidden hover-elevate cursor-pointer h-full"
                                 data-testid={`article-${article.id}`}
                               >
-                              <div className="aspect-[16/9] overflow-hidden">
-                                {article.imageUrl ? (
-                                  <img
-                                    src={article.imageUrl}
-                                    alt={article.title}
-                                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                                    <CategoryIcon className="w-12 h-12 text-muted-foreground" />
-                                  </div>
-                                )}
-                              </div>
-                              <div className="p-5">
-                                <div className="flex items-center gap-2 mb-3">
-                                  <CategoryIcon className="w-4 h-4 text-primary" />
-                                  <Badge variant="secondary">
-                                    {getCategoryLabel(article.category)}
-                                  </Badge>
-                                </div>
-                                <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
-                                  {article.title}
-                                </h3>
-                                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                                  {article.excerpt}
-                                </p>
-                                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                  <span>{article.author}</span>
-                                  {article.publishedAt && (
-                                    <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
+                                <div className="aspect-[16/9] overflow-hidden">
+                                  {article.imageUrl ? (
+                                    <img
+                                      src={article.imageUrl}
+                                      alt={article.title}
+                                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                                      <CategoryIcon className="w-12 h-12 text-muted-foreground" />
+                                    </div>
                                   )}
                                 </div>
-                              </div>
-                            </Card>
-                          </Link>
+                                <div className="p-5">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <CategoryIcon className="w-4 h-4 text-primary" />
+                                    <Badge variant="secondary">
+                                      {getCategoryLabel(article.category)}
+                                    </Badge>
+                                  </div>
+                                  <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                                    {article.title}
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                                    {article.excerpt}
+                                  </p>
+                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>{article.author}</span>
+                                    {article.publishedAt && (
+                                      <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </Card>
+                            </Link>
                           );
                         })}
                       </div>
@@ -293,30 +268,44 @@ export default function Insight() {
           <section className="py-12 bg-background" data-testid="section-library">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-2xl font-bold text-foreground mb-8">자료실</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {libraryItems.map((item) => (
-                  <Card
-                    key={item.id}
-                    className="p-5 flex items-center justify-between hover-elevate"
-                    data-testid={`library-item-${item.id}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <FileText className="w-6 h-6 text-primary" />
+              {filteredArticles.length === 0 ? (
+                <div className="text-center py-16">
+                  <p className="text-muted-foreground">등록된 자료가 없습니다.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredArticles.map((article) => (
+                    <Card
+                      key={article.id}
+                      className="p-5 flex items-center justify-between hover-elevate transition-all"
+                      data-testid={`library-item-${article.id}`}
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <FileText className="w-6 h-6 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-medium text-foreground truncate pr-4">{article.title}</h3>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {article.author} · {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("ko-KR") : ""}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-medium text-foreground">{item.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {item.type} · {item.size}
-                        </p>
-                      </div>
-                    </div>
-                    <Button size="icon" variant="ghost" data-testid={`download-${item.id}`}>
-                      <Download className="w-5 h-5" />
-                    </Button>
-                  </Card>
-                ))}
-              </div>
+                      {article.fileUrl ? (
+                        <a href={article.fileUrl} download target="_blank" rel="noopener noreferrer">
+                          <Button size="icon" variant="ghost" className="hover:text-primary hover:bg-primary/10" data-testid={`download-${article.id}`}>
+                            <Download className="w-5 h-5" />
+                          </Button>
+                        </a>
+                      ) : (
+                        <Button size="icon" variant="ghost" disabled title="파일 없음">
+                          <Download className="w-5 h-5 opacity-30" />
+                        </Button>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         )}

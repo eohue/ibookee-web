@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, FileText } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { FileUpload } from "@/components/ui/file-upload";
 import type { Article } from "@shared/schema";
@@ -265,6 +265,12 @@ export function ResourcesSection() {
                                         <div className="flex items-center gap-2 flex-wrap mb-1">
                                             <h3 className="font-medium">{article.title}</h3>
                                             {article.featured && <Badge>추천</Badge>}
+                                            {article.fileUrl && (
+                                                <Badge variant="outline" className="gap-1 text-muted-foreground">
+                                                    <FileText className="w-3 h-3" />
+                                                    파일 첨부됨
+                                                </Badge>
+                                            )}
                                         </div>
                                         <p className="text-sm text-muted-foreground line-clamp-1">
                                             {article.author} | {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("ko-KR") : ""}

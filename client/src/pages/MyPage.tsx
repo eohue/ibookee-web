@@ -373,8 +373,12 @@ export default function MyPage() {
                         <div className="lg:col-span-4 space-y-6">
                             {/* Profile Card */}
                             <Card className="overflow-hidden border-0 shadow-lg">
-                                <div className="h-20 lg:h-28 bg-gradient-to-br from-primary via-primary/80 to-primary/60 relative">
+                                <div className="h-40 lg:h-48 bg-gradient-to-br from-primary via-primary/80 to-primary/60 relative flex flex-col items-center justify-center pb-8">
                                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxLjUiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-50" />
+                                    <div className="relative z-10 text-center space-y-1 mb-2">
+                                        <h2 className="text-2xl lg:text-3xl font-bold text-white drop-shadow-sm">{user.firstName} {user.lastName}</h2>
+                                        <p className="text-white/90 font-medium">{user.email}</p>
+                                    </div>
                                 </div>
                                 <CardContent className="relative pt-0 pb-4 lg:pb-6 text-center">
                                     <div className="absolute -top-10 lg:-top-14 left-1/2 transform -translate-x-1/2">
@@ -390,10 +394,8 @@ export default function MyPage() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="mt-20 lg:mt-24 pt-2">
-                                        <h2 className="text-xl lg:text-2xl font-bold text-foreground">{user.firstName} {user.lastName}</h2>
-                                        <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
-                                        <div className="mt-3 lg:mt-4 inline-flex items-center gap-1.5 px-3 lg:px-4 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium bg-primary/10 text-primary">
+                                    <div className="mt-12 lg:mt-16">
+                                        <div className="inline-flex items-center gap-1.5 px-3 lg:px-4 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium bg-primary/10 text-primary">
                                             <ShieldCheck className="w-3 h-3 lg:w-4 lg:h-4" />
                                             {user.role === 'admin' ? '관리자' :
                                                 user.role === 'resident' ? '입주민' : '일반 회원'}
