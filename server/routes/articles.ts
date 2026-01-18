@@ -79,7 +79,9 @@ export function registerArticleRoutes(app: Express) {
             }
             res.json(article);
         } catch (error) {
-            res.status(500).json({ error: "Failed to update article" });
+            console.error("Article update error:", error);
+            const message = error instanceof Error ? error.message : "Unknown error";
+            res.status(500).json({ error: `Failed to update article: ${message}` });
         }
     });
 
