@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
+import { marked } from "marked";
+import { useEffect } from "react";
 
 interface ReporterArticleModalProps {
     article: ResidentReporter | null;
@@ -27,7 +29,20 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [comment, setComment] = useState("");
+    const [htmlContent, setHtmlContent] = useState("");
     const { user } = useAuth();
+
+    useEffect(() => {
+        const parseMarkdown = async () => {
+            if (article?.content) {
+                const parsed = await marked.parse(article.content);
+                setHtmlContent(parsed);
+            } else {
+                setHtmlContent("");
+            }
+        };
+        parseMarkdown();
+    }, [article?.content]);
 
     // Fetch comments
     const { data: comments = [] } = useQuery<ResidentReporterComment[]>({
@@ -169,7 +184,7 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
 
                         <div
                             className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-xl"
-                            dangerouslySetInnerHTML={{ __html: article.content || "" }}
+                            dangerouslySetInnerHTML={{ __html: htmlContent }}
                         />
 
                         <div className="mt-12 pt-8 border-t flex items-center justify-center">
