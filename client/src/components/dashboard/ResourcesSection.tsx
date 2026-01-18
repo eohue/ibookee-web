@@ -31,6 +31,7 @@ export function ResourcesSection() {
     const [imageUrl, setImageUrl] = useState("");
     const [fileUrl, setFileUrl] = useState("");
     const [content, setContent] = useState("");
+    const [publishedAt, setPublishedAt] = useState(new Date().toISOString().split('T')[0]);
 
     // Fetch all articles, but we will filter them on the client side for now as the API returns all.
     // Optimization: In real world, we might want a query param to filter by category on backend.
@@ -97,11 +98,13 @@ export function ResourcesSection() {
             setImageUrl(article.imageUrl ?? "");
             setFileUrl(article.fileUrl ?? "");
             setContent(article.content);
+            setPublishedAt(article.publishedAt ? new Date(article.publishedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
         } else {
             setIsFeatured(false);
             setImageUrl("");
             setFileUrl("");
             setContent("");
+            setPublishedAt(new Date().toISOString().split('T')[0]);
         }
         setIsDialogOpen(true);
     };
@@ -118,6 +121,7 @@ export function ResourcesSection() {
             featured: isFeatured,
             imageUrl: imageUrl || null, // Send null if empty string
             fileUrl: fileUrl || null,   // Send null if empty string
+            publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
         };
 
         if (editingArticle) {
@@ -167,7 +171,18 @@ export function ResourcesSection() {
                                         data-testid="input-resource-author"
                                     />
                                 </div>
-                                {/* Category is implicitly 'library', so no selector needed */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="publishedAt">등록일</Label>
+                                    <Input
+                                        id="publishedAt"
+                                        name="publishedAt"
+                                        type="date"
+                                        value={publishedAt}
+                                        onChange={(e) => setPublishedAt(e.target.value)}
+                                        required
+                                        data-testid="input-resource-publishedAt"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="excerpt">요약</Label>

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink, Loader2, MessageCircle } from "lucide-react";
+import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink, Loader2, MessageCircle, Info } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -370,7 +370,7 @@ export default function Community() {
         {/* Resident Reporter Section */}
         <section className="py-20 bg-background" data-testid="section-resident-reporter">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-12">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div>
                 <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
                   Resident Reporter
@@ -379,11 +379,19 @@ export default function Community() {
                   입주민 기자단
                 </h2>
               </div>
-              {user && (
-                <Button onClick={() => setIsReporterModalOpen(true)}>
-                  기사 제보하기
-                </Button>
-              )}
+              <div className="flex gap-2">
+                <a href="/resident-reporter-guide">
+                  <Button variant="ghost" className="group text-muted-foreground hover:text-primary">
+                    <Info className="w-4 h-4 mr-2" />
+                    기자단이란?
+                  </Button>
+                </a>
+                {user && (
+                  <Button onClick={() => setIsReporterModalOpen(true)}>
+                    기사 제보하기
+                  </Button>
+                )}
+              </div>
             </div>
 
             {reporterArticles.length === 0 ? (
