@@ -47,7 +47,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <AuthProvider>
-          <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+          <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" attribute="class">
             <Router />
           </ThemeProvider>
         </AuthProvider>
