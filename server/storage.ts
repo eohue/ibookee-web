@@ -52,7 +52,10 @@ import {
   type InsertCommunityPostComment,
   type CommunityFeedItem,
   type ResidentReporter, // Added ResidentReporter type
-  type InsertResidentReporter, // Added InsertResidentReporter type
+  type InsertResidentReporter,
+  type ResidentReporterComment,
+  type InsertResidentReporterComment,
+  residentReporterComments,
 } from "@shared/schema";
 import fs from "fs";
 import path from "path";
@@ -180,6 +183,10 @@ export interface IStorage {
   adminUpdateReporterArticle(id: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined>;
   deleteReporterArticle(id: string): Promise<boolean>;
   updateUserProfileImage(userId: string, profileImageUrl: string): Promise<User | undefined>;
+  likeReporterArticle(id: string): Promise<void>;
+  getReporterArticleComments(articleId: string): Promise<ResidentReporterComment[]>;
+  createReporterArticleComment(comment: InsertResidentReporterComment): Promise<ResidentReporterComment>;
+  deleteReporterArticleComment(commentId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -777,6 +784,36 @@ export class DatabaseStorage implements IStorage {
     }).where(eq(users.id, userId)).returning();
     return user;
   }
+
+  async likeReporterArticle(id: string): Promise<void> {
+    await db.update(residentReporters)
+      .set({ likes: sql`${residentReporters.likes} + 1` })
+      .where(eq(residentReporters.id, id));
+  }
+
+  async getReporterArticleComments(articleId: string): Promise<ResidentReporterComment[]> {
+    return db.select().from(residentReporterComments).where(eq(residentReporterComments.articleId, articleId)).orderBy(residentReporterComments.createdAt);
+  }
+
+  async createReporterArticleComment(comment: InsertResidentReporterComment): Promise<ResidentReporterComment> {
+    const [newComment] = await db.insert(residentReporterComments).values(comment).returning();
+
+    await db.update(residentReporters)
+      .set({ commentCount: sql`${residentReporters.commentCount} + 1` })
+      .where(eq(residentReporters.id, comment.articleId));
+
+    return newComment;
+  }
+
+  async deleteReporterArticleComment(commentId: string): Promise<void> {
+    const [comment] = await db.delete(residentReporterComments).where(eq(residentReporterComments.id, commentId)).returning();
+
+    if (comment) {
+      await db.update(residentReporters)
+        .set({ commentCount: sql`${residentReporters.commentCount} - 1` })
+        .where(eq(residentReporters.id, comment.articleId));
+    }
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -796,7 +833,8 @@ export class MemStorage implements IStorage {
   private siteSettings: Map<string, SiteSetting> = new Map();
   private pageImages: Map<string, PageImage> = new Map();
   private users: Map<string, User> = new Map();
-  private residentReporters: Map<string, ResidentReporter> = new Map(); // Added residentReporters map
+  private residentReporters: Map<string, ResidentReporter> = new Map();
+  private residentReporterComments: Map<string, ResidentReporterComment> = new Map();
 
   async getUnifiedCommunityFeed(limit: number): Promise<CommunityFeedItem[]> {
     const socialPosts = Array.from(this.communityPosts.values()).map(post => ({
@@ -1612,6 +1650,8 @@ export class MemStorage implements IStorage {
       approvedAt: null,
       updatedAt: null,
       imageUrl: data.imageUrl || null,
+      likes: 0,
+      commentCount: 0,
     };
     this.residentReporters.set(id, article);
     this.persist();
@@ -1697,6 +1737,53 @@ export class MemStorage implements IStorage {
     this.users.set(userId, updated);
     this.persist();
     return updated;
+  }
+
+  async likeReporterArticle(id: string): Promise<void> {
+    const article = this.residentReporters.get(id);
+    if (article) {
+      article.likes = (article.likes || 0) + 1;
+      this.residentReporters.set(id, article);
+      this.persist();
+    }
+  }
+
+  async getReporterArticleComments(articleId: string): Promise<ResidentReporterComment[]> {
+    return Array.from(this.residentReporterComments.values())
+      .filter(c => c.articleId === articleId)
+      .sort((a, b) => (a.createdAt ? new Date(a.createdAt).getTime() : 0) - (b.createdAt ? new Date(b.createdAt).getTime() : 0));
+  }
+
+  async createReporterArticleComment(comment: InsertResidentReporterComment): Promise<ResidentReporterComment> {
+    const id = this.getId();
+    const newComment: ResidentReporterComment = {
+      ...comment,
+      id,
+      createdAt: new Date()
+    };
+    this.residentReporterComments.set(id, newComment);
+
+    const article = this.residentReporters.get(comment.articleId);
+    if (article) {
+      article.commentCount = (article.commentCount || 0) + 1;
+      this.residentReporters.set(article.id, article);
+      this.persist();
+    }
+
+    return newComment;
+  }
+
+  async deleteReporterArticleComment(commentId: string): Promise<void> {
+    const comment = this.residentReporterComments.get(commentId);
+    if (comment) {
+      this.residentReporterComments.delete(commentId);
+      const article = this.residentReporters.get(comment.articleId);
+      if (article) {
+        article.commentCount = Math.max((article.commentCount || 0) - 1, 0);
+        this.residentReporters.set(article.id, article);
+        this.persist();
+      }
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../storage";
-import { insertResidentReporterSchema } from "@shared/schema";
+import { insertResidentReporterSchema, insertResidentReporterCommentSchema } from "@shared/schema";
 import { isAuthenticated } from "../replit_integrations/auth";
 
 export function registerReporterRoutes(app: Express) {
@@ -48,6 +48,67 @@ export function registerReporterRoutes(app: Express) {
         } catch (error) {
             console.error("Failed to update reporter article:", error);
             res.status(500).json({ error: "Failed to update article" });
+        }
+    });
+
+    // Like an article
+    app.post("/api/resident-reporter/:id/like", isAuthenticated, async (req, res) => {
+        try {
+            await storage.likeReporterArticle(req.params.id);
+            res.status(200).json({ message: "Liked" });
+        } catch (error) {
+            console.error("Failed to like article:", error);
+            res.status(500).json({ error: "Failed to like article" });
+        }
+    });
+
+    // Get comments for an article
+    app.get("/api/resident-reporter/:id/comments", async (req, res) => {
+        try {
+            const comments = await storage.getReporterArticleComments(req.params.id);
+            res.json(comments);
+        } catch (error) {
+            console.error("Failed to fetch comments:", error);
+            res.status(500).json({ error: "Failed to fetch comments" });
+        }
+    });
+
+    // Post a comment
+    app.post("/api/resident-reporter/:id/comments", isAuthenticated, async (req, res) => {
+        try {
+            const parsed = insertResidentReporterCommentSchema.safeParse({
+                ...req.body,
+                articleId: req.params.id,
+                userId: (req.user as any).id,
+                nickname: (req.user as any).realName || (req.user as any).firstName || "Anonymous" // Fallback nickname logic
+            });
+
+            if (!parsed.success) {
+                return res.status(400).json({ error: "Invalid comment data", details: parsed.error });
+            }
+
+            const comment = await storage.createReporterArticleComment(parsed.data);
+            res.status(201).json(comment);
+        } catch (error) {
+            console.error("Failed to create comment:", error);
+            res.status(500).json({ error: "Failed to create comment" });
+        }
+    });
+
+    // Delete a comment
+    app.delete("/api/resident-reporter/:articleId/comments/:commentId", isAuthenticated, async (req, res) => {
+        try {
+            // Basic permission check: only admin can delete. 
+            // Ideally author check too, but consistent with community posts for now.
+            if ((req.user as any).role !== "admin") {
+                return res.status(403).json({ error: "Unauthorized" });
+            }
+
+            await storage.deleteReporterArticleComment(req.params.commentId);
+            res.status(204).send();
+        } catch (error) {
+            console.error("Failed to delete comment:", error);
+            res.status(500).json({ error: "Failed to delete comment" });
         }
     });
 

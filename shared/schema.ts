@@ -317,11 +317,27 @@ export const residentReporters = pgTable("resident_reporters", {
   createdAt: timestamp("created_at").defaultNow(),
   approvedAt: timestamp("approved_at"),
   updatedAt: timestamp("updated_at"),
+  likes: integer("likes").default(0),
+  commentCount: integer("comment_count").default(0),
 });
 
-export const insertResidentReporterSchema = createInsertSchema(residentReporters).omit({ id: true, createdAt: true, approvedAt: true, updatedAt: true });
+export const insertResidentReporterSchema = createInsertSchema(residentReporters).omit({ id: true, createdAt: true, approvedAt: true, updatedAt: true, likes: true, commentCount: true });
 export type InsertResidentReporter = z.infer<typeof insertResidentReporterSchema>;
 export type ResidentReporter = typeof residentReporters.$inferSelect;
+
+// Resident Reporter Comments
+export const residentReporterComments = pgTable("resident_reporter_comments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  articleId: varchar("article_id").references(() => residentReporters.id, { onDelete: 'cascade' }).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  nickname: text("nickname").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertResidentReporterCommentSchema = createInsertSchema(residentReporterComments).omit({ id: true, createdAt: true });
+export type InsertResidentReporterComment = z.infer<typeof insertResidentReporterCommentSchema>;
+export type ResidentReporterComment = typeof residentReporterComments.$inferSelect;
 
 // Re-export auth models
 export * from "./models/auth";

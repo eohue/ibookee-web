@@ -204,15 +204,27 @@ export default function Header() {
                   <div className="border-t border-border mt-4 pt-4">
                     {!authLoading && (
                       isAuthenticated ? (
-                        <Link
-                          href="/dashboard"
-                          className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
-                          onClick={() => setMobileMenuOpen(false)}
-                          data-testid="link-mobile-dashboard"
-                        >
-                          <LayoutDashboard className="w-5 h-5" />
-                          관리자
-                        </Link>
+                        user?.role === 'admin' ? (
+                          <Link
+                            href="/dashboard"
+                            className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
+                            onClick={() => setMobileMenuOpen(false)}
+                            data-testid="link-mobile-dashboard"
+                          >
+                            <LayoutDashboard className="w-5 h-5" />
+                            관리자
+                          </Link>
+                        ) : (
+                          <Link
+                            href="/mypage"
+                            className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
+                            onClick={() => setMobileMenuOpen(false)}
+                            data-testid="link-mobile-mypage"
+                          >
+                            <User className="w-5 h-5" />
+                            마이페이지
+                          </Link>
+                        )
                       ) : (
                         <Link
                           href="/auth"
