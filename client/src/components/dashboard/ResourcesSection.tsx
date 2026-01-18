@@ -48,8 +48,12 @@ export function ResourcesSection() {
             toast({ title: "자료가 생성되었습니다." });
             setIsDialogOpen(false);
         },
-        onError: () => {
-            toast({ title: "생성 실패", variant: "destructive" });
+        onError: (error) => {
+            toast({
+                title: "생성 실패",
+                description: error.message || "알 수 없는 오류가 발생했습니다.",
+                variant: "destructive"
+            });
         },
     });
 

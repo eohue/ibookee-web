@@ -53,12 +53,18 @@ export function registerArticleRoutes(app: Express) {
             }
             const parsed = insertArticleSchema.safeParse(data);
             if (!parsed.success) {
-                return res.status(400).json({ error: "Invalid article data", details: parsed.error });
+                console.error("Article validation error:", JSON.stringify(parsed.error.errors, null, 2));
+                return res.status(400).json({
+                    error: "Invalid article data",
+                    details: parsed.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+                });
             }
             const article = await storage.createArticle(parsed.data);
             res.status(201).json(article);
         } catch (error) {
-            res.status(500).json({ error: "Failed to create article" });
+            console.error("Article creation error:", error);
+            const message = error instanceof Error ? error.message : "Unknown error";
+            res.status(500).json({ error: `Failed to create article: ${message}` });
         }
     });
 
