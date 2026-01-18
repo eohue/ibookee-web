@@ -344,7 +344,7 @@ export * from "./models/auth";
 
 export interface CommunityFeedItem {
   id: string;
-  type: 'social' | 'program' | 'event';
+  type: 'social' | 'program' | 'event' | 'reporter';
   title: string;
   imageUrl: string | null;
   date: Date | null;

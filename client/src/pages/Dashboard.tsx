@@ -15,6 +15,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { LogOut } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
 import { menuItems, type Section } from "@/components/dashboard/constants";
 import { OverviewSection } from "@/components/dashboard/OverviewSection";
 import { ProjectsSection } from "@/components/dashboard/ProjectsSection";
@@ -126,13 +127,16 @@ export default function Dashboard() {
               </h1>
             </div>
             {user && (
-              <div className="flex flex-col items-end">
-                <span className="text-sm font-medium">
-                  {user.firstName || user.email || "관리자"}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  Role: {user.role || "unknown"} {user.role === "admin" ? "(Admin)" : ""}
-                </span>
+              <div className="flex items-center gap-4">
+                <ModeToggle />
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-medium">
+                    {user.firstName || user.email || "관리자"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Role: {user.role || "unknown"} {user.role === "admin" ? "(Admin)" : ""}
+                  </span>
+                </div>
               </div>
             )}
           </header>

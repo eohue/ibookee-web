@@ -868,7 +868,19 @@ export class MemStorage implements IStorage {
         date: event.date
       }));
 
-    return [...socialPosts, ...programs, ...events]
+    const reporterArticles = Array.from(this.residentReporters.values())
+      .filter(a => a.status === 'approved')
+      .map(article => ({
+        id: article.id,
+        type: 'reporter' as const,
+        title: article.title,
+        imageUrl: article.imageUrl,
+        date: article.createdAt,
+        likes: article.likes || 0,
+        comments: article.commentCount || 0
+      }));
+
+    return [...socialPosts, ...programs, ...events, ...reporterArticles]
       .sort((a, b) => {
         const dateA = a.date ? new Date(a.date).getTime() : 0;
         const dateB = b.date ? new Date(b.date).getTime() : 0;

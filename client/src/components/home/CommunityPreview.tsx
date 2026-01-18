@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowRight, Heart, MessageCircle, Calendar, Users } from "lucide-react";
+import { ArrowRight, Heart, MessageCircle, Calendar, Users, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import type { CommunityFeedItem } from "@shared/schema";
@@ -61,7 +61,7 @@ export default function CommunityPreview() {
                 {/* Type Badge */}
                 <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <Badge variant="secondary" className="bg-white/90 text-black hover:bg-white">
-                    {item.type === 'social' ? '소셜' : item.type === 'program' ? '프로그램' : '행사'}
+                    {item.type === 'social' ? '소셜' : item.type === 'program' ? '프로그램' : item.type === 'reporter' ? '안암리포트' : '행사'}
                   </Badge>
                 </div>
 
@@ -82,6 +82,15 @@ export default function CommunityPreview() {
                         <span className="text-white/90 text-sm font-medium line-clamp-1">#{item.hashtags[0]}</span>
                       )}
                     </>
+                  ) : item.type === 'reporter' ? (
+                    <div className="text-white flex flex-col items-center gap-2">
+                      <Newspaper className="w-8 h-8 mb-1" />
+                      <h3 className="font-bold line-clamp-2 text-sm md:text-base leading-tight px-2">{item.title}</h3>
+                      <div className="flex items-center gap-3 text-xs text-white/90 mt-1">
+                        <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {item.likes}</span>
+                        <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {item.comments}</span>
+                      </div>
+                    </div>
                   ) : (
                     <div className="text-white flex flex-col items-center gap-2">
                       {item.type === 'program' ? <Users className="w-8 h-8 mb-1" /> : <Calendar className="w-8 h-8 mb-1" />}
