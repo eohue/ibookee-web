@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import Header from "@/components/layout/Header";
@@ -8,7 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import type { Article } from "@shared/schema";
+
+const ITEMS_PER_PAGE = 9;
 
 const categories = [
   { id: "all", label: "전체" },
@@ -22,10 +33,16 @@ const categories = [
 
 export default function Insight() {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: articles = [], isLoading, isError, refetch } = useQuery<Article[]>({
     queryKey: ["/api/articles"],
   });
+
+  // Reset to page 1 when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory]);
 
   const filteredArticles = activeCategory === "all" || activeCategory === "library"
     ? articles
@@ -37,6 +54,82 @@ export default function Insight() {
   const libraryDisplayArticles = activeCategory === "library"
     ? filteredArticles.filter((a) => a.fileUrl && a.fileUrl.trim() !== "")
     : [];
+
+  // Pagination logic
+  const articlesToDisplay = activeCategory === "all" ? regularArticles : filteredArticles;
+  const totalPages = Math.ceil(articlesToDisplay.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedArticles = articlesToDisplay.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  // Library pagination
+  const libraryTotalPages = Math.ceil(libraryDisplayArticles.length / ITEMS_PER_PAGE);
+  const libraryStartIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedLibraryArticles = libraryDisplayArticles.slice(libraryStartIndex, libraryStartIndex + ITEMS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderPagination = (total: number) => {
+    if (total <= 1) return null;
+
+    const pages: (number | 'ellipsis')[] = [];
+    const showEllipsisStart = currentPage > 3;
+    const showEllipsisEnd = currentPage < total - 2;
+
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (showEllipsisStart) pages.push('ellipsis');
+
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(total - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) {
+        if (!pages.includes(i)) pages.push(i);
+      }
+
+      if (showEllipsisEnd) pages.push('ellipsis');
+      if (!pages.includes(total)) pages.push(total);
+    }
+
+    return (
+      <Pagination className="mt-12">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+          {pages.map((page, idx) =>
+            page === 'ellipsis' ? (
+              <PaginationItem key={`ellipsis-${idx}`}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            ) : (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => handlePageChange(page)}
+                  isActive={currentPage === page}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          )}
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => currentPage < total && handlePageChange(currentPage + 1)}
+              className={currentPage === total ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -207,64 +300,67 @@ export default function Insight() {
                 <section className="py-12 bg-background" data-testid="section-articles">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {activeCategory === "all" && <h2 className="text-2xl font-bold text-foreground mb-8">최신 글</h2>}
-                    {(activeCategory === "all" ? regularArticles : filteredArticles).length === 0 ? (
+                    {paginatedArticles.length === 0 ? (
                       <div className="text-center py-16">
                         <p className="text-muted-foreground">
                           등록된 게시글이 없습니다.
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {(activeCategory === "all" ? regularArticles : filteredArticles).map((article) => {
-                          const CategoryIcon = getCategoryIcon(article.category);
-                          return (
-                            <Link
-                              key={article.id}
-                              href={`/insight/${article.id}`}
-                              className="block"
-                            >
-                              <Card
-                                className="overflow-hidden hover-elevate cursor-pointer h-full"
-                                data-testid={`article-${article.id}`}
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                          {paginatedArticles.map((article) => {
+                            const CategoryIcon = getCategoryIcon(article.category);
+                            return (
+                              <Link
+                                key={article.id}
+                                href={`/insight/${article.id}`}
+                                className="block"
                               >
-                                <div className="aspect-[16/9] overflow-hidden">
-                                  {article.imageUrl ? (
-                                    <img
-                                      src={article.imageUrl}
-                                      alt={article.title}
-                                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                                    />
-                                  ) : (
-                                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                                      <CategoryIcon className="w-12 h-12 text-muted-foreground" />
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="p-5">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <CategoryIcon className="w-4 h-4 text-primary" />
-                                    <Badge variant="secondary">
-                                      {getCategoryLabel(article.category)}
-                                    </Badge>
-                                  </div>
-                                  <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
-                                    {article.title}
-                                  </h3>
-                                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                                    {article.excerpt}
-                                  </p>
-                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                    <span>{article.author}</span>
-                                    {article.publishedAt && (
-                                      <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
+                                <Card
+                                  className="overflow-hidden hover-elevate cursor-pointer h-full"
+                                  data-testid={`article-${article.id}`}
+                                >
+                                  <div className="aspect-[16/9] overflow-hidden">
+                                    {article.imageUrl ? (
+                                      <img
+                                        src={article.imageUrl}
+                                        alt={article.title}
+                                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                                        <CategoryIcon className="w-12 h-12 text-muted-foreground" />
+                                      </div>
                                     )}
                                   </div>
-                                </div>
-                              </Card>
-                            </Link>
-                          );
-                        })}
-                      </div>
+                                  <div className="p-5">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <CategoryIcon className="w-4 h-4 text-primary" />
+                                      <Badge variant="secondary">
+                                        {getCategoryLabel(article.category)}
+                                      </Badge>
+                                    </div>
+                                    <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                                      {article.title}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                                      {article.excerpt}
+                                    </p>
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                      <span>{article.author}</span>
+                                      {article.publishedAt && (
+                                        <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </Card>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                        {renderPagination(totalPages)}
+                      </>
                     )}
                   </div>
                 </section>
@@ -282,38 +378,41 @@ export default function Insight() {
                   <p className="text-muted-foreground">등록된 자료가 없습니다.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {libraryDisplayArticles.map((article) => (
-                    <Card
-                      key={article.id}
-                      className="p-5 flex items-center justify-between hover-elevate transition-all"
-                      data-testid={`library-item-${article.id}`}
-                    >
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <FileText className="w-6 h-6 text-primary" />
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {paginatedLibraryArticles.map((article) => (
+                      <Card
+                        key={article.id}
+                        className="p-5 flex items-center justify-between hover-elevate transition-all"
+                        data-testid={`library-item-${article.id}`}
+                      >
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <FileText className="w-6 h-6 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="font-medium text-foreground truncate pr-4">{article.title}</h3>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {article.author} · {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("ko-KR") : ""}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <h3 className="font-medium text-foreground truncate pr-4">{article.title}</h3>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {article.author} · {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("ko-KR") : ""}
-                          </p>
-                        </div>
-                      </div>
-                      {article.fileUrl ? (
-                        <a href={article.fileUrl} download target="_blank" rel="noopener noreferrer">
-                          <Button size="icon" variant="ghost" className="hover:text-primary hover:bg-primary/10" data-testid={`download-${article.id}`}>
-                            <Download className="w-5 h-5" />
+                        {article.fileUrl ? (
+                          <a href={article.fileUrl} download target="_blank" rel="noopener noreferrer">
+                            <Button size="icon" variant="ghost" className="hover:text-primary hover:bg-primary/10" data-testid={`download-${article.id}`}>
+                              <Download className="w-5 h-5" />
+                            </Button>
+                          </a>
+                        ) : (
+                          <Button size="icon" variant="ghost" disabled title="파일 없음">
+                            <Download className="w-5 h-5 opacity-30" />
                           </Button>
-                        </a>
-                      ) : (
-                        <Button size="icon" variant="ghost" disabled title="파일 없음">
-                          <Download className="w-5 h-5 opacity-30" />
-                        </Button>
-                      )}
-                    </Card>
-                  ))}
-                </div>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                  {renderPagination(libraryTotalPages)}
+                </>
               )}
             </div>
           </section>
