@@ -1,13 +1,78 @@
-import { useRef, useEffect } from "react";
-import ReactQuill from "react-quill";
+import { useRef, useEffect, useMemo } from "react";
+import ReactQuill, { Quill } from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { marked } from "marked";
+
+// Register Video Blot for embed support
+const BlockEmbed = Quill.import("blots/block/embed");
+
+class VideoBlot extends BlockEmbed {
+    static blotName = "video";
+    static tagName = "div";
+    static className = "ql-video-wrapper";
+
+    static create(value: string) {
+        const node = super.create() as HTMLElement;
+        const iframe = document.createElement("iframe");
+
+        // Convert URL to embed URL if needed
+        const embedUrl = VideoBlot.sanitize(value);
+
+        iframe.setAttribute("src", embedUrl);
+        iframe.setAttribute("frameborder", "0");
+        iframe.setAttribute("allowfullscreen", "true");
+        iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture");
+        iframe.style.width = "100%";
+        iframe.style.aspectRatio = "16/9";
+
+        node.appendChild(iframe);
+        return node;
+    }
+
+    static value(node: HTMLElement) {
+        const iframe = node.querySelector("iframe");
+        return iframe ? iframe.getAttribute("src") : "";
+    }
+
+    static sanitize(url: string) {
+        // YouTube URL conversion
+        const youtubeMatch = url.match(
+            /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+        );
+        if (youtubeMatch) {
+            return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+        }
+
+        // Vimeo URL conversion
+        const vimeoMatch = url.match(
+            /(?:vimeo\.com\/)(\d+)/
+        );
+        if (vimeoMatch) {
+            return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+        }
+
+        // Return as-is if already embed URL or other
+        return url;
+    }
+}
+
+Quill.register(VideoBlot);
 
 interface RichTextEditorProps {
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
     className?: string;
+}
+
+// Custom handler for video embed
+function videoHandler(this: { quill: any }) {
+    const url = prompt("임베드할 영상 URL을 입력하세요 (YouTube, Vimeo 등):");
+    if (url) {
+        const range = this.quill.getSelection(true);
+        this.quill.insertEmbed(range.index, "video", url, "user");
+        this.quill.setSelection(range.index + 1, "silent");
+    }
 }
 
 export function RichTextEditor({
@@ -47,15 +112,20 @@ export function RichTextEditor({
         }
     }, []);
 
-    const modules = {
-        toolbar: [
-            [{ header: [1, 2, 3, false] }],
-            ["bold", "italic", "underline", "strike"],
-            [{ list: "ordered" }, { list: "bullet" }],
-            ["link", "image"],
-            ["clean"],
-        ],
-    };
+    const modules = useMemo(() => ({
+        toolbar: {
+            container: [
+                [{ header: [1, 2, 3, false] }],
+                ["bold", "italic", "underline", "strike"],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["link", "image", "video"],
+                ["clean"],
+            ],
+            handlers: {
+                video: videoHandler,
+            },
+        },
+    }), []);
 
     const formats = [
         "header",
@@ -67,6 +137,7 @@ export function RichTextEditor({
         "bullet",
         "link",
         "image",
+        "video",
     ];
 
     return (

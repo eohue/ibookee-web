@@ -4,11 +4,11 @@
 
 /* LIGHT MODE */
 :root {
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
+  --button-outline: rgba(0, 0, 0, .10);
+  --badge-outline: rgba(0, 0, 0, .05);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --elevate-1: rgba(0, 0, 0, .03);
+  --elevate-2: rgba(0, 0, 0, .08);
   --background: 0 0% 98%;
   --foreground: 0 0% 15%;
   --border: 0 0% 90%;
@@ -58,7 +58,7 @@
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
-/* Fallback for older browsers */
+  /* Fallback for older browsers */
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
@@ -69,11 +69,11 @@
 }
 
 .dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(255, 255, 255, .10);
+  --badge-outline: rgba(255, 255, 255, .05);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255, 255, 255, .04);
+  --elevate-2: rgba(255, 255, 255, .09);
   --background: 215 25% 10%;
   --foreground: 210 20% 98%;
   --border: 215 20% 20%;
@@ -245,5 +245,33 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
+  }
+
+  /* Video embed styles for RichTextEditor and content display */
+  .ql-video-wrapper {
+    position: relative;
+    width: 100%;
+    margin: 1rem 0;
+  }
+
+  .ql-video-wrapper iframe {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+  }
+
+  /* Styles for video embeds in article content */
+  .prose iframe,
+  .prose .ql-video-wrapper iframe {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+
+  /* Quill editor video button icon */
+  .ql-snow .ql-toolbar button.ql-video,
+  .ql-snow.ql-toolbar button.ql-video {
+    width: 28px;
   }
 }

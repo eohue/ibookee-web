@@ -173,6 +173,9 @@ export interface IStorage {
   updateUserRole(id: string, role: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   verifyUserRealName(userId: string, realName: string, phoneNumber: string): Promise<User | undefined>;
+  deleteUser(id: string): Promise<void>;
+  updateUserPassword(id: string, hashedPassword: string): Promise<User | undefined>;
+
 
   // Resident Reporter
   createReporterArticle(userId: string, data: InsertResidentReporter): Promise<ResidentReporter>;
@@ -705,6 +708,19 @@ export class DatabaseStorage implements IStorage {
         isVerified: true,
         updatedAt: new Date()
       })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  async updateUserPassword(id: string, hashedPassword: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ password: hashedPassword, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
     return user;
@@ -1646,6 +1662,24 @@ export class MemStorage implements IStorage {
       updatedAt: new Date()
     };
     this.users.set(userId, updated);
+    this.persist();
+    return updated;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    this.users.delete(id);
+    this.persist();
+  }
+
+  async updateUserPassword(id: string, hashedPassword: string): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    const updated = {
+      ...user,
+      password: hashedPassword,
+      updatedAt: new Date()
+    };
+    this.users.set(id, updated);
     this.persist();
     return updated;
   }
