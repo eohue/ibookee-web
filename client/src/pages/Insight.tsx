@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { FileText, Video, Download, Calendar, User, AlertCircle, RefreshCw } from "lucide-react";
+import { FileText, Video, Download, Calendar, User, AlertCircle, RefreshCw, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ const categories = [
   { id: "all", label: "전체" },
   { id: "column", label: "칼럼" },
   { id: "media", label: "미디어" },
+  { id: "notice", label: "알림" },
   { id: "library", label: "자료실" },
 ];
 
@@ -43,6 +44,8 @@ export default function Insight() {
         return FileText;
       case "media":
         return Video;
+      case "notice":
+        return Bell;
       default:
         return FileText;
     }
@@ -54,6 +57,8 @@ export default function Insight() {
         return "칼럼";
       case "media":
         return "미디어";
+      case "notice":
+        return "알림";
       case "library":
         return "자료실";
       default:

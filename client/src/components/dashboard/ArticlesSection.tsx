@@ -135,6 +135,7 @@ export function ArticlesSection() {
     const categoryLabels: Record<string, string> = {
         column: "칼럼",
         media: "미디어",
+        notice: "알림",
         library: "자료실",
     };
 
@@ -184,6 +185,7 @@ export function ArticlesSection() {
                                         <SelectContent>
                                             <SelectItem value="column">칼럼</SelectItem>
                                             <SelectItem value="media">미디어</SelectItem>
+                                            <SelectItem value="notice">알림</SelectItem>
                                             <SelectItem value="library">자료실</SelectItem>
                                         </SelectContent>
                                     </Select>
