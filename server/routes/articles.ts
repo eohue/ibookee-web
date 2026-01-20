@@ -64,6 +64,7 @@ export function registerArticleRoutes(app: Express) {
             data.category = sanitizeString(data.category);
             data.imageUrl = sanitizeString(data.imageUrl);
             data.fileUrl = sanitizeString(data.fileUrl);
+            data.sourceUrl = sanitizeString(data.sourceUrl);
 
             if (data.publishedAt && typeof data.publishedAt === 'string') {
                 data.publishedAt = new Date(data.publishedAt);
@@ -103,6 +104,7 @@ export function registerArticleRoutes(app: Express) {
             if (data.category !== undefined) data.category = sanitizeString(data.category);
             if (data.imageUrl !== undefined) data.imageUrl = sanitizeString(data.imageUrl);
             if (data.fileUrl !== undefined) data.fileUrl = sanitizeString(data.fileUrl);
+            if (data.sourceUrl !== undefined) data.sourceUrl = sanitizeString(data.sourceUrl);
 
             if (data.publishedAt && typeof data.publishedAt === 'string') {
                 data.publishedAt = new Date(data.publishedAt);

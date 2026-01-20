@@ -6,7 +6,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, User, AlertCircle, RefreshCw, FileText, Download } from "lucide-react";
+import { ArrowLeft, Calendar, User, AlertCircle, RefreshCw, FileText, Download, ExternalLink } from "lucide-react";
 
 const categoryLabels: Record<string, string> = {
   column: "칼럼",
@@ -151,6 +151,22 @@ export default function InsightDetail() {
                       </div>
                     </div>
                     <Download className="w-5 h-5 text-primary opacity-50 group-hover:opacity-100 transition-opacity ml-4" />
+                  </div>
+                </a>
+              </div>
+            )}
+
+            {article.sourceUrl && (
+              <div className="mb-8">
+                <a href={article.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center no-underline">
+                  <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50 hover:bg-secondary border border-border transition-colors group cursor-pointer">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <ExternalLink className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-foreground group-hover:text-primary transition-colors">원문 기사 보기</p>
+                      <p className="text-xs text-muted-foreground truncate max-w-xs">{article.sourceUrl}</p>
+                    </div>
                   </div>
                 </a>
               </div>

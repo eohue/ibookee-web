@@ -56,6 +56,7 @@ export const articles = pgTable("articles", {
   category: text("category").notNull(), // column, media, library
   imageUrl: text("image_url"),
   fileUrl: text("file_url"),
+  sourceUrl: text("source_url"), // 원문 기사 링크
   publishedAt: timestamp("published_at").defaultNow(),
   featured: boolean("featured").default(false),
 });

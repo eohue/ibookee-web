@@ -25,7 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, ExternalLink } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 import type { Article } from "@shared/schema";
 
@@ -38,6 +38,7 @@ export function ArticlesSection() {
     const [imageUrl, setImageUrl] = useState("");
     const [content, setContent] = useState("");
     const [publishedAt, setPublishedAt] = useState("");
+    const [sourceUrl, setSourceUrl] = useState("");
 
     const { data: articles, isLoading } = useQuery<Article[]>({
         queryKey: ["/api/admin/articles"],
@@ -95,12 +96,14 @@ export function ArticlesSection() {
             setImageUrl(article.imageUrl ?? "");
             setContent(article.content);
             setPublishedAt(article.publishedAt ? new Date(article.publishedAt).toISOString().split('T')[0] : "");
+            setSourceUrl(article.sourceUrl ?? "");
         } else {
             setSelectedCategory("column");
             setIsFeatured(false);
             setImageUrl("");
             setContent("");
             setPublishedAt("");
+            setSourceUrl("");
         }
         setIsDialogOpen(true);
     };
@@ -117,6 +120,7 @@ export function ArticlesSection() {
             author: formData.get("author") as string,
             category: selectedCategory,
             featured: isFeatured,
+            sourceUrl: sourceUrl || null,
         };
 
         if (publishedAt) {
@@ -232,6 +236,17 @@ export function ArticlesSection() {
                                 <ImageUpload
                                     value={imageUrl}
                                     onChange={(url) => setImageUrl(url as string)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="sourceUrl">원문 기사 링크</Label>
+                                <Input
+                                    id="sourceUrl"
+                                    type="url"
+                                    placeholder="https://example.com/article"
+                                    value={sourceUrl}
+                                    onChange={(e) => setSourceUrl(e.target.value)}
+                                    data-testid="input-article-source-url"
                                 />
                             </div>
                             <div className="flex items-center space-x-2">
