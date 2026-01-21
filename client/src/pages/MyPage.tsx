@@ -373,12 +373,12 @@ export default function MyPage() {
                         <div className="lg:col-span-4 space-y-6">
                             {/* Profile Card */}
                             <Card className="overflow-hidden border-0 shadow-lg">
-                                <div className="h-32 bg-gradient-to-br from-primary via-primary/80 to-primary/60 relative">
+                                <div className="h-16 bg-gradient-to-br from-primary via-primary/80 to-primary/60 relative">
                                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxLjUiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-50" />
                                 </div>
                                 <CardContent className="relative text-center pb-6">
                                     {/* 프로필 사진 */}
-                                    <div className="flex justify-center -mt-14">
+                                    <div className="flex justify-center -mt-12">
                                         <div className="relative h-24 w-24 lg:h-28 lg:w-28 rounded-full border-4 border-background bg-background shadow-xl flex items-center justify-center overflow-hidden ring-4 ring-primary/20">
                                             {user.profileImageUrl ? (
                                                 <img src={user.profileImageUrl} alt="Profile" className="h-full w-full object-cover" />
