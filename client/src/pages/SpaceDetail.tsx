@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import type { Project } from "@shared/schema";
+import type { Project, Subproject } from "@shared/schema";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, ArrowRight, MapPin, Calendar, Home, Users, AlertCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Calendar, Home, Users, AlertCircle, RefreshCw, Building2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { CATEGORY_LABELS } from "@/lib/constants";
 
@@ -16,6 +17,11 @@ export default function SpaceDetail() {
 
   const { data: project, isLoading, isError, refetch } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
+    enabled: projectId !== null,
+  });
+
+  const { data: subprojects = [] } = useQuery<Subproject[]>({
+    queryKey: [`/api/projects/${projectId}/subprojects`],
     enabled: projectId !== null,
   });
 
@@ -120,9 +126,11 @@ export default function SpaceDetail() {
             <div className="bg-card rounded-lg p-4 border border-border">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Calendar className="w-4 h-4" />
-                <span className="text-sm">준공연도</span>
+                <span className="text-sm">준공</span>
               </div>
-              <p className="font-medium text-foreground">{project.year}년</p>
+              <p className="font-medium text-foreground">
+                {project.year}년{project.completionMonth ? ` ${parseInt(project.completionMonth)}월` : ''}
+              </p>
             </div>
             {project.units && (
               <div className="bg-card rounded-lg p-4 border border-border">
@@ -131,6 +139,31 @@ export default function SpaceDetail() {
                   <span className="text-sm">세대수</span>
                 </div>
                 <p className="font-medium text-foreground">{project.units}세대</p>
+              </div>
+            )}
+            {project.scale && (
+              <div className="bg-card rounded-lg p-4 border border-border">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <Users className="w-4 h-4" />
+                  <span className="text-sm">규모</span>
+                </div>
+                <p className="font-medium text-foreground">{project.scale}</p>
+              </div>
+            )}
+            {project.siteArea && (
+              <div className="bg-card rounded-lg p-4 border border-border">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <span className="text-sm">대지면적</span>
+                </div>
+                <p className="font-medium text-foreground">{project.siteArea}</p>
+              </div>
+            )}
+            {project.grossFloorArea && (
+              <div className="bg-card rounded-lg p-4 border border-border">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <span className="text-sm">연면적</span>
+                </div>
+                <p className="font-medium text-foreground">{project.grossFloorArea}</p>
               </div>
             )}
             {project.pdfUrl && (
@@ -178,6 +211,45 @@ export default function SpaceDetail() {
                 </div>
               );
             })()}
+
+            {/* Subprojects Section */}
+            {subprojects.length > 0 && (
+              <div className="border-t border-border pt-12">
+                <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  관련 프로젝트
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {subprojects.map((sub) => (
+                    <Card key={sub.id} className="overflow-hidden">
+                      {sub.imageUrl && (
+                        <img
+                          src={sub.imageUrl}
+                          alt={sub.name}
+                          className="w-full h-40 object-cover"
+                        />
+                      )}
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold mb-2">{sub.name}</h4>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p>{sub.location}</p>
+                          {sub.completionYear && (
+                            <p>
+                              {sub.completionYear}년
+                              {sub.completionMonth ? ` ${parseInt(sub.completionMonth)}월` : ''} 준공
+                            </p>
+                          )}
+                          {sub.units && <p>{sub.units}세대</p>}
+                          {sub.scale && <p>{sub.scale}</p>}
+                          {sub.siteArea && <p>대지면적: {sub.siteArea}</p>}
+                          {sub.grossFloorArea && <p>연면적: {sub.grossFloorArea}</p>}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

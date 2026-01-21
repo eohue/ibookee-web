@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../storage";
-import { insertProjectSchema } from "@shared/schema";
+import { insertProjectSchema, insertSubprojectSchema } from "@shared/schema";
 import { isAuthenticated } from "../replit_integrations/auth";
 
 export function registerProjectRoutes(app: Express) {
@@ -32,6 +32,16 @@ export function registerProjectRoutes(app: Express) {
       res.json(projects);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch projects" });
+    }
+  });
+
+  // Public subprojects API
+  app.get("/api/projects/:id/subprojects", async (req, res) => {
+    try {
+      const subprojects = await storage.getSubprojects(req.params.id);
+      res.json(subprojects);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch subprojects" });
     }
   });
 
@@ -79,6 +89,53 @@ export function registerProjectRoutes(app: Express) {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete project" });
+    }
+  });
+
+  // Admin Subprojects CRUD
+  app.get("/api/admin/projects/:id/subprojects", isAuthenticated, async (req, res) => {
+    try {
+      const subprojects = await storage.getSubprojects(req.params.id);
+      res.json(subprojects);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch subprojects" });
+    }
+  });
+
+  app.post("/api/admin/projects/:id/subprojects", isAuthenticated, async (req, res) => {
+    try {
+      const data = { ...req.body, parentProjectId: req.params.id };
+      const parsed = insertSubprojectSchema.safeParse(data);
+      if (!parsed.success) {
+        console.error("Subproject creation validation failed:", JSON.stringify(parsed.error, null, 2));
+        return res.status(400).json({ error: "Invalid subproject data", details: parsed.error });
+      }
+      const subproject = await storage.createSubproject(parsed.data);
+      res.status(201).json(subproject);
+    } catch (error) {
+      console.error("Subproject creation error:", error);
+      res.status(500).json({ error: "Failed to create subproject" });
+    }
+  });
+
+  app.put("/api/admin/subprojects/:id", isAuthenticated, async (req, res) => {
+    try {
+      const subproject = await storage.updateSubproject(req.params.id, req.body);
+      if (!subproject) {
+        return res.status(404).json({ error: "Subproject not found" });
+      }
+      res.json(subproject);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update subproject" });
+    }
+  });
+
+  app.delete("/api/admin/subprojects/:id", isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteSubproject(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete subproject" });
     }
   });
 }

@@ -33,6 +33,7 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import type { Project } from "@shared/schema";
 import { MultiSelect } from "@/components/ui/multi-select-custom";
 import { PROJECT_CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
+import { SubprojectManager } from "./SubprojectManager";
 
 export function ProjectsSection() {
     const { toast } = useToast();
@@ -132,7 +133,11 @@ export function ProjectsSection() {
             imageUrl: formData.get("imageUrl") as string,
             pdfUrl: pdfUrl || null,
             year: isNaN(year) ? new Date().getFullYear() : year,
+            completionMonth: (formData.get("completionMonth") as string) || null,
             units: typeof units === 'number' && !isNaN(units) ? units : undefined,
+            siteArea: (formData.get("siteArea") as string) || null,
+            grossFloorArea: (formData.get("grossFloorArea") as string) || null,
+            scale: (formData.get("scale") as string) || null,
             featured: false,
             partnerLogos: partnerLogos,
         };
@@ -276,6 +281,24 @@ export function ProjectsSection() {
                                     />
                                 </div>
                                 <div className="space-y-2">
+                                    <Label htmlFor="completionMonth">준공 월</Label>
+                                    <Select name="completionMonth" defaultValue={editingProject?.completionMonth || ""}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="월 선택" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">-</SelectItem>
+                                            {[...Array(12)].map((_, i) => (
+                                                <SelectItem key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                                                    {i + 1}월
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
                                     <Label htmlFor="units">세대 수</Label>
                                     <Input
                                         id="units"
@@ -283,6 +306,38 @@ export function ProjectsSection() {
                                         type="number"
                                         defaultValue={editingProject?.units || ""}
                                         data-testid="input-project-units"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="siteArea">대지면적</Label>
+                                    <Input
+                                        id="siteArea"
+                                        name="siteArea"
+                                        placeholder="예: 320.5㎡"
+                                        defaultValue={editingProject?.siteArea || ""}
+                                        data-testid="input-project-site-area"
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="grossFloorArea">연면적</Label>
+                                    <Input
+                                        id="grossFloorArea"
+                                        name="grossFloorArea"
+                                        placeholder="예: 1,250.8㎡"
+                                        defaultValue={editingProject?.grossFloorArea || ""}
+                                        data-testid="input-project-gross-floor-area"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="scale">규모(층수)</Label>
+                                    <Input
+                                        id="scale"
+                                        name="scale"
+                                        placeholder="예: 지하1층/지상5층"
+                                        defaultValue={editingProject?.scale || ""}
+                                        data-testid="input-project-scale"
                                     />
                                 </div>
                             </div>
@@ -355,6 +410,7 @@ export function ProjectsSection() {
                                         </Button>
                                     </div>
                                 </div>
+                                <SubprojectManager projectId={project.id} projectTitle={project.title} />
                             </CardContent>
                         </Card>
                     ))}

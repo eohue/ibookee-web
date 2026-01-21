@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -25,9 +25,26 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, Edit, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Edit, Trash2, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import { ImageUpload } from "@/components/ui/image-upload";
 import type { Article } from "@shared/schema";
+
+const ITEMS_PER_PAGE = 20;
+
+function getPageFromUrl(): number {
+    const params = new URLSearchParams(window.location.search);
+    const page = parseInt(params.get('page') || '1', 10);
+    return page > 0 ? page : 1;
+}
 
 export function ArticlesSection() {
     const { toast } = useToast();
@@ -39,10 +56,95 @@ export function ArticlesSection() {
     const [content, setContent] = useState("");
     const [publishedAt, setPublishedAt] = useState("");
     const [sourceUrl, setSourceUrl] = useState("");
+    const [currentPage, setCurrentPage] = useState(getPageFromUrl);
 
     const { data: articles, isLoading } = useQuery<Article[]>({
         queryKey: ["/api/admin/articles"],
     });
+
+    // Sync page state with URL on mount and popstate
+    useEffect(() => {
+        const handlePopState = () => {
+            setCurrentPage(getPageFromUrl());
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    // Pagination logic
+    const totalPages = Math.ceil((articles?.length || 0) / ITEMS_PER_PAGE);
+    const paginatedArticles = articles?.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    const handlePageChange = (page: number) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', page.toString());
+        window.history.pushState({}, '', url.toString());
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+
+        const pages: (number | 'ellipsis')[] = [];
+        const showEllipsisStart = currentPage > 3;
+        const showEllipsisEnd = currentPage < totalPages - 2;
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (showEllipsisStart) pages.push('ellipsis');
+
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+                if (!pages.includes(i)) pages.push(i);
+            }
+
+            if (showEllipsisEnd) pages.push('ellipsis');
+            if (!pages.includes(totalPages)) pages.push(totalPages);
+        }
+
+        return (
+            <Pagination className="mt-6">
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                    {pages.map((page, idx) =>
+                        page === 'ellipsis' ? (
+                            <PaginationItem key={`ellipsis-${idx}`}>
+                                <PaginationEllipsis />
+                            </PaginationItem>
+                        ) : (
+                            <PaginationItem key={page}>
+                                <PaginationLink
+                                    onClick={() => handlePageChange(page)}
+                                    isActive={currentPage === page}
+                                    className="cursor-pointer"
+                                >
+                                    {page}
+                                </PaginationLink>
+                            </PaginationItem>
+                        )
+                    )}
+                    <PaginationItem>
+                        <PaginationNext
+                            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        );
+    };
 
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
@@ -284,53 +386,56 @@ export function ArticlesSection() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-4">
-                    {articles.map((article) => (
-                        <Card key={article.id} data-testid={`card-article-${article.id}`}>
-                            <CardContent className="p-4">
-                                <div className="flex items-start gap-4">
-                                    {article.imageUrl && (
-                                        <img
-                                            src={article.imageUrl}
-                                            alt={article.title}
-                                            className="w-24 h-16 object-cover rounded-md"
-                                        />
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                                            <h3 className="font-medium">{article.title}</h3>
-                                            <Badge variant="secondary" className="text-xs">
-                                                {categoryLabels[article.category] || article.category}
-                                            </Badge>
-                                            {article.featured && <Badge>추천</Badge>}
+                <>
+                    <div className="grid gap-4">
+                        {paginatedArticles?.map((article) => (
+                            <Card key={article.id} data-testid={`card-article-${article.id}`}>
+                                <CardContent className="p-4">
+                                    <div className="flex items-start gap-4">
+                                        {article.imageUrl && (
+                                            <img
+                                                src={article.imageUrl}
+                                                alt={article.title}
+                                                className="w-24 h-16 object-cover rounded-md"
+                                            />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                                                <h3 className="font-medium">{article.title}</h3>
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {categoryLabels[article.category] || article.category}
+                                                </Badge>
+                                                {article.featured && <Badge>추천</Badge>}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground line-clamp-1">
+                                                {article.author} | {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("ko-KR") : ""}
+                                            </p>
                                         </div>
-                                        <p className="text-sm text-muted-foreground line-clamp-1">
-                                            {article.author} | {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("ko-KR") : ""}
-                                        </p>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => openDialog(article)}
+                                                data-testid={`button-edit-article-${article.id}`}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => deleteMutation.mutate(article.id)}
+                                                data-testid={`button-delete-article-${article.id}`}
+                                            >
+                                                <Trash2 className="w-4 h-4 text-destructive" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => openDialog(article)}
-                                            data-testid={`button-edit-article-${article.id}`}
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => deleteMutation.mutate(article.id)}
-                                            data-testid={`button-delete-article-${article.id}`}
-                                        >
-                                            <Trash2 className="w-4 h-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                    {renderPagination()}
+                </>
             )}
         </div>
     );

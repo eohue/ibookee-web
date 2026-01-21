@@ -12,6 +12,7 @@ import {
   programApplications,
   projectImages,
   partners,
+  subprojects,
   historyMilestones,
   siteSettings,
   pageImages,
@@ -40,6 +41,8 @@ import {
   type InsertProjectImage,
   type Partner,
   type InsertPartner,
+  type Subproject,
+  type InsertSubproject,
   type HistoryMilestone,
   type InsertHistoryMilestone,
   type SiteSetting,
@@ -136,6 +139,13 @@ export interface IStorage {
   getProjectImages(projectId: string): Promise<ProjectImage[]>;
   createProjectImage(image: InsertProjectImage): Promise<ProjectImage>;
   deleteProjectImage(id: string): Promise<void>;
+
+  // Subprojects
+  getSubprojects(parentProjectId: string): Promise<Subproject[]>;
+  getSubproject(id: string): Promise<Subproject | undefined>;
+  createSubproject(subproject: InsertSubproject): Promise<Subproject>;
+  updateSubproject(id: string, subproject: Partial<InsertSubproject>): Promise<Subproject | undefined>;
+  deleteSubproject(id: string): Promise<void>;
 
   // Partners
   getPartners(): Promise<Partner[]>;
@@ -527,6 +537,32 @@ export class DatabaseStorage implements IStorage {
     await db.delete(projectImages).where(eq(projectImages.id, id));
   }
 
+  // Subprojects
+  async getSubprojects(parentProjectId: string): Promise<Subproject[]> {
+    return db.select().from(subprojects)
+      .where(eq(subprojects.parentProjectId, parentProjectId))
+      .orderBy(subprojects.displayOrder);
+  }
+
+  async getSubproject(id: string): Promise<Subproject | undefined> {
+    const result = await db.select().from(subprojects).where(eq(subprojects.id, id));
+    return result[0];
+  }
+
+  async createSubproject(subproject: InsertSubproject): Promise<Subproject> {
+    const result = await db.insert(subprojects).values(subproject).returning();
+    return result[0];
+  }
+
+  async updateSubproject(id: string, subproject: Partial<InsertSubproject>): Promise<Subproject | undefined> {
+    const result = await db.update(subprojects).set(subproject).where(eq(subprojects.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteSubproject(id: string): Promise<void> {
+    await db.delete(subprojects).where(eq(subprojects.id, id));
+  }
+
   // Partners
   async getPartners(): Promise<Partner[]> {
     return db.select().from(partners);
@@ -851,6 +887,7 @@ export class MemStorage implements IStorage {
   private users: Map<string, User> = new Map();
   private residentReporters: Map<string, ResidentReporter> = new Map();
   private residentReporterComments: Map<string, ResidentReporterComment> = new Map();
+  private subprojects: Map<string, Subproject> = new Map();
 
   async getUnifiedCommunityFeed(limit: number): Promise<CommunityFeedItem[]> {
     const socialPosts = Array.from(this.communityPosts.values()).map(post => ({
@@ -1447,6 +1484,50 @@ export class MemStorage implements IStorage {
 
   async deleteProjectImage(id: string): Promise<void> {
     this.projectImages.delete(id);
+    this.persist();
+  }
+
+  // Subprojects
+  async getSubprojects(parentProjectId: string): Promise<Subproject[]> {
+    return Array.from(this.subprojects.values())
+      .filter(s => s.parentProjectId === parentProjectId)
+      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+  }
+
+  async getSubproject(id: string): Promise<Subproject | undefined> {
+    return this.subprojects.get(id);
+  }
+
+  async createSubproject(subproject: InsertSubproject): Promise<Subproject> {
+    const id = this.getId();
+    const newSubproject: Subproject = {
+      ...subproject,
+      id,
+      completionYear: subproject.completionYear ?? null,
+      completionMonth: subproject.completionMonth ?? null,
+      units: subproject.units ?? null,
+      siteArea: subproject.siteArea ?? null,
+      grossFloorArea: subproject.grossFloorArea ?? null,
+      scale: subproject.scale ?? null,
+      imageUrl: subproject.imageUrl ?? null,
+      displayOrder: subproject.displayOrder ?? 0,
+    };
+    this.subprojects.set(id, newSubproject);
+    this.persist();
+    return newSubproject;
+  }
+
+  async updateSubproject(id: string, subproject: Partial<InsertSubproject>): Promise<Subproject | undefined> {
+    const existing = this.subprojects.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...subproject };
+    this.subprojects.set(id, updated);
+    this.persist();
+    return updated;
+  }
+
+  async deleteSubproject(id: string): Promise<void> {
+    this.subprojects.delete(id);
     this.persist();
   }
 

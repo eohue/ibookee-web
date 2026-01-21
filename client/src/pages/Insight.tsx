@@ -29,20 +29,46 @@ const categories = [
   { id: "library", label: "자료실" },
 ];
 
+function getPageFromUrl(): number {
+  const params = new URLSearchParams(window.location.search);
+  const page = parseInt(params.get('page') || '1', 10);
+  return page > 0 ? page : 1;
+}
+
+function getCategoryFromUrl(): string {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('category') || 'all';
+}
+
 
 
 export default function Insight() {
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [activeCategory, setActiveCategory] = useState(getCategoryFromUrl);
+  const [currentPage, setCurrentPage] = useState(getPageFromUrl);
 
   const { data: articles = [], isLoading, isError, refetch } = useQuery<Article[]>({
     queryKey: ["/api/articles"],
   });
 
-  // Reset to page 1 when category changes
+  // Sync state with URL on popstate (back/forward navigation)
   useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPage(getPageFromUrl());
+      setActiveCategory(getCategoryFromUrl());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Handle category change - reset page and update URL
+  const handleCategoryChange = (category: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('category', category);
+    url.searchParams.set('page', '1');
+    window.history.pushState({}, '', url.toString());
+    setActiveCategory(category);
     setCurrentPage(1);
-  }, [activeCategory]);
+  };
 
   const filteredArticles = activeCategory === "all" || activeCategory === "library"
     ? articles
@@ -67,6 +93,9 @@ export default function Insight() {
   const paginatedLibraryArticles = libraryDisplayArticles.slice(libraryStartIndex, libraryStartIndex + ITEMS_PER_PAGE);
 
   const handlePageChange = (page: number) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page.toString());
+    window.history.pushState({}, '', url.toString());
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -187,7 +216,7 @@ export default function Insight() {
                   key={category.id}
                   variant={activeCategory === category.id ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setActiveCategory(category.id)}
+                  onClick={() => handleCategoryChange(category.id)}
                   className="rounded-full"
                   data-testid={`filter-category-${category.id}`}
                 >

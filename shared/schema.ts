@@ -15,7 +15,11 @@ export const projects = pgTable("projects", {
   description: text("description").notNull(),
   imageUrl: text("image_url").notNull(),
   year: integer("year").notNull(),
+  completionMonth: text("completion_month"), // 준공 월 (예: "06")
   units: integer("units"),
+  siteArea: text("site_area"), // 대지면적 (예: "320.5㎡")
+  grossFloorArea: text("gross_floor_area"), // 연면적 (예: "1,250.8㎡")
+  scale: text("scale"), // 규모/층수 (예: "지하1층/지상5층")
   featured: boolean("featured").default(false),
   partnerLogos: jsonb("partner_logos"), // Array of PartnerLogo objects
   pdfUrl: text("pdf_url"),
@@ -29,6 +33,26 @@ export interface PartnerLogo {
   url: string;
   link?: string;
 }
+
+// Subprojects (서브 프로젝트: 보린주택 2호, 3호 등)
+export const subprojects = pgTable("subprojects", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  parentProjectId: varchar("parent_project_id").references(() => projects.id, { onDelete: 'cascade' }).notNull(),
+  name: text("name").notNull(), // "보린주택 2호"
+  location: text("location").notNull(),
+  completionYear: integer("completion_year"),
+  completionMonth: text("completion_month"),
+  units: integer("units"),
+  siteArea: text("site_area"),
+  grossFloorArea: text("gross_floor_area"),
+  scale: text("scale"),
+  imageUrl: text("image_url"),
+  displayOrder: integer("display_order").default(0),
+});
+
+export const insertSubprojectSchema = createInsertSchema(subprojects).omit({ id: true });
+export type InsertSubproject = z.infer<typeof insertSubprojectSchema>;
+export type Subproject = typeof subprojects.$inferSelect;
 
 // Inquiries (Contact forms)
 export const inquiries = pgTable("inquiries", {
