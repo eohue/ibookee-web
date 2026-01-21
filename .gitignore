@@ -5,4 +5,5 @@ server/public
 vite.config.ts.*
 *.tar.gz
 .env
-.env.*
+.env.*ibookee_backup.dump
+ibookee_schema_data.sql
