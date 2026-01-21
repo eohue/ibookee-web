@@ -8,5 +8,11 @@ if (!process.env.DATABASE_URL) {
   console.warn("DATABASE_URL must be set for database usage. Falling back to memory storage.");
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Supabase requires SSL connection in production
+const poolConfig = {
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+};
+
+export const pool = new Pool(poolConfig);
 export const db = drizzle(pool, { schema });
