@@ -373,16 +373,13 @@ export default function MyPage() {
                         <div className="lg:col-span-4 space-y-6">
                             {/* Profile Card */}
                             <Card className="overflow-hidden border-0 shadow-lg">
-                                <div className="h-40 lg:h-48 bg-gradient-to-br from-primary via-primary/80 to-primary/60 relative flex flex-col items-center justify-center pb-8">
+                                <div className="h-32 bg-gradient-to-br from-primary via-primary/80 to-primary/60 relative">
                                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxLjUiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-50" />
-                                    <div className="relative z-10 text-center space-y-1 mb-2">
-                                        <h2 className="text-2xl lg:text-3xl font-bold text-white drop-shadow-sm">{user.firstName} {user.lastName}</h2>
-                                        <p className="text-white/90 font-medium">{user.email}</p>
-                                    </div>
                                 </div>
-                                <CardContent className="relative pt-0 pb-4 lg:pb-6 text-center">
-                                    <div className="absolute -top-10 lg:-top-14 left-1/2 transform -translate-x-1/2">
-                                        <div className="relative h-20 w-20 lg:h-28 lg:w-28 rounded-full border-4 border-background bg-background shadow-xl flex items-center justify-center overflow-hidden ring-4 ring-primary/20">
+                                <CardContent className="relative text-center pb-6">
+                                    {/* 프로필 사진 */}
+                                    <div className="flex justify-center -mt-14">
+                                        <div className="relative h-24 w-24 lg:h-28 lg:w-28 rounded-full border-4 border-background bg-background shadow-xl flex items-center justify-center overflow-hidden ring-4 ring-primary/20">
                                             {user.profileImageUrl ? (
                                                 <img src={user.profileImageUrl} alt="Profile" className="h-full w-full object-cover" />
                                             ) : (
@@ -394,7 +391,10 @@ export default function MyPage() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="mt-12 lg:mt-16">
+                                    {/* 사용자 정보 */}
+                                    <div className="mt-4 space-y-2">
+                                        <h2 className="text-xl lg:text-2xl font-bold text-foreground">{user.firstName} {user.lastName}</h2>
+                                        <p className="text-muted-foreground text-sm">{user.email}</p>
                                         <div className="inline-flex items-center gap-1.5 px-3 lg:px-4 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium bg-primary/10 text-primary">
                                             <ShieldCheck className="w-3 h-3 lg:w-4 lg:h-4" />
                                             {user.role === 'admin' ? '관리자' :
