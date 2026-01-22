@@ -402,45 +402,75 @@ export default function Insight() {
           <section className="py-12 bg-background" data-testid="section-library">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-2xl font-bold text-foreground mb-8">자료실</h2>
-              {libraryDisplayArticles.length === 0 ? (
+              {filteredArticles.filter(a => a.category === "library").length === 0 ? (
                 <div className="text-center py-16">
                   <p className="text-muted-foreground">등록된 자료가 없습니다.</p>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {paginatedLibraryArticles.map((article) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {filteredArticles.filter(a => a.category === "library").slice(startIndex, startIndex + ITEMS_PER_PAGE).map((article) => (
                       <Card
                         key={article.id}
-                        className="p-5 flex items-center justify-between hover-elevate transition-all"
+                        className="overflow-hidden hover-elevate h-full flex flex-col"
                         data-testid={`library-item-${article.id}`}
                       >
-                        <div className="flex items-center gap-4 min-w-0">
-                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <FileText className="w-6 h-6 text-primary" />
+                        <Link
+                          href={`/insight/${article.id}`}
+                          className="block flex-1"
+                        >
+                          <div className="aspect-[16/9] overflow-hidden">
+                            {article.imageUrl ? (
+                              <img
+                                src={article.imageUrl}
+                                alt={article.title}
+                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-muted flex items-center justify-center">
+                                <FileText className="w-12 h-12 text-muted-foreground" />
+                              </div>
+                            )}
                           </div>
-                          <div className="min-w-0">
-                            <h3 className="font-medium text-foreground truncate pr-4">{article.title}</h3>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {article.author} · {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("ko-KR") : ""}
+                          <div className="p-5">
+                            <div className="flex items-center gap-2 mb-3">
+                              <FileText className="w-4 h-4 text-primary" />
+                              <Badge variant="secondary">자료실</Badge>
+                            </div>
+                            <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                              {article.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                              {article.excerpt}
                             </p>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>{article.author}</span>
+                              {article.publishedAt && (
+                                <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        {article.fileUrl ? (
-                          <a href={article.fileUrl} download target="_blank" rel="noopener noreferrer">
-                            <Button size="icon" variant="ghost" className="hover:text-primary hover:bg-primary/10" data-testid={`download-${article.id}`}>
-                              <Download className="w-5 h-5" />
-                            </Button>
-                          </a>
-                        ) : (
-                          <Button size="icon" variant="ghost" disabled title="파일 없음">
-                            <Download className="w-5 h-5 opacity-30" />
-                          </Button>
+                        </Link>
+                        {article.fileUrl && (
+                          <div className="px-5 pb-5 pt-0">
+                            <a
+                              href={article.fileUrl}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button size="sm" variant="outline" className="w-full gap-2">
+                                <Download className="w-4 h-4" />
+                                PDF 다운로드
+                              </Button>
+                            </a>
+                          </div>
                         )}
                       </Card>
                     ))}
                   </div>
-                  {renderPagination(libraryTotalPages)}
+                  {renderPagination(Math.ceil(filteredArticles.filter(a => a.category === "library").length / ITEMS_PER_PAGE))}
                 </>
               )}
             </div>

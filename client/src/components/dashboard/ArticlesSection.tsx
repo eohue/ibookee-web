@@ -36,6 +36,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { FileUpload } from "@/components/ui/file-upload";
 import type { Article } from "@shared/schema";
 
 const ITEMS_PER_PAGE = 20;
@@ -56,6 +57,7 @@ export function ArticlesSection() {
     const [content, setContent] = useState("");
     const [publishedAt, setPublishedAt] = useState("");
     const [sourceUrl, setSourceUrl] = useState("");
+    const [fileUrl, setFileUrl] = useState("");
     const [currentPage, setCurrentPage] = useState(getPageFromUrl);
 
     const { data: articles, isLoading } = useQuery<Article[]>({
@@ -199,6 +201,7 @@ export function ArticlesSection() {
             setContent(article.content);
             setPublishedAt(article.publishedAt ? new Date(article.publishedAt).toISOString().split('T')[0] : "");
             setSourceUrl(article.sourceUrl ?? "");
+            setFileUrl(article.fileUrl ?? "");
         } else {
             setSelectedCategory("column");
             setIsFeatured(false);
@@ -206,6 +209,7 @@ export function ArticlesSection() {
             setContent("");
             setPublishedAt("");
             setSourceUrl("");
+            setFileUrl("");
         }
         setIsDialogOpen(true);
     };
@@ -223,6 +227,7 @@ export function ArticlesSection() {
             category: selectedCategory,
             featured: isFeatured,
             sourceUrl: sourceUrl || null,
+            fileUrl: selectedCategory === "library" ? (fileUrl || null) : null,
         };
 
         if (publishedAt) {
@@ -351,6 +356,24 @@ export function ArticlesSection() {
                                     data-testid="input-article-source-url"
                                 />
                             </div>
+                            {selectedCategory === "library" && (
+                                <div className="space-y-2">
+                                    <Label>첨부 파일 (PDF)</Label>
+                                    <Input
+                                        type="hidden"
+                                        name="fileUrl"
+                                        value={fileUrl}
+                                        readOnly
+                                        data-testid="input-article-file-hidden"
+                                    />
+                                    <FileUpload
+                                        value={fileUrl}
+                                        onChange={setFileUrl}
+                                        accept=".pdf"
+                                        label="PDF 파일 업로드"
+                                    />
+                                </div>
+                            )}
                             <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="featured"
