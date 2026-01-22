@@ -133,7 +133,7 @@ export function ProjectsSection() {
             imageUrl: formData.get("imageUrl") as string,
             pdfUrl: pdfUrl || null,
             year: isNaN(year) ? new Date().getFullYear() : year,
-            completionMonth: (formData.get("completionMonth") as string) || null,
+            completionMonth: (formData.get("completionMonth") as string) === "none" ? null : (formData.get("completionMonth") as string) || null,
             units: typeof units === 'number' && !isNaN(units) ? units : undefined,
             siteArea: (formData.get("siteArea") as string) || null,
             grossFloorArea: (formData.get("grossFloorArea") as string) || null,
@@ -282,12 +282,12 @@ export function ProjectsSection() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="completionMonth">준공 월</Label>
-                                    <Select name="completionMonth" defaultValue={editingProject?.completionMonth || ""}>
+                                    <Select name="completionMonth" defaultValue={editingProject?.completionMonth || "none"}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="월 선택" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">-</SelectItem>
+                                            <SelectItem value="none">-</SelectItem>
                                             {[...Array(12)].map((_, i) => (
                                                 <SelectItem key={i + 1} value={String(i + 1).padStart(2, '0')}>
                                                     {i + 1}월

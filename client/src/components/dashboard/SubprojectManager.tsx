@@ -118,7 +118,7 @@ export function SubprojectManager({ projectId, projectTitle }: SubprojectManager
             name: formData.get("name") as string,
             location: formData.get("location") as string,
             completionYear: completionYear,
-            completionMonth: (formData.get("completionMonth") as string) || null,
+            completionMonth: (formData.get("completionMonth") as string) === "none" ? null : (formData.get("completionMonth") as string) || null,
             units: units,
             siteArea: (formData.get("siteArea") as string) || null,
             grossFloorArea: (formData.get("grossFloorArea") as string) || null,
@@ -244,12 +244,12 @@ export function SubprojectManager({ projectId, projectTitle }: SubprojectManager
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="completionMonth">준공 월</Label>
-                                <Select name="completionMonth" defaultValue={editingSubproject?.completionMonth || ""}>
+                                <Select name="completionMonth" defaultValue={editingSubproject?.completionMonth || "none"}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="월 선택" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">-</SelectItem>
+                                        <SelectItem value="none">-</SelectItem>
                                         {[...Array(12)].map((_, i) => (
                                             <SelectItem key={i + 1} value={String(i + 1).padStart(2, '0')}>
                                                 {i + 1}월
