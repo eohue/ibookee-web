@@ -185,6 +185,7 @@ export interface IStorage {
   verifyUserRealName(userId: string, realName: string, phoneNumber: string): Promise<User | undefined>;
   deleteUser(id: string): Promise<void>;
   updateUserPassword(id: string, hashedPassword: string): Promise<User | undefined>;
+  updateUserProfile(id: string, data: { realName?: string; nickname?: string }): Promise<User | undefined>;
 
 
   // Resident Reporter
@@ -757,6 +758,20 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set({ password: hashedPassword, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserProfile(id: string, data: { realName?: string; nickname?: string }): Promise<User | undefined> {
+    const updateData: any = { updatedAt: new Date() };
+    if (data.realName !== undefined) updateData.realName = data.realName;
+    if (data.realName !== undefined) updateData.firstName = data.realName; // Also update firstName for display
+    if (data.nickname !== undefined) updateData.nickname = data.nickname;
+
+    const [user] = await db
+      .update(users)
+      .set(updateData)
       .where(eq(users.id, id))
       .returning();
     return user;
@@ -1758,6 +1773,21 @@ export class MemStorage implements IStorage {
     const updated = {
       ...user,
       password: hashedPassword,
+      updatedAt: new Date()
+    };
+    this.users.set(id, updated);
+    this.persist();
+    return updated;
+  }
+
+  async updateUserProfile(id: string, data: { realName?: string; nickname?: string }): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    const updated: User = {
+      ...user,
+      realName: data.realName !== undefined ? data.realName : user.realName,
+      firstName: data.realName !== undefined ? data.realName : user.firstName,
+      nickname: data.nickname !== undefined ? data.nickname : user.nickname,
       updatedAt: new Date()
     };
     this.users.set(id, updated);

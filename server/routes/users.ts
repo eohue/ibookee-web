@@ -180,5 +180,28 @@ export function registerUserRoutes(app: Express) {
             res.status(500).json({ message: "Internal Server Error" });
         }
     });
+
+    // Update User Profile (realName, nickname)
+    app.patch("/api/users/profile", isAuthenticated, async (req, res) => {
+        try {
+            const userId = (req.user as any).id;
+            const { realName, nickname } = req.body;
+
+            if (!realName && !nickname) {
+                return res.status(400).json({ message: "이름 또는 닉네임을 입력해주세요." });
+            }
+
+            const updatedUser = await storage.updateUserProfile(userId, { realName, nickname });
+
+            if (!updatedUser) {
+                return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+            }
+
+            res.json(updatedUser);
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            res.status(500).json({ message: "Internal Server Error" });
+        }
+    });
 }
 

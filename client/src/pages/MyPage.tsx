@@ -146,6 +146,100 @@ function ProfileImageUpload({ currentImageUrl, onSuccess }: { currentImageUrl?: 
     );
 }
 
+function ProfileEditModal({ currentRealName, currentNickname, onSuccess }: {
+    currentRealName?: string | null;
+    currentNickname?: string | null;
+    onSuccess: () => void
+}) {
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
+    const [open, setOpen] = useState(false);
+    const [realName, setRealName] = useState(currentRealName || "");
+    const [nickname, setNickname] = useState(currentNickname || "");
+
+    const mutation = useMutation({
+        mutationFn: async (data: { realName: string; nickname: string }) => {
+            const res = await apiRequest("PATCH", "/api/users/profile", data);
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+            toast({ title: "프로필이 업데이트되었습니다." });
+            onSuccess();
+            setOpen(false);
+        },
+        onError: () => {
+            toast({
+                title: "업데이트 실패",
+                description: "다시 시도해주세요.",
+                variant: "destructive"
+            });
+        }
+    });
+
+    const handleSave = () => {
+        if (!realName || !nickname) {
+            toast({ title: "이름과 닉네임을 모두 입력해주세요.", variant: "destructive" });
+            return;
+        }
+        mutation.mutate({ realName, nickname });
+    };
+
+    // Reset fields when modal opens
+    const handleOpenChange = (isOpen: boolean) => {
+        if (isOpen) {
+            setRealName(currentRealName || "");
+            setNickname(currentNickname || "");
+        }
+        setOpen(isOpen);
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                    <Edit className="w-4 h-4" />
+                    프로필 수정
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>프로필 수정</DialogTitle>
+                    <DialogDescription>
+                        이름(실명)과 닉네임을 수정할 수 있습니다.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="realName">이름 (실명)</Label>
+                        <Input
+                            id="realName"
+                            value={realName}
+                            onChange={(e) => setRealName(e.target.value)}
+                            placeholder="홍길동"
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="nickname">닉네임</Label>
+                        <Input
+                            id="nickname"
+                            value={nickname}
+                            onChange={(e) => setNickname(e.target.value)}
+                            placeholder="멋진닉네임"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setOpen(false)}>취소</Button>
+                    <Button onClick={handleSave} disabled={mutation.isPending}>
+                        {mutation.isPending ? "저장 중..." : "저장"}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function ReporterArticlesHistory() {
     const { data: articles, isLoading } = useQuery<ResidentReporter[]>({
         queryKey: ["/api/my/reporter-articles"],
@@ -429,20 +523,35 @@ export default function MyPage() {
                         <div className="lg:col-span-8 space-y-6">
                             {/* Basic Info Card */}
                             <Card id="profile">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <User className="h-5 w-5 text-primary" /> 기본 정보
-                                    </CardTitle>
-                                    <CardDescription>회원님의 기본 정보를 확인하세요.</CardDescription>
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                    <div>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <User className="h-5 w-5 text-primary" /> 기본 정보
+                                        </CardTitle>
+                                        <CardDescription>회원님의 기본 정보를 확인하세요.</CardDescription>
+                                    </div>
+                                    <ProfileEditModal
+                                        currentRealName={user.realName}
+                                        currentNickname={user.nickname}
+                                        onSuccess={handleProfileImageSuccess}
+                                    />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label className="flex items-center gap-2 text-muted-foreground text-sm">
-                                                <User className="h-4 w-4" /> 이름
+                                                <User className="h-4 w-4" /> 이름 (실명)
                                             </Label>
                                             <div className="p-3.5 bg-muted/50 rounded-xl text-sm font-medium border border-border/50">
-                                                {user.firstName} {user.lastName}
+                                                {user.realName || user.firstName || '미등록'}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="flex items-center gap-2 text-muted-foreground text-sm">
+                                                <User className="h-4 w-4" /> 닉네임
+                                            </Label>
+                                            <div className="p-3.5 bg-muted/50 rounded-xl text-sm font-medium border border-border/50">
+                                                {user.nickname || '미등록'}
                                             </div>
                                         </div>
                                         <div className="space-y-2">
