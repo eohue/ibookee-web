@@ -10,6 +10,7 @@ export function registerProjectRoutes(app: Express) {
       const projects = await storage.getProjects();
       res.json(projects);
     } catch (error) {
+      console.error("Failed to fetch projects:", error);
       res.status(500).json({ error: "Failed to fetch projects" });
     }
   });
