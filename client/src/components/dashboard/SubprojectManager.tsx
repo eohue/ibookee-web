@@ -134,192 +134,194 @@ export function SubprojectManager({ projectId, projectTitle }: SubprojectManager
     };
 
     return (
-        <Accordion type="single" collapsible className="w-full mt-3">
-            <AccordionItem value="subprojects" className="border-0">
-                <AccordionTrigger className="py-2 text-sm text-muted-foreground hover:no-underline">
-                    <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4" />
-                        <span>서브 프로젝트 ({subprojects.length})</span>
-                    </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                    <div className="space-y-2 pt-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openDialog(null)}
-                            className="w-full"
-                        >
-                            <Plus className="w-4 h-4 mr-1" />
-                            서브 프로젝트 추가
-                        </Button>
+        <>
+            <Accordion type="single" collapsible className="w-full mt-3">
+                <AccordionItem value="subprojects" className="border-0">
+                    <AccordionTrigger className="py-2 text-sm text-muted-foreground hover:no-underline">
+                        <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4" />
+                            <span>서브 프로젝트 ({subprojects.length})</span>
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="space-y-2 pt-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openDialog(null)}
+                                className="w-full"
+                            >
+                                <Plus className="w-4 h-4 mr-1" />
+                                서브 프로젝트 추가
+                            </Button>
 
-                        {subprojects.length > 0 && (
+                            {subprojects.length > 0 && (
+                                <div className="space-y-2">
+                                    {subprojects.map((sub) => (
+                                        <Card key={sub.id} className="bg-muted/50">
+                                            <CardContent className="p-3">
+                                                <div className="flex items-center gap-3">
+                                                    {sub.imageUrl && (
+                                                        <img
+                                                            src={sub.imageUrl}
+                                                            alt={sub.name}
+                                                            className="w-16 h-12 object-cover rounded"
+                                                        />
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-medium text-sm">{sub.name}</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {sub.location}
+                                                            {sub.completionYear && ` | ${sub.completionYear}년`}
+                                                            {sub.units && ` | ${sub.units}세대`}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                            onClick={() => openDialog(sub)}
+                                                        >
+                                                            <Edit className="w-3 h-3" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                            onClick={() => deleteMutation.mutate(sub.id)}
+                                                        >
+                                                            <Trash2 className="w-3 h-3 text-destructive" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingSubproject ? "서브 프로젝트 수정" : `서브 프로젝트 추가`}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">이름 *</Label>
+                            <Input
+                                id="name"
+                                name="name"
+                                placeholder={`예: ${projectTitle} 2호`}
+                                defaultValue={editingSubproject?.name || ""}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="location">위치 *</Label>
+                            <Input
+                                id="location"
+                                name="location"
+                                defaultValue={editingSubproject?.location || ""}
+                                required
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                {subprojects.map((sub) => (
-                                    <Card key={sub.id} className="bg-muted/50">
-                                        <CardContent className="p-3">
-                                            <div className="flex items-center gap-3">
-                                                {sub.imageUrl && (
-                                                    <img
-                                                        src={sub.imageUrl}
-                                                        alt={sub.name}
-                                                        className="w-16 h-12 object-cover rounded"
-                                                    />
-                                                )}
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-sm">{sub.name}</p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {sub.location}
-                                                        {sub.completionYear && ` | ${sub.completionYear}년`}
-                                                        {sub.units && ` | ${sub.units}세대`}
-                                                    </p>
-                                                </div>
-                                                <div className="flex gap-1">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8"
-                                                        onClick={() => openDialog(sub)}
-                                                    >
-                                                        <Edit className="w-3 h-3" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8"
-                                                        onClick={() => deleteMutation.mutate(sub.id)}
-                                                    >
-                                                        <Trash2 className="w-3 h-3 text-destructive" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
+                                <Label htmlFor="completionYear">준공 연도</Label>
+                                <Input
+                                    id="completionYear"
+                                    name="completionYear"
+                                    type="number"
+                                    defaultValue={editingSubproject?.completionYear || ""}
+                                />
                             </div>
-                        )}
-                    </div>
-
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <DialogContent className="max-w-lg">
-                            <DialogHeader>
-                                <DialogTitle>
-                                    {editingSubproject ? "서브 프로젝트 수정" : `서브 프로젝트 추가`}
-                                </DialogTitle>
-                            </DialogHeader>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">이름 *</Label>
-                                    <Input
-                                        id="name"
-                                        name="name"
-                                        placeholder={`예: ${projectTitle} 2호`}
-                                        defaultValue={editingSubproject?.name || ""}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="location">위치 *</Label>
-                                    <Input
-                                        id="location"
-                                        name="location"
-                                        defaultValue={editingSubproject?.location || ""}
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="completionYear">준공 연도</Label>
-                                        <Input
-                                            id="completionYear"
-                                            name="completionYear"
-                                            type="number"
-                                            defaultValue={editingSubproject?.completionYear || ""}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="completionMonth">준공 월</Label>
-                                        <Select name="completionMonth" defaultValue={editingSubproject?.completionMonth || ""}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="월 선택" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="">-</SelectItem>
-                                                {[...Array(12)].map((_, i) => (
-                                                    <SelectItem key={i + 1} value={String(i + 1).padStart(2, '0')}>
-                                                        {i + 1}월
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="units">세대 수</Label>
-                                        <Input
-                                            id="units"
-                                            name="units"
-                                            type="number"
-                                            defaultValue={editingSubproject?.units || ""}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="siteArea">대지면적</Label>
-                                        <Input
-                                            id="siteArea"
-                                            name="siteArea"
-                                            placeholder="예: 320.5㎡"
-                                            defaultValue={editingSubproject?.siteArea || ""}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="grossFloorArea">연면적</Label>
-                                        <Input
-                                            id="grossFloorArea"
-                                            name="grossFloorArea"
-                                            placeholder="예: 1,250.8㎡"
-                                            defaultValue={editingSubproject?.grossFloorArea || ""}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="scale">규모(층수)</Label>
-                                        <Input
-                                            id="scale"
-                                            name="scale"
-                                            placeholder="예: 지하1층/지상5층"
-                                            defaultValue={editingSubproject?.scale || ""}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>대표 이미지</Label>
-                                    <ImageUpload
-                                        value={imageUrl}
-                                        onChange={(url) => setImageUrl(url as string)}
-                                    />
-                                </div>
-                                <DialogFooter>
-                                    <DialogClose asChild>
-                                        <Button type="button" variant="outline">
-                                            취소
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        disabled={createMutation.isPending || updateMutation.isPending}
-                                    >
-                                        {editingSubproject ? "수정" : "추가"}
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
-                </AccordionContent>
-            </AccordionItem>
-        </Accordion>
+                            <div className="space-y-2">
+                                <Label htmlFor="completionMonth">준공 월</Label>
+                                <Select name="completionMonth" defaultValue={editingSubproject?.completionMonth || ""}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="월 선택" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="">-</SelectItem>
+                                        {[...Array(12)].map((_, i) => (
+                                            <SelectItem key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                                                {i + 1}월
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="units">세대 수</Label>
+                                <Input
+                                    id="units"
+                                    name="units"
+                                    type="number"
+                                    defaultValue={editingSubproject?.units || ""}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="siteArea">대지면적</Label>
+                                <Input
+                                    id="siteArea"
+                                    name="siteArea"
+                                    placeholder="예: 320.5㎡"
+                                    defaultValue={editingSubproject?.siteArea || ""}
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="grossFloorArea">연면적</Label>
+                                <Input
+                                    id="grossFloorArea"
+                                    name="grossFloorArea"
+                                    placeholder="예: 1,250.8㎡"
+                                    defaultValue={editingSubproject?.grossFloorArea || ""}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="scale">규모(층수)</Label>
+                                <Input
+                                    id="scale"
+                                    name="scale"
+                                    placeholder="예: 지하1층/지상5층"
+                                    defaultValue={editingSubproject?.scale || ""}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>대표 이미지</Label>
+                            <ImageUpload
+                                value={imageUrl}
+                                onChange={(url) => setImageUrl(url as string)}
+                            />
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="outline">
+                                    취소
+                                </Button>
+                            </DialogClose>
+                            <Button
+                                type="submit"
+                                disabled={createMutation.isPending || updateMutation.isPending}
+                            >
+                                {editingSubproject ? "수정" : "추가"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
