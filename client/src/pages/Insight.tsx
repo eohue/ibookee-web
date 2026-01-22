@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/pagination";
 import type { Article } from "@shared/schema";
 
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 21;
 
 const categories = [
   { id: "all", label: "전체" },
