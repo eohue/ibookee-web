@@ -24,12 +24,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 
-const formSchema = z.object({
+const loginSchema = z.object({
     email: z.string().email("유효한 이메일을 입력해주세요."),
     password: z.string().min(6, "비밀번호는 최소 6자 이상이어야 합니다."),
 });
 
-type FormData = z.infer<typeof formSchema>;
+const registerSchema = z.object({
+    email: z.string().email("유효한 이메일을 입력해주세요."),
+    password: z.string().min(6, "비밀번호는 최소 6자 이상이어야 합니다."),
+    realName: z.string().min(2, "이름(실명)은 최소 2자 이상이어야 합니다."),
+    nickname: z.string().min(2, "닉네임은 최소 2자 이상이어야 합니다."),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
     const [activeTab, setActiveTab] = useState<"login" | "register">("login");
@@ -37,11 +45,21 @@ export default function AuthPage() {
     const [, setLocation] = useLocation();
     const { toast } = useToast();
 
-    const form = useForm<FormData>({
-        resolver: zodResolver(formSchema),
+    const loginForm = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema),
         defaultValues: {
             email: "",
             password: "",
+        },
+    });
+
+    const registerForm = useForm<RegisterFormData>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+            realName: "",
+            nickname: "",
         },
     });
 
@@ -73,23 +91,27 @@ export default function AuthPage() {
         return null;
     }
 
-    const onSubmit = async (data: FormData) => {
+    const onLoginSubmit = async (data: LoginFormData) => {
         try {
-            if (activeTab === "login") {
-                await loginMutation.mutateAsync({
-                    username: data.email, // Passport local strategy uses 'username'
-                    password: data.password
-                });
-            } else {
-                await registerMutation.mutateAsync({
-                    username: data.email,
-                    password: data.password
-                });
-            }
-            // Success is handled by useAuth hook (query invalidation)
+            await loginMutation.mutateAsync({
+                username: data.email,
+                password: data.password
+            });
         } catch (error: any) {
-            // Error is handled by useAuth hook mainly, but we can show extra toast if needed
-            // The hook usually shows toast on error.
+            // Error is handled by useAuth hook
+        }
+    };
+
+    const onRegisterSubmit = async (data: RegisterFormData) => {
+        try {
+            await registerMutation.mutateAsync({
+                username: data.email,
+                password: data.password,
+                realName: data.realName,
+                nickname: data.nickname
+            });
+        } catch (error: any) {
+            // Error is handled by useAuth hook
         }
     };
 
@@ -109,7 +131,8 @@ export default function AuthPage() {
                         value={activeTab}
                         onValueChange={(v) => {
                             setActiveTab(v as "login" | "register");
-                            form.reset();
+                            loginForm.reset();
+                            registerForm.reset();
                         }}
                         className="w-full"
                     >
@@ -118,62 +141,143 @@ export default function AuthPage() {
                             <TabsTrigger value="register">회원가입</TabsTrigger>
                         </TabsList>
 
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="email"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>이메일</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="name@example.com"
-                                                    type="email"
-                                                    autoComplete="email"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="password"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>비밀번호</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="••••••••"
-                                                    type="password"
-                                                    autoComplete={
-                                                        activeTab === "login"
-                                                            ? "current-password"
-                                                            : "new-password"
-                                                    }
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                        <TabsContent value="login">
+                            <Form {...loginForm}>
+                                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                                    <FormField
+                                        control={loginForm.control}
+                                        name="email"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>이메일</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="name@example.com"
+                                                        type="email"
+                                                        autoComplete="email"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={loginForm.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>비밀번호</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="••••••••"
+                                                        type="password"
+                                                        autoComplete="current-password"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                <Button
-                                    type="submit"
-                                    className="w-full"
-                                    disabled={loginMutation.isPending || registerMutation.isPending}
-                                >
-                                    {loginMutation.isPending || registerMutation.isPending
-                                        ? "처리 중..."
-                                        : activeTab === "login"
-                                            ? "로그인"
-                                            : "가입하기"}
-                                </Button>
-                            </form>
-                        </Form>
+                                    <Button
+                                        type="submit"
+                                        className="w-full"
+                                        disabled={loginMutation.isPending}
+                                    >
+                                        {loginMutation.isPending ? "처리 중..." : "로그인"}
+                                    </Button>
+                                </form>
+                            </Form>
+                        </TabsContent>
+
+                        <TabsContent value="register">
+                            <Form {...registerForm}>
+                                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                                    <FormField
+                                        control={registerForm.control}
+                                        name="email"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>이메일</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="name@example.com"
+                                                        type="email"
+                                                        autoComplete="email"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={registerForm.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>비밀번호</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="••••••••"
+                                                        type="password"
+                                                        autoComplete="new-password"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={registerForm.control}
+                                        name="realName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>이름 (실명)</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="홍길동"
+                                                        type="text"
+                                                        autoComplete="name"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={registerForm.control}
+                                        name="nickname"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>닉네임</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="멋진닉네임"
+                                                        type="text"
+                                                        autoComplete="nickname"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <Button
+                                        type="submit"
+                                        className="w-full"
+                                        disabled={registerMutation.isPending}
+                                    >
+                                        {registerMutation.isPending ? "처리 중..." : "가입하기"}
+                                    </Button>
+                                </form>
+                            </Form>
+                        </TabsContent>
 
                         <div className="relative my-4">
                             <div className="absolute inset-0 flex items-center">

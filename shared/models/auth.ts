@@ -32,6 +32,7 @@ export const users = pgTable("users", {
   // Real-name Verification
   isVerified: boolean("is_verified").default(false).notNull(),
   realName: varchar("real_name"),
+  nickname: varchar("nickname"),
   phoneNumber: varchar("phone_number"),
 
   createdAt: timestamp("created_at").defaultNow(),

@@ -177,14 +177,17 @@ export async function setupAuth(app: Express) {
 
     app.post("/api/register", async (req, res) => {
       try {
-        const { username, password } = req.body;
+        const { username, password, realName, nickname } = req.body;
         if (!username || !password) {
-          return res.status(400).send("Email and password required");
+          return res.status(400).send("이메일과 비밀번호를 입력해주세요.");
+        }
+        if (!realName || !nickname) {
+          return res.status(400).send("이름(실명)과 닉네임을 입력해주세요.");
         }
         const existingUser = await storage.getUserByEmail(username);
 
         if (existingUser) {
-          return res.status(400).send("User already exists");
+          return res.status(400).send("이미 가입된 이메일입니다.");
         }
 
         const hashedPassword = await hashPassword(password);
@@ -192,8 +195,10 @@ export async function setupAuth(app: Express) {
           email: username,
           password: hashedPassword,
           createdAt: new Date(),
-          firstName: "General", // default
-          lastName: "Member",
+          realName: realName,
+          nickname: nickname,
+          firstName: realName, // Use realName as firstName for display
+          lastName: "",
           role: "user",
         });
 
