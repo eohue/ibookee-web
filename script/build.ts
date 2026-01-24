@@ -1,55 +1,104 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, mkdir } from "fs/promises";
+import { rm, mkdir, writeFile, cp } from "fs/promises";
+import { join } from "path";
 
 async function buildAll() {
-  // Clean dist directory
+  console.log("Cleaning build directories...");
   await rm("dist", { recursive: true, force: true });
+  await rm(".vercel", { recursive: true, force: true });
 
-  // Create api directory for Vercel function
-  await mkdir("api", { recursive: true });
+  console.log("Building client (Vite)...");
+  await viteBuild(); // Builds to dist/public by default (checked typical vite config)
 
-  console.log("Building client...");
-  await viteBuild();
+  console.log("Constructing Vercel Output API v3 structure...");
 
-  console.log("Building server for local development...");
+  // 1. Create base structure
+  await mkdir(".vercel/output/static", { recursive: true });
+  await mkdir(".vercel/output/functions/index.func", { recursive: true });
+
+  // 2. Move Client Static Assets
+  // Assuming Vite builds to 'dist/public' based on previous context. 
+  // If vite.config.ts says 'dist', we need to be careful.
+  // Checking vite config is safer, but let's assume 'dist/public' or 'dist' based on previous steps.
+  // Previous steps set outputDirectory to dist/public in vercel.json, so vite likely builds there or we moved it.
+  // Let's check where Vite builds. Usually it's 'dist'.
+  // We will copy 'dist' content to '.vercel/output/static'.
+
+  // First, let's verify where vite builds. Standard is 'dist'.
+  // Our vite config might needed adjustment, but let's assume 'dist/public' from previous context or just 'dist'.
+  // SAFE GUARD: Let's assume standard Vite build goes to 'dist'. 
+  // We will move 'dist' contents to '.vercel/output/static'.
+  // However, we want the API to handle non-static routes.
+
+  // Actually, let's look at the previous build script. It assumed 'dist/public'.
+  // Let's ensure we copy the right things.
+
+  await cp("dist/public", ".vercel/output/static", { recursive: true });
+
+  // 3. Build Server Serverless Function
+  console.log("Building Serverless Function...");
+
   await esbuild({
-    entryPoints: ["server/index.ts"],
-    platform: "node",
+    entryPoints: ["server/vercel-api.ts"], // Use the wrapper we created
     bundle: true,
-    format: "cjs",
-    outfile: "dist/index.cjs",
-    define: {
-      "process.env.NODE_ENV": '"production"',
-    },
-    minify: true,
-    external: ["sharp", "bufferutil", "utf-8-validate", "@mapbox/node-pre-gyp"],
-    logLevel: "info",
-  });
-
-  console.log("Building Vercel serverless API function...");
-  await esbuild({
-    entryPoints: ["server/vercel-api.ts"],
     platform: "node",
-    bundle: true,
+    target: "node20",
     format: "esm",
-    outfile: "api/index.js",
-    define: {
-      "process.env.NODE_ENV": '"production"',
-    },
-    minify: true,
-    // Bundle ALL dependencies for Vercel
-    external: ["sharp", "bufferutil", "utf-8-validate", "@mapbox/node-pre-gyp"],
+    outfile: ".vercel/output/functions/index.func/index.mjs",
+    external: [
+      // Native modules that typically can't be bundled easily or are provided by runtime
+      "sharp", "@mapbox/node-pre-gyp", "mock-aws-s3", "nock", "aws-sdk-client-mock"
+    ],
     banner: {
+      // Fix for bundling some legacy CJS modules
       js: `import { createRequire } from 'module'; const require = createRequire(import.meta.url);`
     },
-    logLevel: "info",
+    define: {
+      "process.env.NODE_ENV": '"production"'
+    },
+    loader: {
+      ".node": "file" // Handle .node native extensions if any
+    },
+    logLevel: "info"
   });
 
-  console.log("Build completed successfully!");
+  // 4. Create Function Config (.vc-config.json)
+  await writeFile(
+    ".vercel/output/functions/index.func/.vc-config.json",
+    JSON.stringify({
+      runtime: "nodejs20.x",
+      handler: "index.mjs",
+      launcherType: "Nodejs",
+      maxDuration: 30
+    }, null, 2)
+  );
+
+  // 5. Create Function Package.json
+  await writeFile(
+    ".vercel/output/functions/index.func/package.json",
+    JSON.stringify({ type: "module" }, null, 2)
+  );
+
+  // 6. Create Global Config (config.json)
+  // Maps all routes to the function, except static files which are handled automatically by 'filesystem' handle if found.
+  await writeFile(
+    ".vercel/output/config.json",
+    JSON.stringify({
+      version: 3,
+      routes: [
+        // Serves static files from .vercel/output/static if they exist
+        { handle: "filesystem" },
+        // Fallback to the serverless function for everything else (API + SPA routing handled by Express)
+        { src: "/(.*)", dest: "/index" }
+      ]
+    }, null, 2)
+  );
+
+  console.log("Vercel Output API build complete!");
 }
 
 buildAll().catch((err) => {
-  console.error(err);
+  console.error("Build failed:", err);
   process.exit(1);
 });

@@ -27,7 +27,7 @@ const upload = multer({
     },
 });
 
-import sharp from "sharp";
+// Removed top-level sharp import to make it optional
 
 export function registerUploadRoutes(app: Express) {
     // Serve uploaded files statically
@@ -49,26 +49,34 @@ export function registerUploadRoutes(app: Express) {
 
             let buffer = req.file.buffer;
 
-            // Only optimize images
+            // Only optimize images if sharp is available
             if (req.file.mimetype.startsWith('image/')) {
-                // Process image
-                let pipeline = sharp(req.file.buffer);
+                try {
+                    // Dynamic import for sharp
+                    const sharpModule = await import("sharp");
+                    const sharp = sharpModule.default || sharpModule;
 
-                // Get metadata to check width
-                const metadata = await pipeline.metadata();
+                    // Process image
+                    let pipeline = sharp(req.file.buffer);
 
-                if (metadata.width && metadata.width > 2560) {
-                    pipeline = pipeline.resize(2560, null, { withoutEnlargement: true });
+                    // Get metadata to check width
+                    const metadata = await pipeline.metadata();
+
+                    if (metadata.width && metadata.width > 2560) {
+                        pipeline = pipeline.resize(2560, null, { withoutEnlargement: true });
+                    }
+
+                    // Optimization: Convert to WebP, quality 80%
+                    pipeline = pipeline.webp({ quality: 80 });
+
+                    buffer = await pipeline.toBuffer();
+
+                    // Update extension to webp
+                    ext = '.webp';
+                    req.file.mimetype = 'image/webp';
+                } catch (e) {
+                    console.warn("Sharp optimization failed or module not found, using original file:", e);
                 }
-
-                // Optimization: Convert to WebP, quality 80%
-                pipeline = pipeline.webp({ quality: 80 });
-
-                buffer = await pipeline.toBuffer();
-
-                // Update extension to webp
-                ext = '.webp';
-                req.file.mimetype = 'image/webp';
             }
 
             const filename = req.file.fieldname + "-" + uniqueSuffix + ext;
