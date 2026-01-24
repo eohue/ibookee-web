@@ -3,9 +3,10 @@
     "version": 2,
     "buildCommand": "npm run build",
     "installCommand": "npm install",
+    "outputDirectory": "dist/public",
     "rewrites": [
         {
-            "source": "/(.*)",
+            "source": "/api/(.*)",
             "destination": "/api"
         }
     ]
