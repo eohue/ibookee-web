@@ -38,7 +38,10 @@ async function initialize() {
 
     console.log('Initializing Vercel serverless function...');
 
-    // Run database migrations
+    // Run database migrations - DISABLED for Vercel Serverless
+    // Automatic migrations on startup cause connection storms when multiple lambdas spin up
+    // Migrations should be run manually or via a dedicated script
+    /*
     if (process.env.DATABASE_URL) {
         try {
             await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role text DEFAULT 'user' NOT NULL`);
@@ -47,6 +50,7 @@ async function initialize() {
             console.error('Migration error:', err);
         }
     }
+    */
 
     // Register all routes
     await registerRoutes(httpServer, app);
