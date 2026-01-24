@@ -40,7 +40,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
     const { toast } = useToast();
     const { user } = useAuth();
     const [commentText, setCommentText] = useState("");
-    const [nickname, setNickname] = useState("");
+
 
     const { data: comments = [], isLoading: commentsLoading } = useQuery<CommunityPostComment[]>({
         queryKey: [`/api/community-posts/${post?.id}/comments`],
@@ -48,9 +48,8 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
     });
 
     const commentMutation = useMutation({
-        mutationFn: async (data: { postId: string; nickname: string; content: string }) => {
+        mutationFn: async (data: { postId: string; content: string }) => {
             const res = await apiRequest("POST", `/api/community-posts/${data.postId}/comments`, {
-                nickname: data.nickname,
                 content: data.content
             });
             return res.json();
@@ -100,8 +99,8 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
 
     const handleSubmitComment = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!commentText.trim() || !nickname.trim() || !post?.id) return;
-        commentMutation.mutate({ postId: post.id, nickname, content: commentText });
+        if (!commentText.trim() || !post?.id) return;
+        commentMutation.mutate({ postId: post.id, content: commentText });
     };
 
     if (!post) return null;
@@ -258,27 +257,26 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                             </div>
                         </div>
 
-                        <form onSubmit={handleSubmitComment} className="flex flex-col gap-2">
-                            <Input
-                                placeholder="닉네임"
-                                value={nickname}
-                                onChange={(e) => setNickname(e.target.value)}
-                                className="h-8 text-sm"
-                                required
-                            />
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder="댓글 달기..."
-                                    value={commentText}
-                                    onChange={(e) => setCommentText(e.target.value)}
-                                    className="flex-1 h-9 text-sm"
-                                    required
-                                />
-                                <Button type="submit" size="sm" disabled={!commentText.trim() || !nickname.trim() || commentMutation.isPending}>
-                                    게시
-                                </Button>
+                        {user ? (
+                            <form onSubmit={handleSubmitComment} className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <Input
+                                        placeholder="댓글 달기..."
+                                        value={commentText}
+                                        onChange={(e) => setCommentText(e.target.value)}
+                                        className="flex-1 h-9 text-sm"
+                                        required
+                                    />
+                                    <Button type="submit" size="sm" disabled={!commentText.trim() || commentMutation.isPending}>
+                                        게시
+                                    </Button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="text-center p-3 bg-muted/50 rounded-lg">
+                                <p className="text-sm text-muted-foreground">댓글을 작성하려면 로그인이 필요합니다.</p>
                             </div>
-                        </form>
+                        )}
                     </div>
                 </div>
             </DialogContent>

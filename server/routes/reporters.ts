@@ -80,7 +80,7 @@ export function registerReporterRoutes(app: Express) {
                 ...req.body,
                 articleId: req.params.id,
                 userId: (req.user as any).id,
-                nickname: (req.user as any).realName || (req.user as any).firstName || "Anonymous" // Fallback nickname logic
+                nickname: (req.user as any).nickname || (req.user as any).realName || (req.user as any).firstName || "Anonymous"
             });
 
             if (!parsed.success) {

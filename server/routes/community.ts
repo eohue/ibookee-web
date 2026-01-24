@@ -55,15 +55,27 @@ export function registerCommunityRoutes(app: Express) {
         }
     });
 
-    app.post("/api/community-posts/:id/comments", async (req, res) => {
+    app.post("/api/community-posts/:id/comments", isAuthenticated, async (req, res) => {
         try {
-            const parsed = insertCommunityPostCommentSchema.safeParse({ ...req.body, postId: req.params.id });
+            // Validate content only, nickname comes from auth
+            const parsed = insertCommunityPostCommentSchema
+                .omit({ nickname: true })
+                .safeParse({ ...req.body, postId: req.params.id });
+
             if (!parsed.success) {
                 return res.status(400).json({ error: "Invalid comment data", details: parsed.error });
             }
-            const comment = await storage.createCommunityPostComment(parsed.data);
+
+            const user = req.user as any;
+            const nickname = user.nickname || user.realName || user.firstName || "Anonymous";
+
+            const comment = await storage.createCommunityPostComment({
+                ...parsed.data,
+                nickname,
+            });
             res.status(201).json(comment);
         } catch (error) {
+            console.error("Failed to create community post comment:", error);
             res.status(500).json({ error: "Failed to create community post comment" });
         }
     });

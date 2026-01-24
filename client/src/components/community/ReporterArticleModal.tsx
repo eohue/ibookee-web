@@ -208,23 +208,29 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
                                 댓글 <span className="text-primary">{comments.length}</span>
                             </h3>
 
-                            <form onSubmit={handleCommentSubmit} className="flex gap-3 mb-8">
-                                <Avatar className="h-9 w-9 mt-0.5">
-                                    <AvatarImage src={user?.profileImageUrl || ""} />
-                                    <AvatarFallback>{user?.firstName?.[0] || "U"}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 flex gap-2">
-                                    <Input
-                                        placeholder="댓글을 남겨주세요..."
-                                        value={comment}
-                                        onChange={(e) => setComment(e.target.value)}
-                                        className="flex-1"
-                                    />
-                                    <Button type="submit" disabled={!comment.trim() || commentMutation.isPending}>
-                                        <Send className="w-4 h-4" />
-                                    </Button>
+                            {user ? (
+                                <form onSubmit={handleCommentSubmit} className="flex gap-3 mb-8">
+                                    <Avatar className="h-9 w-9 mt-0.5">
+                                        <AvatarImage src={user?.profileImageUrl || ""} />
+                                        <AvatarFallback>{user?.firstName?.[0] || "U"}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 flex gap-2">
+                                        <Input
+                                            placeholder="댓글을 남겨주세요..."
+                                            value={comment}
+                                            onChange={(e) => setComment(e.target.value)}
+                                            className="flex-1"
+                                        />
+                                        <Button type="submit" disabled={!comment.trim() || commentMutation.isPending}>
+                                            <Send className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <div className="text-center p-4 mb-8 bg-muted/30 rounded-lg">
+                                    <p className="text-sm text-muted-foreground">댓글을 작성하려면 로그인이 필요합니다.</p>
                                 </div>
-                            </form>
+                            )}
 
                             <div className="space-y-6">
                                 {comments.map((item) => (
