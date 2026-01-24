@@ -42,6 +42,13 @@ const upload = multer({
 export function setupStaticAssets(app: Express) {
     // Serve uploaded files statically - Bypass auth for performance
     app.use("/assets", express.static(uploadDir));
+
+    // CRITICAL: If asset is not found, return 404 IMMEDIATELY.
+    // Do NOT let it fall through to valid auth/session middleware, 
+    // which would trigger a DB connection and cause "MaxClients" errors.
+    app.use("/assets", (_req, res) => {
+        res.status(404).send("Not Found");
+    });
 }
 
 export function registerUploadRoutes(app: Express) {
