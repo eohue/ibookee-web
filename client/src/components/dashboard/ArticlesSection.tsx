@@ -192,27 +192,39 @@ export function ArticlesSection() {
         },
     });
 
+    // Fetch full article details when editing
+    const { data: fullArticle, isLoading: isLoadingArticle } = useQuery<Article>({
+        queryKey: ["/api/articles", editingArticle?.id],
+        enabled: !!editingArticle?.id,
+    });
+
+    // Sync content state when full article data is loaded or dialog opens for new article
+    useEffect(() => {
+        if (isDialogOpen) {
+            if (editingArticle && fullArticle) {
+                // Editing existing article - use full data
+                setContent(fullArticle.content || "");
+                setSelectedCategory(fullArticle.category);
+                setIsFeatured(fullArticle.featured ?? false);
+                setImageUrl(fullArticle.imageUrl ?? "");
+                setPublishedAt(fullArticle.publishedAt ? new Date(fullArticle.publishedAt).toISOString().split('T')[0] : "");
+                setSourceUrl(fullArticle.sourceUrl ?? "");
+                setFileUrl(fullArticle.fileUrl ?? "");
+            } else if (!editingArticle) {
+                // Creating new article - reset form
+                setContent("");
+                setSelectedCategory("column");
+                setIsFeatured(false);
+                setImageUrl("");
+                setPublishedAt("");
+                setSourceUrl("");
+                setFileUrl("");
+            }
+        }
+    }, [isDialogOpen, editingArticle, fullArticle]);
+
     const openDialog = (article: Article | null) => {
         setEditingArticle(article);
-
-        if (article) {
-            setContent(article.content || "");
-            setSelectedCategory(article.category);
-            setIsFeatured(article.featured ?? false);
-            setImageUrl(article.imageUrl ?? "");
-            setPublishedAt(article.publishedAt ? new Date(article.publishedAt).toISOString().split('T')[0] : "");
-            setSourceUrl(article.sourceUrl ?? "");
-            setFileUrl(article.fileUrl ?? "");
-        } else {
-            setContent("");
-            setSelectedCategory("column");
-            setIsFeatured(false);
-            setImageUrl("");
-            setPublishedAt("");
-            setSourceUrl("");
-            setFileUrl("");
-        }
-
         setIsDialogOpen(true);
     };
 
@@ -267,138 +279,144 @@ export function ArticlesSection() {
                         <DialogHeader>
                             <DialogTitle>{editingArticle ? "게시글 수정" : "새 게시글"}</DialogTitle>
                         </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="title">제목</Label>
-                                <Input
-                                    id="title"
-                                    name="title"
-                                    defaultValue={editingArticle?.title}
-                                    required
-                                    data-testid="input-article-title"
-                                />
+                        {isLoadingArticle && editingArticle ? (
+                            <div className="py-12 flex justify-center items-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                        ) : (
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="author">작성자</Label>
+                                    <Label htmlFor="title">제목</Label>
                                     <Input
-                                        id="author"
-                                        name="author"
-                                        defaultValue={editingArticle?.author}
+                                        id="title"
+                                        name="title"
+                                        defaultValue={editingArticle?.title}
                                         required
-                                        data-testid="input-article-author"
+                                        data-testid="input-article-title"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="author">작성자</Label>
+                                        <Input
+                                            id="author"
+                                            name="author"
+                                            defaultValue={editingArticle?.author}
+                                            required
+                                            data-testid="input-article-author"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="category">카테고리</Label>
+                                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                                            <SelectTrigger data-testid="select-article-category">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="column">칼럼</SelectItem>
+                                                <SelectItem value="media">미디어</SelectItem>
+                                                <SelectItem value="notice">알림</SelectItem>
+                                                <SelectItem value="library">자료실</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="publishedAt">날짜</Label>
+                                    <Input
+                                        id="publishedAt"
+                                        type="date"
+                                        value={publishedAt}
+                                        onChange={(e) => setPublishedAt(e.target.value)}
+                                        data-testid="input-article-date"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="category">카테고리</Label>
-                                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                                        <SelectTrigger data-testid="select-article-category">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="column">칼럼</SelectItem>
-                                            <SelectItem value="media">미디어</SelectItem>
-                                            <SelectItem value="notice">알림</SelectItem>
-                                            <SelectItem value="library">자료실</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Label htmlFor="excerpt">요약</Label>
+                                    <Input
+                                        id="excerpt"
+                                        name="excerpt"
+                                        defaultValue={editingArticle?.excerpt}
+                                        required
+                                        data-testid="input-article-excerpt"
+                                    />
                                 </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="publishedAt">날짜</Label>
-                                <Input
-                                    id="publishedAt"
-                                    type="date"
-                                    value={publishedAt}
-                                    onChange={(e) => setPublishedAt(e.target.value)}
-                                    data-testid="input-article-date"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="excerpt">요약</Label>
-                                <Input
-                                    id="excerpt"
-                                    name="excerpt"
-                                    defaultValue={editingArticle?.excerpt}
-                                    required
-                                    data-testid="input-article-excerpt"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>내용</Label>
-                                <RichTextEditor
-                                    key={isDialogOpen ? `open-${editingArticle?.id || 'new'}` : 'closed'}
-                                    value={content}
-                                    onChange={setContent}
-                                    className="min-h-[200px] mb-12"
-                                />
-                                <input type="hidden" name="content" value={content} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>대표 이미지</Label>
-                                <Input
-                                    type="hidden"
-                                    name="imageUrl"
-                                    value={imageUrl}
-                                    readOnly
-                                    data-testid="input-article-image-hidden"
-                                />
-                                <ImageUpload
-                                    value={imageUrl}
-                                    onChange={(url) => setImageUrl(url as string)}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="sourceUrl">원문 기사 링크</Label>
-                                <Input
-                                    id="sourceUrl"
-                                    type="url"
-                                    placeholder="https://example.com/article"
-                                    value={sourceUrl}
-                                    onChange={(e) => setSourceUrl(e.target.value)}
-                                    data-testid="input-article-source-url"
-                                />
-                            </div>
-                            {selectedCategory === "library" && (
                                 <div className="space-y-2">
-                                    <Label>첨부 파일 (PDF)</Label>
+                                    <Label>내용</Label>
+                                    <RichTextEditor
+                                        key={isDialogOpen ? `open-${editingArticle?.id || 'new'}` : 'closed'}
+                                        value={content}
+                                        onChange={setContent}
+                                        className="min-h-[200px] mb-12"
+                                    />
+                                    <input type="hidden" name="content" value={content} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>대표 이미지</Label>
                                     <Input
                                         type="hidden"
-                                        name="fileUrl"
-                                        value={fileUrl}
+                                        name="imageUrl"
+                                        value={imageUrl}
                                         readOnly
-                                        data-testid="input-article-file-hidden"
+                                        data-testid="input-article-image-hidden"
                                     />
-                                    <FileUpload
-                                        value={fileUrl}
-                                        onChange={setFileUrl}
-                                        accept=".pdf"
-                                        label="PDF 파일 업로드"
+                                    <ImageUpload
+                                        value={imageUrl}
+                                        onChange={(url) => setImageUrl(url as string)}
                                     />
                                 </div>
-                            )}
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="featured"
-                                    checked={isFeatured}
-                                    onCheckedChange={(checked) => setIsFeatured(checked === true)}
-                                    data-testid="checkbox-article-featured"
-                                />
-                                <Label htmlFor="featured" className="text-sm font-normal cursor-pointer">
-                                    추천 게시글로 설정
-                                </Label>
-                            </div>
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button type="button" variant="outline">
-                                        취소
+                                <div className="space-y-2">
+                                    <Label htmlFor="sourceUrl">원문 기사 링크</Label>
+                                    <Input
+                                        id="sourceUrl"
+                                        type="url"
+                                        placeholder="https://example.com/article"
+                                        value={sourceUrl}
+                                        onChange={(e) => setSourceUrl(e.target.value)}
+                                        data-testid="input-article-source-url"
+                                    />
+                                </div>
+                                {selectedCategory === "library" && (
+                                    <div className="space-y-2">
+                                        <Label>첨부 파일 (PDF)</Label>
+                                        <Input
+                                            type="hidden"
+                                            name="fileUrl"
+                                            value={fileUrl}
+                                            readOnly
+                                            data-testid="input-article-file-hidden"
+                                        />
+                                        <FileUpload
+                                            value={fileUrl}
+                                            onChange={setFileUrl}
+                                            accept=".pdf"
+                                            label="PDF 파일 업로드"
+                                        />
+                                    </div>
+                                )}
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="featured"
+                                        checked={isFeatured}
+                                        onCheckedChange={(checked) => setIsFeatured(checked === true)}
+                                        data-testid="checkbox-article-featured"
+                                    />
+                                    <Label htmlFor="featured" className="text-sm font-normal cursor-pointer">
+                                        추천 게시글로 설정
+                                    </Label>
+                                </div>
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button type="button" variant="outline">
+                                            취소
+                                        </Button>
+                                    </DialogClose>
+                                    <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} data-testid="button-submit-article">
+                                        {editingArticle ? "수정" : "생성"}
                                     </Button>
-                                </DialogClose>
-                                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} data-testid="button-submit-article">
-                                    {editingArticle ? "수정" : "생성"}
-                                </Button>
-                            </DialogFooter>
-                        </form>
+                                </DialogFooter>
+                            </form>
+                        )}
                     </DialogContent>
                 </Dialog>
             </div>
