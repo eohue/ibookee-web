@@ -18,6 +18,7 @@ export default defineConfig({
   root: path.resolve(import.meta.dirname, "client"),
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
+    assetsDir: "static", // Avoid conflict with /assets upload route
     emptyOutDir: true,
   },
   server: {
