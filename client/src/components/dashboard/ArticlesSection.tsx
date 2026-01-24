@@ -325,6 +325,7 @@ export function ArticlesSection() {
                             <div className="space-y-2">
                                 <Label>내용</Label>
                                 <RichTextEditor
+                                    key={editingArticle ? editingArticle.id : 'new'}
                                     value={content}
                                     onChange={setContent}
                                     className="min-h-[200px] mb-12"
