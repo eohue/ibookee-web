@@ -94,12 +94,14 @@ import { sql } from "drizzle-orm";
     await setupVite(httpServer, app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5001", 10);
-  httpServer.listen(port, "0.0.0.0", () => {
-    log(`serving on port ${port}`);
-  });
+  // Only start server if not running in Vercel serverless
+  if (!process.env.VERCEL) {
+    const port = parseInt(process.env.PORT || "5001", 10);
+    httpServer.listen(port, "0.0.0.0", () => {
+      log(`serving on port ${port}`);
+    });
+  }
 })();
+
+// Export for Vercel serverless
+export default app;

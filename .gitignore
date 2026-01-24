@@ -7,3 +7,7 @@ vite.config.ts.*
 .env
 .env.*ibookee_backup.dump
 ibookee_schema_data.sql
+
+# Database backups
+*.dump
+ibookee_backup*.sql
