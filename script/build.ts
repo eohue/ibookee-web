@@ -88,16 +88,19 @@ const __dirname = dirname(__filename);
   );
 
   // 6. Create Global Config (config.json)
-  // Maps all routes to the function, except static files which are handled automatically by 'filesystem' handle if found.
   await writeFile(
     ".vercel/output/config.json",
     JSON.stringify({
       version: 3,
       routes: [
-        // Serves static files from .vercel/output/static if they exist
+        // 1. API requests go to the serverless function
+        { src: "/api/(.*)", dest: "/index" },
+
+        // 2. Static files are handled by filesystem
         { handle: "filesystem" },
-        // Fallback to the serverless function for everything else (API + SPA routing handled by Express)
-        { src: "/(.*)", dest: "/index" }
+
+        // 3. SPA Fallback: All other routes go to index.html
+        { src: "/(.*)", dest: "/index.html" }
       ]
     }, null, 2)
   );
