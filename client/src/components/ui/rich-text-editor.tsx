@@ -65,6 +65,42 @@ interface RichTextEditorProps {
     className?: string;
 }
 
+// Custom handler for image upload
+function imageHandler(this: { quill: any }) {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.click();
+
+    input.onchange = async () => {
+        const file = input.files ? input.files[0] : null;
+        if (file) {
+            const formData = new FormData();
+            formData.append("image", file);
+
+            try {
+                // Show loading placeholder or similar could be better, but keep it simple
+                const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!res.ok) throw new Error("Upload failed");
+
+                const data = await res.json();
+                const url = data.url;
+
+                const range = this.quill.getSelection(true);
+                this.quill.insertEmbed(range.index, "image", url);
+                this.quill.setSelection(range.index + 1);
+            } catch (error) {
+                console.error("Image upload failed:", error);
+                alert("이미지 업로드에 실패했습니다.");
+            }
+        }
+    };
+}
+
 // Custom handler for video embed
 function videoHandler(this: { quill: any }) {
     const url = prompt("임베드할 영상 URL을 입력하세요 (YouTube, Vimeo 등):");
@@ -88,7 +124,7 @@ export function RichTextEditor({
             const quill = quillRef.current.getEditor();
 
             // Add a custom matcher to intercept text paste
-            quill.clipboard.addMatcher(Node.TEXT_NODE, (node, delta) => {
+            quill.clipboard.addMatcher(Node.TEXT_NODE, (node: any, delta: any) => {
                 const text = node.data;
                 // Simple check if it looks like markdown
                 if (text && (
@@ -122,6 +158,7 @@ export function RichTextEditor({
                 ["clean"],
             ],
             handlers: {
+                image: imageHandler,
                 video: videoHandler,
             },
         },
