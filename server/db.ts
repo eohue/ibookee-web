@@ -10,12 +10,21 @@ if (!process.env.DATABASE_URL) {
 
 // Supabase requires SSL connection in production
 // Supabase requires SSL connection in production
+let connectionString = process.env.DATABASE_URL;
+
+// AUTO-FIX: Force Supabase Transaction Mode (Port 6543)
+// This resolves "MaxClientsInSessionMode" errors by using PgBouncer which supports thousands of connections
+if (connectionString && connectionString.includes('supabase.co') && connectionString.includes(':5432')) {
+  console.log('Switching to Supabase Transaction Mode (Port 6543) to prevent connection exhaustion...');
+  connectionString = connectionString.replace(':5432', ':6543');
+}
+
 const poolConfig = {
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 1, // Limit connection pool to 1 for serverless environment to prevent 'max clients reached'
+  max: 1, // Keep max: 1 for serverless
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000, // Increased timeout
 };
 
 // Singleton pattern for handling connection pool in serverless environment
