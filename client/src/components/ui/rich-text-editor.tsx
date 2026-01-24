@@ -91,7 +91,7 @@ function imageHandler(this: { quill: any }) {
                 const url = data.url;
 
                 const range = this.quill.getSelection(true);
-                this.quill.insertEmbed(range.index, "image", url);
+                this.quill.insertEmbed(range.index, "image", url, "user");
                 this.quill.setSelection(range.index + 1);
             } catch (error) {
                 console.error("Image upload failed:", error);
@@ -182,7 +182,11 @@ export function RichTextEditor({
             ref={quillRef}
             theme="snow"
             value={value}
-            onChange={onChange}
+            onChange={(content, delta, source, editor) => {
+                if (source === 'user') {
+                    onChange(content);
+                }
+            }}
             modules={modules}
             formats={formats}
             placeholder={placeholder}
