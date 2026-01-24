@@ -218,46 +218,8 @@ export async function setupAuth(app: Express) {
       });
     });
 
-    // Seed Admin Account
-    (async () => {
-      const adminEmail = "kslee@ibookee.kr"; // Updated to user request
-      const adminPassword = "admin123!@#";
-
-      let adminUser = await storage.getUserByEmail(adminEmail);
-
-      if (!adminUser) {
-        console.log(`[AdminSeed] Creating admin account for ${adminEmail}...`);
-        const hashedPassword = await hashPassword(adminPassword);
-        adminUser = await storage.upsertUser({
-          email: adminEmail,
-          password: hashedPassword,
-          firstName: "Admin",
-          lastName: "User",
-          role: "admin",
-          createdAt: new Date()
-        });
-        console.log(`[AdminSeed] Admin account created: ${adminEmail}`);
-      } else {
-        console.log(`[AdminSeed] Admin account found: ${adminEmail}`);
-        if (adminUser.role !== "admin") {
-          console.log(`[AdminSeed] Updating role to admin for: ${adminEmail}`);
-          await storage.updateUserRole(adminUser.id, "admin");
-        }
-        // Optional: Reset password if needed, but for now we rely on existence check.
-        // To force password update, we would need to check hash or just force update.
-        // Let's force update password to ensure login works if user forgot previous one.
-        const isPasswordMatch = adminUser.password ? await verifyPassword(adminPassword, adminUser.password) : false;
-        if (!isPasswordMatch) {
-          console.log(`[AdminSeed] Updating password for: ${adminEmail}`);
-          const hashedPassword = await hashPassword(adminPassword);
-          await storage.upsertUser({
-            ...adminUser,
-            password: hashedPassword
-          });
-          console.log(`[AdminSeed] Password updated.`);
-        }
-      }
-    })();
+    // Seed Admin Account logic removed to prevent DB connection exhaustion on serverless startup.
+    // Admin account should be created via registration or dedicated script.
   }
 }
 
