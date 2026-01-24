@@ -274,4 +274,42 @@
   .ql-snow.ql-toolbar button.ql-video {
     width: 28px;
   }
+
+  /* Quill Editor Customization */
+  .ql-container {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    min-height: 200px;
+  }
+
+  .ql-editor {
+    min-height: 200px;
+    line-height: 1.6;
+  }
+
+  /* Fix Tailwind list reset */
+  .ql-editor ul {
+    list-style-type: disc;
+    padding-left: 1.5em;
+  }
+
+  .ql-editor ol {
+    list-style-type: decimal;
+    padding-left: 1.5em;
+  }
+
+  /* Dark mode support */
+  .dark .ql-toolbar {
+    background-color: hsl(var(--secondary));
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark .ql-container {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .dark .ql-editor {
+    color: hsl(var(--foreground));
+    background-color: transparent;
+  }
 }
