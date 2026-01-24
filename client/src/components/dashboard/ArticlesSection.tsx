@@ -192,25 +192,32 @@ export function ArticlesSection() {
         },
     });
 
+    // Sync content state when dialog opens or article changes
+    useEffect(() => {
+        if (isDialogOpen) {
+            if (editingArticle) {
+                // Ensure values are set after render cycle
+                setContent(editingArticle.content || "");
+                setSelectedCategory(editingArticle.category);
+                setIsFeatured(editingArticle.featured ?? false);
+                setImageUrl(editingArticle.imageUrl ?? "");
+                setPublishedAt(editingArticle.publishedAt ? new Date(editingArticle.publishedAt).toISOString().split('T')[0] : "");
+                setSourceUrl(editingArticle.sourceUrl ?? "");
+                setFileUrl(editingArticle.fileUrl ?? "");
+            } else {
+                setContent("");
+                setSelectedCategory("column");
+                setIsFeatured(false);
+                setImageUrl("");
+                setPublishedAt("");
+                setSourceUrl("");
+                setFileUrl("");
+            }
+        }
+    }, [isDialogOpen, editingArticle]);
+
     const openDialog = (article: Article | null) => {
         setEditingArticle(article);
-        if (article) {
-            setSelectedCategory(article.category);
-            setIsFeatured(article.featured ?? false);
-            setImageUrl(article.imageUrl ?? "");
-            setContent(article.content);
-            setPublishedAt(article.publishedAt ? new Date(article.publishedAt).toISOString().split('T')[0] : "");
-            setSourceUrl(article.sourceUrl ?? "");
-            setFileUrl(article.fileUrl ?? "");
-        } else {
-            setSelectedCategory("column");
-            setIsFeatured(false);
-            setImageUrl("");
-            setContent("");
-            setPublishedAt("");
-            setSourceUrl("");
-            setFileUrl("");
-        }
         setIsDialogOpen(true);
     };
 
@@ -325,7 +332,7 @@ export function ArticlesSection() {
                             <div className="space-y-2">
                                 <Label>내용</Label>
                                 <RichTextEditor
-                                    key={editingArticle ? editingArticle.id : 'new'}
+                                    key={isDialogOpen ? `open-${editingArticle?.id || 'new'}` : 'closed'}
                                     value={content}
                                     onChange={setContent}
                                     className="min-h-[200px] mb-12"
