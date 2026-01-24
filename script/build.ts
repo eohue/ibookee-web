@@ -120,7 +120,7 @@ const __dirname = dirname(__filename);
     target: "node20",
     format: "cjs",
     outfile: "dist/index.cjs",
-    external: ["sharp", "pg-native"],
+    external: ["sharp", "pg-native", "esbuild"],
     loader: {
       ".node": "file"
     },
