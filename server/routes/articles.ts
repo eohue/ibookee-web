@@ -1,14 +1,18 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertArticleSchema } from "@shared/schema";
+import { sanitizeObject } from "@shared/utils";
 import { isAuthenticated } from "../replit_integrations/auth";
 
 export function registerArticleRoutes(app: Express) {
     // Public Articles API
-    app.get("/api/articles", async (_req, res) => {
+    app.get("/api/articles", async (req, res) => {
         try {
-            const articles = await storage.getArticles();
-            res.json(articles);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 999; // Default high limit for backward compatibility
+
+            const result = await storage.getArticles(page, limit);
+            res.json(result);
         } catch (error: any) {
             console.error("Fetch articles error:", error);
             res.status(500).json({
@@ -41,10 +45,16 @@ export function registerArticleRoutes(app: Express) {
     });
 
     // Admin Articles CRUD
-    app.get("/api/admin/articles", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/articles", isAuthenticated, async (req, res) => {
         try {
-            const articles = await storage.getArticles();
-            res.json(articles);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 100;
+
+            const result = await storage.getArticles(page, limit);
+            // Admin dashboard might expect array, but it should handle object. 
+            // If strictly array needed by frontend: res.json(result.articles);
+            // Let's return full result for future pagination Support in Admin.
+            res.json(result.articles);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch articles" });
         }
@@ -52,24 +62,8 @@ export function registerArticleRoutes(app: Express) {
 
     app.post("/api/admin/articles", isAuthenticated, async (req, res) => {
         try {
-            const data = { ...req.body };
-
             // Sanitize all string fields to remove null bytes (0x00)
-            // PostgreSQL text columns don't allow null bytes
-            const sanitizeString = (str: string | null | undefined): string | null => {
-                if (str === null || str === undefined) return null;
-                if (typeof str !== 'string') return str;
-                return str.replace(/\x00/g, '');
-            };
-
-            data.title = sanitizeString(data.title);
-            data.excerpt = sanitizeString(data.excerpt);
-            data.content = sanitizeString(data.content);
-            data.author = sanitizeString(data.author);
-            data.category = sanitizeString(data.category);
-            data.imageUrl = sanitizeString(data.imageUrl);
-            data.fileUrl = sanitizeString(data.fileUrl);
-            data.sourceUrl = sanitizeString(data.sourceUrl);
+            const data = sanitizeObject({ ...req.body });
 
             if (data.publishedAt && typeof data.publishedAt === 'string') {
                 data.publishedAt = new Date(data.publishedAt);
@@ -96,23 +90,8 @@ export function registerArticleRoutes(app: Express) {
             console.log(`[API] Updating article ${req.params.id}. Body keys: ${Object.keys(req.body).join(', ')}`);
             if (req.body.imageUrl) console.log(`[API] Image URL provided: ${req.body.imageUrl}`);
 
-            const data = { ...req.body };
-
             // Sanitize all string fields to remove null bytes (0x00)
-            const sanitizeString = (str: string | null | undefined): string | null => {
-                if (str === null || str === undefined) return null;
-                if (typeof str !== 'string') return str;
-                return str.replace(/\x00/g, '');
-            };
-
-            if (data.title !== undefined) data.title = sanitizeString(data.title);
-            if (data.excerpt !== undefined) data.excerpt = sanitizeString(data.excerpt);
-            if (data.content !== undefined) data.content = sanitizeString(data.content);
-            if (data.author !== undefined) data.author = sanitizeString(data.author);
-            if (data.category !== undefined) data.category = sanitizeString(data.category);
-            if (data.imageUrl !== undefined) data.imageUrl = sanitizeString(data.imageUrl);
-            if (data.fileUrl !== undefined) data.fileUrl = sanitizeString(data.fileUrl);
-            if (data.sourceUrl !== undefined) data.sourceUrl = sanitizeString(data.sourceUrl);
+            const data = sanitizeObject({ ...req.body });
 
             if (data.publishedAt && typeof data.publishedAt === 'string') {
                 data.publishedAt = new Date(data.publishedAt);

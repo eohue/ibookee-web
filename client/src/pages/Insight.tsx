@@ -46,9 +46,25 @@ export default function Insight() {
   const [activeCategory, setActiveCategory] = useState(getCategoryFromUrl);
   const [currentPage, setCurrentPage] = useState(getPageFromUrl);
 
-  const { data: articles = [], isLoading, isError, refetch } = useQuery<Article[]>({
-    queryKey: ["/api/articles"],
+  const { data, isLoading, isError, refetch } = useQuery<{ articles: Article[]; total: number }>({
+    queryKey: ["/api/articles", activeCategory, currentPage],
+    queryFn: async () => {
+      const limit = ITEMS_PER_PAGE;
+      const url = activeCategory === "all"
+        ? `/api/articles?page=${currentPage}&limit=${limit}`
+        : `/api/articles/category/${activeCategory}?page=${currentPage}&limit=${limit}`;
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error("Failed to fetch articles");
+      }
+      return res.json();
+    },
   });
+
+  const articles = data?.articles || [];
+  const totalItems = data?.total || 0;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
   // Sync state with URL on popstate (back/forward navigation)
   useEffect(() => {
@@ -70,28 +86,6 @@ export default function Insight() {
     setCurrentPage(1);
   };
 
-  const filteredArticles = activeCategory === "all" || activeCategory === "library"
-    ? articles
-    : articles.filter((a) => a.category === activeCategory);
-
-  const featuredArticles = articles.filter((a) => a.featured);
-  const regularArticles = filteredArticles.filter((a) => !a.featured);
-
-  const libraryDisplayArticles = activeCategory === "library"
-    ? filteredArticles.filter((a) => a.fileUrl && a.fileUrl.trim() !== "")
-    : [];
-
-  // Pagination logic
-  const articlesToDisplay = activeCategory === "all" ? regularArticles : filteredArticles;
-  const totalPages = Math.ceil(articlesToDisplay.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedArticles = articlesToDisplay.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  // Library pagination
-  const libraryTotalPages = Math.ceil(libraryDisplayArticles.length / ITEMS_PER_PAGE);
-  const libraryStartIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedLibraryArticles = libraryDisplayArticles.slice(libraryStartIndex, libraryStartIndex + ITEMS_PER_PAGE);
-
   const handlePageChange = (page: number) => {
     const url = new URL(window.location.href);
     url.searchParams.set('page', page.toString());
@@ -100,27 +94,36 @@ export default function Insight() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const renderPagination = (total: number) => {
-    if (total <= 1) return null;
+  // Featured logic is tricky with server-side pagination.
+  // Ideally, featured articles should be a separate API call or handled differently.
+  // For now, we will display articles as returned by server.
+  // If we want featured at top, server should sort by featured first. 
+  // (Current server sort is by date desc)
+
+  // Library specific view
+  const isLibrary = activeCategory === "library";
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
 
     const pages: (number | 'ellipsis')[] = [];
     const showEllipsisStart = currentPage > 3;
-    const showEllipsisEnd = currentPage < total - 2;
+    const showEllipsisEnd = currentPage < totalPages - 2;
 
-    if (total <= 7) {
-      for (let i = 1; i <= total; i++) pages.push(i);
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       pages.push(1);
       if (showEllipsisStart) pages.push('ellipsis');
 
       const start = Math.max(2, currentPage - 1);
-      const end = Math.min(total - 1, currentPage + 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
       for (let i = start; i <= end; i++) {
         if (!pages.includes(i)) pages.push(i);
       }
 
       if (showEllipsisEnd) pages.push('ellipsis');
-      if (!pages.includes(total)) pages.push(total);
+      if (!pages.includes(totalPages)) pages.push(totalPages);
     }
 
     return (
@@ -151,8 +154,8 @@ export default function Insight() {
           )}
           <PaginationItem>
             <PaginationNext
-              onClick={() => currentPage < total && handlePageChange(currentPage + 1)}
-              className={currentPage === total ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
             />
           </PaginationItem>
         </PaginationContent>
@@ -162,29 +165,20 @@ export default function Insight() {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case "column":
-        return FileText;
-      case "media":
-        return Video;
-      case "notice":
-        return Bell;
-      default:
-        return FileText;
+      case "column": return FileText;
+      case "media": return Video;
+      case "notice": return Bell;
+      default: return FileText;
     }
   };
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case "column":
-        return "칼럼";
-      case "media":
-        return "미디어";
-      case "notice":
-        return "알림";
-      case "library":
-        return "자료실";
-      default:
-        return category;
+      case "column": return "칼럼";
+      case "media": return "미디어";
+      case "notice": return "알림";
+      case "library": return "자료실";
+      default: return category;
     }
   };
 
@@ -227,254 +221,190 @@ export default function Insight() {
           </div>
         </section>
 
-        {activeCategory !== "library" && (
+        {isError ? (
+          <section className="py-12 bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center py-16">
+                <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">데이터를 불러올 수 없습니다</h3>
+                <p className="text-muted-foreground mb-4">잠시 후 다시 시도해주세요.</p>
+                <Button variant="outline" onClick={() => refetch()} data-testid="button-retry">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  다시 시도
+                </Button>
+              </div>
+            </div>
+          </section>
+        ) : isLoading ? (
+          <section className="py-12 bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <Skeleton className="aspect-[16/9] w-full" />
+                    <div className="p-5 space-y-3">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-5 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : (
           <>
-            {isError ? (
-              <section className="py-12 bg-background">
+            {/* Library View */}
+            {isLibrary && (
+              <section className="py-12 bg-background" data-testid="section-library">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="text-center py-16">
-                    <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">데이터를 불러올 수 없습니다</h3>
-                    <p className="text-muted-foreground mb-4">잠시 후 다시 시도해주세요.</p>
-                    <Button variant="outline" onClick={() => refetch()} data-testid="button-retry">
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      다시 시도
-                    </Button>
-                  </div>
-                </div>
-              </section>
-            ) : isLoading ? (
-              <section className="py-12 bg-background">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <Skeleton className="h-8 w-32 mb-8" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {[...Array(6)].map((_, i) => (
-                      <Card key={i} className="overflow-hidden">
-                        <Skeleton className="aspect-[16/9] w-full" />
-                        <div className="p-5 space-y-3">
-                          <Skeleton className="h-4 w-20" />
-                          <Skeleton className="h-5 w-full" />
-                          <Skeleton className="h-4 w-3/4" />
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              </section>
-            ) : (
-              <>
-                {activeCategory === "all" && featuredArticles.length > 0 && (
-                  <section className="py-12 bg-background" data-testid="section-featured-articles">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                      <h2 className="text-2xl font-bold text-foreground mb-8">주요 기사</h2>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {featuredArticles.map((article) => (
-                          <Link
+                  <h2 className="text-2xl font-bold text-foreground mb-8">자료실</h2>
+                  {articles.length === 0 ? (
+                    <div className="text-center py-16">
+                      <p className="text-muted-foreground">등록된 자료가 없습니다.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {articles.map((article) => (
+                          <Card
                             key={article.id}
-                            href={`/insight/${article.id}`}
-                            className="block"
+                            className="overflow-hidden hover-elevate h-full flex flex-col"
+                            data-testid={`library-item-${article.id}`}
                           >
-                            <Card
-                              className="overflow-hidden hover-elevate cursor-pointer h-full"
-                              data-testid={`featured-article-${article.id}`}
+                            <Link
+                              href={`/insight/${article.id}`}
+                              className="block flex-1"
                             >
-                              <div className="grid grid-cols-1 md:grid-cols-2">
-                                <div className="aspect-[4/3] md:aspect-auto">
+                              <div className="aspect-[16/9] overflow-hidden">
+                                {article.imageUrl ? (
+                                  <img
+                                    src={article.imageUrl}
+                                    alt={article.title}
+                                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                                    <FileText className="w-12 h-12 text-muted-foreground" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-5">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <FileText className="w-4 h-4 text-primary" />
+                                  <Badge variant="secondary">자료실</Badge>
+                                </div>
+                                <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                                  {article.title}
+                                </h3>
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                                  {article.excerpt}
+                                </p>
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                  <span>{article.author}</span>
+                                  {article.publishedAt && (
+                                    <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </Link>
+                            {article.fileUrl && (
+                              <div className="px-5 pb-5 pt-0">
+                                <a
+                                  href={article.fileUrl}
+                                  download
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Button size="sm" variant="outline" className="w-full gap-2">
+                                    <Download className="w-4 h-4" />
+                                    PDF 다운로드
+                                  </Button>
+                                </a>
+                              </div>
+                            )}
+                          </Card>
+                        ))}
+                      </div>
+                      {renderPagination()}
+                    </>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Standard Article View */}
+            {!isLibrary && (
+              <section className="py-12 bg-background" data-testid="section-articles">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  {activeCategory === "all" && <h2 className="text-2xl font-bold text-foreground mb-8">모든 글</h2>}
+                  {articles.length === 0 ? (
+                    <div className="text-center py-16">
+                      <p className="text-muted-foreground">
+                        등록된 게시글이 없습니다.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {articles.map((article) => {
+                          const CategoryIcon = getCategoryIcon(article.category);
+                          return (
+                            <Link
+                              key={article.id}
+                              href={`/insight/${article.id}`}
+                              className="block"
+                            >
+                              <Card
+                                className="overflow-hidden hover-elevate cursor-pointer h-full"
+                                data-testid={`article-${article.id}`}
+                              >
+                                <div className="aspect-[16/9] overflow-hidden">
                                   {article.imageUrl ? (
                                     <img
                                       src={article.imageUrl}
                                       alt={article.title}
-                                      className="w-full h-full object-cover"
+                                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                                     />
                                   ) : (
                                     <div className="w-full h-full bg-muted flex items-center justify-center">
-                                      <FileText className="w-12 h-12 text-muted-foreground" />
+                                      <CategoryIcon className="w-12 h-12 text-muted-foreground" />
                                     </div>
                                   )}
                                 </div>
-                                <div className="p-6 flex flex-col justify-between">
-                                  <div>
-                                    <Badge variant="secondary" className="mb-3">
+                                <div className="p-5">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <CategoryIcon className="w-4 h-4 text-primary" />
+                                    <Badge variant="secondary">
                                       {getCategoryLabel(article.category)}
                                     </Badge>
-                                    <h3 className="text-xl font-semibold text-foreground mb-3 line-clamp-2">
-                                      {article.title}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground line-clamp-3">
-                                      {article.excerpt}
-                                    </p>
                                   </div>
-                                  <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                      <User className="w-4 h-4" />
-                                      <span>{article.author}</span>
-                                    </div>
+                                  <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                                    {article.title}
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                                    {article.excerpt}
+                                  </p>
+                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>{article.author}</span>
                                     {article.publishedAt && (
-                                      <div className="flex items-center gap-1">
-                                        <Calendar className="w-4 h-4" />
-                                        <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
-                                      </div>
+                                      <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
                                     )}
                                   </div>
                                 </div>
-                              </div>
-                            </Card>
-                          </Link>
-                        ))}
+                              </Card>
+                            </Link>
+                          );
+                        })}
                       </div>
-                    </div>
-                  </section>
-                )}
-
-                <section className="py-12 bg-background" data-testid="section-articles">
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {activeCategory === "all" && <h2 className="text-2xl font-bold text-foreground mb-8">최신 글</h2>}
-                    {paginatedArticles.length === 0 ? (
-                      <div className="text-center py-16">
-                        <p className="text-muted-foreground">
-                          등록된 게시글이 없습니다.
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                          {paginatedArticles.map((article) => {
-                            const CategoryIcon = getCategoryIcon(article.category);
-                            return (
-                              <Link
-                                key={article.id}
-                                href={`/insight/${article.id}`}
-                                className="block"
-                              >
-                                <Card
-                                  className="overflow-hidden hover-elevate cursor-pointer h-full"
-                                  data-testid={`article-${article.id}`}
-                                >
-                                  <div className="aspect-[16/9] overflow-hidden">
-                                    {article.imageUrl ? (
-                                      <img
-                                        src={article.imageUrl}
-                                        alt={article.title}
-                                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                                      />
-                                    ) : (
-                                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                                        <CategoryIcon className="w-12 h-12 text-muted-foreground" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="p-5">
-                                    <div className="flex items-center gap-2 mb-3">
-                                      <CategoryIcon className="w-4 h-4 text-primary" />
-                                      <Badge variant="secondary">
-                                        {getCategoryLabel(article.category)}
-                                      </Badge>
-                                    </div>
-                                    <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
-                                      {article.title}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                                      {article.excerpt}
-                                    </p>
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                      <span>{article.author}</span>
-                                      {article.publishedAt && (
-                                        <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                </Card>
-                              </Link>
-                            );
-                          })}
-                        </div>
-                        {renderPagination(totalPages)}
-                      </>
-                    )}
-                  </div>
-                </section>
-              </>
+                      {renderPagination()}
+                    </>
+                  )}
+                </div>
+              </section>
             )}
           </>
-        )}
-
-        {activeCategory === "library" && (
-          <section className="py-12 bg-background" data-testid="section-library">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h2 className="text-2xl font-bold text-foreground mb-8">자료실</h2>
-              {filteredArticles.filter(a => a.category === "library").length === 0 ? (
-                <div className="text-center py-16">
-                  <p className="text-muted-foreground">등록된 자료가 없습니다.</p>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredArticles.filter(a => a.category === "library").slice(startIndex, startIndex + ITEMS_PER_PAGE).map((article) => (
-                      <Card
-                        key={article.id}
-                        className="overflow-hidden hover-elevate h-full flex flex-col"
-                        data-testid={`library-item-${article.id}`}
-                      >
-                        <Link
-                          href={`/insight/${article.id}`}
-                          className="block flex-1"
-                        >
-                          <div className="aspect-[16/9] overflow-hidden">
-                            {article.imageUrl ? (
-                              <img
-                                src={article.imageUrl}
-                                alt={article.title}
-                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-muted flex items-center justify-center">
-                                <FileText className="w-12 h-12 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="p-5">
-                            <div className="flex items-center gap-2 mb-3">
-                              <FileText className="w-4 h-4 text-primary" />
-                              <Badge variant="secondary">자료실</Badge>
-                            </div>
-                            <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
-                              {article.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                              {article.excerpt}
-                            </p>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span>{article.author}</span>
-                              {article.publishedAt && (
-                                <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                        {article.fileUrl && (
-                          <div className="px-5 pb-5 pt-0">
-                            <a
-                              href={article.fileUrl}
-                              download
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button size="sm" variant="outline" className="w-full gap-2">
-                                <Download className="w-4 h-4" />
-                                PDF 다운로드
-                              </Button>
-                            </a>
-                          </div>
-                        )}
-                      </Card>
-                    ))}
-                  </div>
-                  {renderPagination(Math.ceil(filteredArticles.filter(a => a.category === "library").length / ITEMS_PER_PAGE))}
-                </>
-              )}
-            </div>
-          </section>
         )}
       </main>
       <Footer />

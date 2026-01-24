@@ -80,9 +80,10 @@ export interface IStorage {
   deleteInquiry(id: string): Promise<void>;
 
   // Articles
-  getArticles(): Promise<Article[]>;
+  // Articles
+  getArticles(page?: number, limit?: number): Promise<{ articles: Article[], total: number }>;
   getArticle(id: string): Promise<Article | undefined>;
-  getArticlesByCategory(category: string): Promise<Article[]>;
+  getArticlesByCategory(category: string, page?: number, limit?: number): Promise<{ articles: Article[], total: number }>;
   createArticle(article: InsertArticle): Promise<Article>;
   updateArticle(id: string, article: Partial<InsertArticle>): Promise<Article | undefined>;
   deleteArticle(id: string): Promise<void>;
@@ -254,23 +255,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Articles
-  async getArticles(): Promise<Article[]> {
-    return db.select({
-      id: articles.id,
-      title: articles.title,
-      excerpt: articles.excerpt,
-      author: articles.author,
-      category: articles.category,
-      imageUrl: articles.imageUrl,
-      fileUrl: articles.fileUrl,
-      sourceUrl: articles.sourceUrl,
-      publishedAt: articles.publishedAt,
-      featured: articles.featured,
-      // content is excluded for list performance
-      content: sql<string>`''`.as('content'), // Mock content to satisfy type
-    })
-      .from(articles)
-      .orderBy(desc(articles.publishedAt));
+  async getArticles(page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
+    const offset = (page - 1) * limit;
+
+    const [articlesResult, countResult] = await Promise.all([
+      db.select({
+        id: articles.id,
+        title: articles.title,
+        excerpt: articles.excerpt,
+        author: articles.author,
+        category: articles.category,
+        imageUrl: articles.imageUrl,
+        fileUrl: articles.fileUrl,
+        sourceUrl: articles.sourceUrl,
+        publishedAt: articles.publishedAt,
+        featured: articles.featured,
+        // content is excluded for list performance
+        content: sql<string>`''`.as('content'),
+      })
+        .from(articles)
+        .orderBy(desc(articles.publishedAt))
+        .limit(limit)
+        .offset(offset),
+
+      db.select({ count: count() }).from(articles)
+    ]);
+
+    return {
+      articles: articlesResult,
+      total: countResult[0]?.count || 0
+    };
   }
 
   async getArticle(id: string): Promise<Article | undefined> {
@@ -278,23 +292,36 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async getArticlesByCategory(category: string): Promise<Article[]> {
-    return db.select({
-      id: articles.id,
-      title: articles.title,
-      excerpt: articles.excerpt,
-      author: articles.author,
-      category: articles.category,
-      imageUrl: articles.imageUrl,
-      fileUrl: articles.fileUrl,
-      sourceUrl: articles.sourceUrl,
-      publishedAt: articles.publishedAt,
-      featured: articles.featured,
-      content: sql<string>`''`.as('content'),
-    })
-      .from(articles)
-      .where(eq(articles.category, category))
-      .orderBy(desc(articles.publishedAt));
+  async getArticlesByCategory(category: string, page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
+    const offset = (page - 1) * limit;
+
+    const [articlesResult, countResult] = await Promise.all([
+      db.select({
+        id: articles.id,
+        title: articles.title,
+        excerpt: articles.excerpt,
+        author: articles.author,
+        category: articles.category,
+        imageUrl: articles.imageUrl,
+        fileUrl: articles.fileUrl,
+        sourceUrl: articles.sourceUrl,
+        publishedAt: articles.publishedAt,
+        featured: articles.featured,
+        content: sql<string>`''`.as('content'),
+      })
+        .from(articles)
+        .where(eq(articles.category, category))
+        .orderBy(desc(articles.publishedAt))
+        .limit(limit)
+        .offset(offset),
+
+      db.select({ count: count() }).from(articles).where(eq(articles.category, category))
+    ]);
+
+    return {
+      articles: articlesResult,
+      total: countResult[0]?.count || 0
+    };
   }
 
   async createArticle(article: InsertArticle): Promise<Article> {
@@ -1225,26 +1252,43 @@ export class MemStorage implements IStorage {
   }
 
   // Articles
-  async getArticles(): Promise<Article[]> {
-    return Array.from(this.articles.values()).sort((a, b) => {
+  async getArticles(page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
+    const allArticles = Array.from(this.articles.values()).sort((a, b) => {
+      // Sort by publishedAt desc
       const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
       const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
       return dateB - dateA;
     });
+
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
+    return {
+      articles: allArticles.slice(start, end),
+      total: allArticles.length
+    };
   }
 
   async getArticle(id: string): Promise<Article | undefined> {
     return this.articles.get(id);
   }
 
-  async getArticlesByCategory(category: string): Promise<Article[]> {
-    return Array.from(this.articles.values())
-      .filter(a => a.category === category)
+  async getArticlesByCategory(category: string, page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
+    const filtered = Array.from(this.articles.values())
+      .filter((article) => article.category === category)
       .sort((a, b) => {
         const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
         const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
         return dateB - dateA;
       });
+
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
+    return {
+      articles: filtered.slice(start, end),
+      total: filtered.length
+    };
   }
 
   async createArticle(article: InsertArticle): Promise<Article> {
