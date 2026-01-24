@@ -93,6 +93,9 @@ export function registerArticleRoutes(app: Express) {
 
     app.put("/api/admin/articles/:id", isAuthenticated, async (req, res) => {
         try {
+            console.log(`[API] Updating article ${req.params.id}. Body keys: ${Object.keys(req.body).join(', ')}`);
+            if (req.body.imageUrl) console.log(`[API] Image URL provided: ${req.body.imageUrl}`);
+
             const data = { ...req.body };
 
             // Sanitize all string fields to remove null bytes (0x00)

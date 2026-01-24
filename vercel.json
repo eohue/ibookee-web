@@ -3,5 +3,11 @@
     "version": 2,
     "buildCommand": "npm run build",
     "installCommand": "npm install",
-    "framework": null
+    "framework": null,
+    "functions": {
+        "api/index.js": {
+            "maxDuration": 60,
+            "memory": 1024
+        }
+    }
 }
