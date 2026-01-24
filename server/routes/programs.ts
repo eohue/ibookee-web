@@ -70,7 +70,12 @@ export function registerProgramRoutes(app: Express) {
 
     app.put("/api/admin/programs/:id", isAuthenticated, async (req, res) => {
         try {
-            const program = await storage.updateResidentProgram(req.params.id, req.body);
+            const parsed = insertResidentProgramSchema.partial().safeParse(req.body);
+            if (!parsed.success) {
+                return res.status(400).json({ error: "Invalid program data", details: parsed.error });
+            }
+
+            const program = await storage.updateResidentProgram(req.params.id, parsed.data);
             if (!program) {
                 return res.status(404).json({ error: "Program not found" });
             }
