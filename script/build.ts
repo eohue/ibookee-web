@@ -51,8 +51,15 @@ async function buildAll() {
       "sharp", "@mapbox/node-pre-gyp", "mock-aws-s3", "nock", "aws-sdk-client-mock", "pg-native"
     ],
     banner: {
-      // Fix for bundling some legacy CJS modules
-      js: `import { createRequire } from 'module'; const require = createRequire(import.meta.url);`
+      // Fix for bundling some legacy CJS modules and defining __dirname/__filename for ESM
+      js: `
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+`
     },
     define: {
       "process.env.NODE_ENV": '"production"'

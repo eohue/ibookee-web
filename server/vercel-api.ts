@@ -59,8 +59,9 @@ async function initialize() {
         res.status(status).json({ message });
     });
 
-    // Serve static files
-    serveStatic(app);
+    // Serve static files - DISABLED for Vercel Serverless
+    // Vercel handles static files via output configuration
+    // serveStatic(app);
 
     initialized = true;
     console.log('Vercel serverless function initialized successfully.');
@@ -76,7 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             console.log("[Handler] Triggering initialization...");
             initPromise = initialize().catch(err => {
                 console.error("[Handler] Initialization failed:", err);
-                initPromise = null; // Reset promise so we can retry or at least know it failed
+                initPromise = null;
                 throw err;
             });
         }
@@ -93,12 +94,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // Ensure response wasn't already sent
         if (!res.headersSent) {
-            res.status(500).json({
+            // Use native methods to avoid "res.status is not a function" error
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
                 error: "Internal Server Error",
                 message: err.message,
-                stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
                 details: "Check Vercel Runtime Logs for full stack trace"
-            });
+            }));
         }
     }
 }
