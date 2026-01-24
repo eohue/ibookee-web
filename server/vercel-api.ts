@@ -68,16 +68,37 @@ async function initialize() {
 
 // Export the Vercel handler
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // Lazy initialization on first request
-    if (!initPromise) {
-        initPromise = initialize();
-    }
-    await initPromise;
+    try {
+        console.log(`[Handler] Received ${req.method} ${req.url}`);
 
-    // Handle request with Express app
-    return new Promise<void>((resolve) => {
-        app(req as any, res as any);
-        res.on('finish', resolve);
-        res.on('close', resolve);
-    });
+        // Lazy initialization on first request
+        if (!initPromise) {
+            console.log("[Handler] Triggering initialization...");
+            initPromise = initialize().catch(err => {
+                console.error("[Handler] Initialization failed:", err);
+                initPromise = null; // Reset promise so we can retry or at least know it failed
+                throw err;
+            });
+        }
+        await initPromise;
+
+        // Handle request with Express app
+        return new Promise<void>((resolve) => {
+            app(req as any, res as any);
+            res.on('finish', resolve);
+            res.on('close', resolve);
+        });
+    } catch (err: any) {
+        console.error("[Handler] Critical Error:", err);
+
+        // Ensure response wasn't already sent
+        if (!res.headersSent) {
+            res.status(500).json({
+                error: "Internal Server Error",
+                message: err.message,
+                stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+                details: "Check Vercel Runtime Logs for full stack trace"
+            });
+        }
+    }
 }

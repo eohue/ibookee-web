@@ -48,7 +48,7 @@ async function buildAll() {
     outfile: ".vercel/output/functions/index.func/index.mjs",
     external: [
       // Native modules that typically can't be bundled easily or are provided by runtime
-      "sharp", "@mapbox/node-pre-gyp", "mock-aws-s3", "nock", "aws-sdk-client-mock"
+      "sharp", "@mapbox/node-pre-gyp", "mock-aws-s3", "nock", "aws-sdk-client-mock", "pg-native"
     ],
     banner: {
       // Fix for bundling some legacy CJS modules
