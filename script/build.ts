@@ -77,7 +77,8 @@ const __dirname = dirname(__filename);
       runtime: "nodejs20.x",
       handler: "index.mjs",
       launcherType: "Nodejs",
-      maxDuration: 30
+      maxDuration: 60,
+      memory: 1024
     }, null, 2)
   );
 
