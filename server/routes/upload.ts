@@ -1,9 +1,10 @@
 import type { Express } from "express";
+import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { isAuthenticated } from "../replit_integrations/auth";
-import { uploadToS3, isS3Configured } from "../s3";
+import { uploadToStorage, isStorageConfigured } from "../storage_provider";
 
 // Configure upload directory
 export let uploadDir = path.resolve(process.cwd(), "attached_assets");
@@ -37,8 +38,6 @@ const upload = multer({
     },
 });
 
-// Removed top-level sharp import to make it optional
-
 export function setupStaticAssets(app: Express) {
     // Serve uploaded files statically - Bypass auth for performance
     app.use("/assets", express.static(uploadDir));
@@ -52,10 +51,6 @@ export function setupStaticAssets(app: Express) {
 }
 
 export function registerUploadRoutes(app: Express) {
-    // Fallback: Ensure static assets are served if setupStaticAssets wasn't called manually
-    // (Express allows multiple static middlewares for same path, but we want to optimize)
-    // We will rely on server/routes.ts calling setupStaticAssets first.
-
     app.post("/api/upload", isAuthenticated, upload.single("image"), async (req, res) => {
         try {
             if (!req.file) {
@@ -107,10 +102,10 @@ export function registerUploadRoutes(app: Express) {
 
             let fileUrl: string;
 
-            if (isS3Configured()) {
-                fileUrl = await uploadToS3(buffer, filename, req.file.mimetype);
+            if (isStorageConfigured()) {
+                fileUrl = await uploadToStorage(buffer, filename, req.file.mimetype);
             } else {
-                console.warn("S3 not configured, falling back to local storage. Files will be ephemeral.");
+                console.warn("No persistent storage configured (S3/Supabase), falling back to ephemeral local storage.");
                 await fs.promises.writeFile(filepath, buffer);
                 fileUrl = `/assets/${filename}`;
             }
@@ -121,5 +116,3 @@ export function registerUploadRoutes(app: Express) {
         }
     });
 }
-
-import express from "express";
