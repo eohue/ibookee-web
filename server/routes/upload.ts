@@ -6,7 +6,7 @@ import { isAuthenticated } from "../replit_integrations/auth";
 import { uploadToS3, isS3Configured } from "../s3";
 
 // Configure upload directory
-let uploadDir = path.resolve(process.cwd(), "attached_assets");
+export let uploadDir = path.resolve(process.cwd(), "attached_assets");
 
 // Try to create the directory, fallback to /tmp if read-only filesystem
 try {
@@ -39,9 +39,15 @@ const upload = multer({
 
 // Removed top-level sharp import to make it optional
 
-export function registerUploadRoutes(app: Express) {
-    // Serve uploaded files statically
+export function setupStaticAssets(app: Express) {
+    // Serve uploaded files statically - Bypass auth for performance
     app.use("/assets", express.static(uploadDir));
+}
+
+export function registerUploadRoutes(app: Express) {
+    // Fallback: Ensure static assets are served if setupStaticAssets wasn't called manually
+    // (Express allows multiple static middlewares for same path, but we want to optimize)
+    // We will rely on server/routes.ts calling setupStaticAssets first.
 
     app.post("/api/upload", isAuthenticated, upload.single("image"), async (req, res) => {
         try {

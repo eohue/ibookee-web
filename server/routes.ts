@@ -13,7 +13,7 @@ import { registerSocialRoutes } from "./routes/social";
 import { registerSettingsRoutes } from "./routes/settings";
 import { registerPageRoutes } from "./routes/pages";
 import { registerStatsRoutes } from "./routes/stats";
-import { registerUploadRoutes } from "./routes/upload";
+import { registerUploadRoutes, setupStaticAssets } from "./routes/upload";
 import { registerUserRoutes } from "./routes/users";
 import { registerMetadataRoutes } from "./routes/metadata";
 import { registerReporterRoutes } from "./routes/reporters";
@@ -22,8 +22,13 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Setup auth BEFORE other routes
+  // 1. Static assets (no auth required, no db session check)
+  // This prevents "MaxClientsInSessionMode" errors when loading many images
+  setupStaticAssets(app);
+
+  // 2. Setup auth (DB session check)
   await setupAuth(app);
+
   registerAuthRoutes(app);
   registerUserRoutes(app);
   registerUploadRoutes(app);
