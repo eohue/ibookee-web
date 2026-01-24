@@ -5,10 +5,20 @@ import fs from "fs";
 import { isAuthenticated } from "../replit_integrations/auth";
 import { uploadToS3, isS3Configured } from "../s3";
 
-// Ensure attached_assets directory exists
-const uploadDir = path.resolve(process.cwd(), "attached_assets");
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+// Configure upload directory
+let uploadDir = path.resolve(process.cwd(), "attached_assets");
+
+// Try to create the directory, fallback to /tmp if read-only filesystem
+try {
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+} catch (error) {
+    console.warn("Failed to create upload directory in CWD (likely read-only), falling back to /tmp");
+    uploadDir = path.resolve("/tmp", "attached_assets");
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
 }
 
 // Configure storage
