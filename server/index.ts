@@ -62,7 +62,10 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+// Initialization promise for serverless
+let initPromise: Promise<void> | null = null;
+
+async function initialize() {
   if (process.env.DATABASE_URL) {
     try {
       console.log("Running migration to add 'role' column...");
@@ -83,22 +86,33 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
   }
+}
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5001", 10);
-  httpServer.listen(port, "0.0.0.0", () => {
-    log(`serving on port ${port}`);
-  });
-})();
+// Export handler for Vercel serverless
+export default async function handler(req: Request, res: Response) {
+  if (!initPromise) {
+    initPromise = initialize();
+  }
+  await initPromise;
+  return app(req, res);
+}
+
+// Start server for local development (non-Vercel)
+if (!process.env.VERCEL) {
+  (async () => {
+    await initialize();
+
+    if (process.env.NODE_ENV !== "production") {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
+    }
+
+    const port = parseInt(process.env.PORT || "5001", 10);
+    httpServer.listen(port, "0.0.0.0", () => {
+      log(`serving on port ${port}`);
+    });
+  })();
+}
