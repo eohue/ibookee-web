@@ -19,12 +19,14 @@ if (connectionString && connectionString.includes('supabase.co') && connectionSt
   connectionString = connectionString.replace(':5432', ':6543');
 }
 
+const isServerless = !!process.env.VERCEL;
+
 const poolConfig = {
   connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 5, // Increased to 5 to handle parallel queries (e.g. admin dashboard). Safe with Transaction Mode.
+  max: isServerless ? 5 : 20, // Serverless: 5, VPS/Render: 20 for better concurrency
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000, // Increased timeout to 10s
+  connectionTimeoutMillis: isServerless ? 10000 : 30000, // Longer timeout for non-serverless
 };
 
 // Singleton pattern for handling connection pool in serverless environment

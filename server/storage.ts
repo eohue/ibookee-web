@@ -1,4 +1,4 @@
-import { eq, and, arrayContains, sql, desc } from "drizzle-orm";
+import { eq, and, arrayContains, sql, desc, count } from "drizzle-orm";
 import { db } from "./db";
 import {
   projects,
@@ -198,6 +198,9 @@ export interface IStorage {
   deleteReporterArticle(id: string): Promise<boolean>;
   updateUserProfileImage(userId: string, profileImageUrl: string): Promise<User | undefined>;
   likeReporterArticle(id: string): Promise<void>;
+
+  // Stats
+  getStatsCounts(): Promise<any>;
   getReporterArticleComments(articleId: string): Promise<ResidentReporterComment[]>;
   createReporterArticleComment(comment: InsertResidentReporterComment): Promise<ResidentReporterComment>;
   deleteReporterArticleComment(commentId: string): Promise<void>;
@@ -252,7 +255,22 @@ export class DatabaseStorage implements IStorage {
 
   // Articles
   async getArticles(): Promise<Article[]> {
-    return db.select().from(articles).orderBy(desc(articles.publishedAt));
+    return db.select({
+      id: articles.id,
+      title: articles.title,
+      excerpt: articles.excerpt,
+      author: articles.author,
+      category: articles.category,
+      imageUrl: articles.imageUrl,
+      fileUrl: articles.fileUrl,
+      sourceUrl: articles.sourceUrl,
+      publishedAt: articles.publishedAt,
+      featured: articles.featured,
+      // content is excluded for list performance
+      content: sql<string>`''`.as('content'), // Mock content to satisfy type
+    })
+      .from(articles)
+      .orderBy(desc(articles.publishedAt));
   }
 
   async getArticle(id: string): Promise<Article | undefined> {
@@ -261,7 +279,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArticlesByCategory(category: string): Promise<Article[]> {
-    return db.select().from(articles).where(eq(articles.category, category)).orderBy(desc(articles.publishedAt));
+    return db.select({
+      id: articles.id,
+      title: articles.title,
+      excerpt: articles.excerpt,
+      author: articles.author,
+      category: articles.category,
+      imageUrl: articles.imageUrl,
+      fileUrl: articles.fileUrl,
+      sourceUrl: articles.sourceUrl,
+      publishedAt: articles.publishedAt,
+      featured: articles.featured,
+      content: sql<string>`''`.as('content'),
+    })
+      .from(articles)
+      .where(eq(articles.category, category))
+      .orderBy(desc(articles.publishedAt));
   }
 
   async createArticle(article: InsertArticle): Promise<Article> {
@@ -276,6 +309,64 @@ export class DatabaseStorage implements IStorage {
 
   async deleteArticle(id: string): Promise<void> {
     await db.delete(articles).where(eq(articles.id, id));
+  }
+
+  // Stats Optimization
+  async getStatsCounts() {
+    const [
+      projectCount,
+      inquiryCount,
+      articleCount,
+      communityPostCount,
+      eventCount,
+      programCount,
+      partnerCount,
+      userCount,
+      adminCount,
+      residentCount,
+      milestoneCount,
+      reporterArticleCount,
+      pendingReporterCount,
+      approvedReporterCount,
+      programApplicationCount,
+      pendingApplicationCount
+    ] = await Promise.all([
+      db.select({ count: count() }).from(projects),
+      db.select({ count: count() }).from(inquiries),
+      db.select({ count: count() }).from(articles),
+      db.select({ count: count() }).from(communityPosts),
+      db.select({ count: count() }).from(events),
+      db.select({ count: count() }).from(residentPrograms),
+      db.select({ count: count() }).from(partners),
+      db.select({ count: count() }).from(users),
+      db.select({ count: count() }).from(users).where(eq(users.role, 'admin')),
+      db.select({ count: count() }).from(users).where(eq(users.role, 'resident')),
+      db.select({ count: count() }).from(historyMilestones),
+      db.select({ count: count() }).from(residentReporters),
+      db.select({ count: count() }).from(residentReporters).where(eq(residentReporters.status, 'pending')),
+      db.select({ count: count() }).from(residentReporters).where(eq(residentReporters.status, 'approved')),
+      db.select({ count: count() }).from(programApplications),
+      db.select({ count: count() }).from(programApplications).where(eq(programApplications.status, 'pending')),
+    ]);
+
+    return {
+      projectCount: projectCount[0].count,
+      inquiryCount: inquiryCount[0].count,
+      articleCount: articleCount[0].count,
+      communityPostCount: communityPostCount[0].count,
+      eventCount: eventCount[0].count,
+      programCount: programCount[0].count,
+      partnerCount: partnerCount[0].count,
+      userCount: userCount[0].count,
+      adminCount: adminCount[0].count,
+      residentCount: residentCount[0].count,
+      milestoneCount: milestoneCount[0].count,
+      reporterArticleCount: reporterArticleCount[0].count,
+      pendingReporterCount: pendingReporterCount[0].count,
+      approvedReporterCount: approvedReporterCount[0].count,
+      applicationCount: programApplicationCount[0].count,
+      pendingApplicationCount: pendingApplicationCount[0].count,
+    };
   }
 
   // Social Accounts
@@ -903,6 +994,27 @@ export class MemStorage implements IStorage {
   private residentReporters: Map<string, ResidentReporter> = new Map();
   private residentReporterComments: Map<string, ResidentReporterComment> = new Map();
   private subprojects: Map<string, Subproject> = new Map();
+
+  async getStatsCounts(): Promise<any> {
+    return {
+      projectCount: this.projects.size,
+      inquiryCount: this.inquiries.size,
+      articleCount: this.articles.size,
+      communityPostCount: this.communityPosts.size,
+      eventCount: this.events.size,
+      programCount: this.residentPrograms.size,
+      partnerCount: this.partners.size,
+      userCount: this.users.size,
+      adminCount: 0,
+      residentCount: 0,
+      milestoneCount: this.historyMilestones.size,
+      reporterArticleCount: this.residentReporters.size,
+      pendingReporterCount: 0,
+      approvedReporterCount: 0,
+      applicationCount: this.programApplications.size,
+      pendingApplicationCount: 0,
+    };
+  }
 
   async getUnifiedCommunityFeed(limit: number): Promise<CommunityFeedItem[]> {
     const socialPosts = Array.from(this.communityPosts.values()).map(post => ({

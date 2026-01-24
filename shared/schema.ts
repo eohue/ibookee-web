@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -83,6 +83,11 @@ export const articles = pgTable("articles", {
   sourceUrl: text("source_url"), // 원문 기사 링크
   publishedAt: timestamp("published_at").defaultNow(),
   featured: boolean("featured").default(false),
+}, (table) => {
+  return {
+    publishedAtIndex: index("published_at_idx").on(table.publishedAt),
+    categoryIndex: index("category_idx").on(table.category),
+  };
 });
 
 export const insertArticleSchema = createInsertSchema(articles).omit({ id: true });

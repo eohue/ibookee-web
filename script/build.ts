@@ -110,6 +110,23 @@ const __dirname = dirname(__filename);
   );
 
   console.log("Vercel Output API build complete!");
+
+  // 7. Build Standard Node.js Server (for Render/VPS)
+  console.log("Building Standard Node.js Server (dist/index.cjs)...");
+  await esbuild({
+    entryPoints: ["server/index.ts"],
+    bundle: true,
+    platform: "node",
+    target: "node20",
+    format: "cjs",
+    outfile: "dist/index.cjs",
+    external: ["sharp", "pg-native"],
+    loader: {
+      ".node": "file"
+    },
+    // No banner needed for CJS usually, or minimal
+  });
+  console.log("Standard Node.js build complete!");
 }
 
 buildAll().catch((err) => {
