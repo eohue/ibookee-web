@@ -11,3 +11,7 @@ ibookee_schema_data.sql
 # Database backups
 *.dump
 ibookee_backup*.sql
+
+# Vercel API build output
+api/index.js
+api/index.js.map

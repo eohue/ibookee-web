@@ -1,15 +1,19 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+// Vercel Serverless API Handler
+// This file is the entry point for Vercel serverless functions
+// It wraps the Express app and handles initialization
+
 import express, { type Request, Response, NextFunction } from 'express';
-import { registerRoutes } from '../server/routes';
-import { serveStatic } from '../server/static';
+import { registerRoutes } from './routes';
+import { serveStatic } from './static';
 import { createServer } from 'http';
-import { db } from '../server/db';
+import { db } from './db';
 import { sql } from 'drizzle-orm';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const app = express();
 const httpServer = createServer(app);
 
-// Body parsing middleware
+// Request body parsing
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
@@ -32,22 +36,22 @@ let initPromise: Promise<void> | null = null;
 async function initialize() {
     if (initialized) return;
 
-    console.log('Initializing serverless function...');
+    console.log('Initializing Vercel serverless function...');
 
-    // Run migrations
+    // Run database migrations
     if (process.env.DATABASE_URL) {
         try {
             await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role text DEFAULT 'user' NOT NULL`);
-            console.log('Migration successful.');
+            console.log('Database migration successful.');
         } catch (err) {
             console.error('Migration error:', err);
         }
     }
 
-    // Register routes
+    // Register all routes
     await registerRoutes(httpServer, app);
 
-    // Error handler
+    // Error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
         const status = err.status || err.statusCode || 500;
         const message = err.message || 'Internal Server Error';
@@ -55,22 +59,22 @@ async function initialize() {
         res.status(status).json({ message });
     });
 
-    // Serve static files in production
+    // Serve static files
     serveStatic(app);
 
     initialized = true;
-    console.log('Serverless function initialized.');
+    console.log('Vercel serverless function initialized successfully.');
 }
 
-// Vercel serverless handler
+// Export the Vercel handler
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // Lazy initialization
+    // Lazy initialization on first request
     if (!initPromise) {
         initPromise = initialize();
     }
     await initPromise;
 
-    // Handle the request with Express
+    // Handle request with Express app
     return new Promise<void>((resolve) => {
         app(req as any, res as any);
         res.on('finish', resolve);
