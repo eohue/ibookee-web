@@ -22,9 +22,9 @@ if (connectionString && connectionString.includes('supabase.co') && connectionSt
 const poolConfig = {
   connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 1, // Keep max: 1 for serverless
+  max: 5, // Increased to 5 to handle parallel queries (e.g. admin dashboard). Safe with Transaction Mode.
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000, // Increased timeout
+  connectionTimeoutMillis: 10000, // Increased timeout to 10s
 };
 
 // Singleton pattern for handling connection pool in serverless environment

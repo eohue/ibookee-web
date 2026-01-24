@@ -58,8 +58,13 @@ export function registerStatsRoutes(app: Express) {
                 applicationCount: applications.length,
                 pendingApplicationCount: pendingApplications.length,
             });
-        } catch (error) {
-            res.status(500).json({ error: "Failed to fetch stats" });
+        } catch (error: any) {
+            console.error("Stats fetch error:", error);
+            res.status(500).json({
+                error: "Failed to fetch stats",
+                details: error.message,
+                code: error.code
+            });
         }
     });
 }
