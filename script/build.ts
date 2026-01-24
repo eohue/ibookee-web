@@ -1,50 +1,16 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
-
-// server deps to bundle to reduce openat(2) syscalls
-// which helps cold start times
-const allowlist = [
-  "@google/generative-ai",
-  "axios",
-  "connect-pg-simple",
-  "cors",
-  "date-fns",
-  "drizzle-orm",
-  "drizzle-zod",
-  "express",
-  "express-rate-limit",
-  "express-session",
-  "jsonwebtoken",
-  "memorystore",
-  "multer",
-  "nanoid",
-  "nodemailer",
-  "openai",
-  "passport",
-  "passport-local",
-  "pg",
-  "stripe",
-  "uuid",
-  "ws",
-  "xlsx",
-  "zod",
-  "zod-validation-error",
-];
+import { rm, readFile, mkdir, writeFile, cp } from "fs/promises";
+import { existsSync } from "fs";
 
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
+  await rm(".vercel/output", { recursive: true, force: true });
 
   console.log("building client...");
   await viteBuild();
 
   console.log("building server...");
-  const pkg = JSON.parse(await readFile("package.json", "utf-8"));
-  const allDeps = [
-    ...Object.keys(pkg.dependencies || {}),
-    ...Object.keys(pkg.devDependencies || {}),
-  ];
-  const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
     entryPoints: ["server/index.ts"],
@@ -56,9 +22,42 @@ async function buildAll() {
       "process.env.NODE_ENV": '"production"',
     },
     minify: true,
-    external: externals,
+    // Bundle everything except native modules
+    external: ["sharp", "bufferutil", "utf-8-validate"],
     logLevel: "info",
   });
+
+  // Create Vercel Output API structure
+  console.log("creating Vercel output structure...");
+
+  await mkdir(".vercel/output/static", { recursive: true });
+  await mkdir(".vercel/output/functions/api.func", { recursive: true });
+
+  // Copy static files
+  await cp("dist/public", ".vercel/output/static", { recursive: true });
+
+  // Copy server bundle to function
+  const serverCode = await readFile("dist/index.cjs", "utf-8");
+  await writeFile(".vercel/output/functions/api.func/index.js", serverCode);
+
+  // Create function config
+  await writeFile(".vercel/output/functions/api.func/.vc-config.json", JSON.stringify({
+    runtime: "nodejs20.x",
+    handler: "index.js",
+    launcherType: "Nodejs"
+  }, null, 2));
+
+  // Create output config
+  await writeFile(".vercel/output/config.json", JSON.stringify({
+    version: 3,
+    routes: [
+      { handle: "filesystem" },
+      { src: "/api/(.*)", dest: "/api" },
+      { src: "/(.*)", dest: "/api" }
+    ]
+  }, null, 2));
+
+  console.log("Vercel output created successfully!");
 }
 
 buildAll().catch((err) => {
