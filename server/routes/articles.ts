@@ -9,8 +9,13 @@ export function registerArticleRoutes(app: Express) {
         try {
             const articles = await storage.getArticles();
             res.json(articles);
-        } catch (error) {
-            res.status(500).json({ error: "Failed to fetch articles" });
+        } catch (error: any) {
+            console.error("Fetch articles error:", error);
+            res.status(500).json({
+                error: "Failed to fetch articles",
+                details: error.message,
+                code: error.code // PostgreSQL error code
+            });
         }
     });
 

@@ -51,6 +51,22 @@ async function initialize() {
     // Register all routes
     await registerRoutes(httpServer, app);
 
+    // Health check endpoint with DB test
+    app.get('/api/health', async (_req, res) => {
+        try {
+            await db.execute(sql`SELECT 1`);
+            res.json({ status: 'ok', database: 'connected', env: process.env.NODE_ENV });
+        } catch (err: any) {
+            console.error('Health check failed:', err);
+            res.status(500).json({
+                status: 'error',
+                database: 'disconnected',
+                error: err.message,
+                code: err.code
+            });
+        }
+    });
+
     // Error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
         const status = err.status || err.statusCode || 500;
