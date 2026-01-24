@@ -19,10 +19,10 @@ import { Separator } from "@/components/ui/separator";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { CommunityPost, SocialAccount, CommunityPostComment } from "@shared/schema";
-import { Heart, MessageCircle, Send, MapPin, ExternalLink } from "lucide-react";
+import { Heart, MessageCircle, Send, MapPin, ExternalLink, MoreHorizontal, Bookmark, Smile } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import { useState } from "react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -40,7 +40,6 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
     const { toast } = useToast();
     const { user } = useAuth();
     const [commentText, setCommentText] = useState("");
-
 
     const { data: comments = [], isLoading: commentsLoading } = useQuery<CommunityPostComment[]>({
         queryKey: [`/api/community-posts/${post?.id}/comments`],
@@ -105,35 +104,40 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
 
     if (!post) return null;
 
+    const postDate = post.postedAt ? new Date(post.postedAt) : (post.createdAt ? new Date(post.createdAt) : new Date());
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-4xl p-0 overflow-hidden h-[80vh] flex flex-col md:flex-row gap-0">
+            <DialogContent className="max-w-6xl w-[95vw] h-[90vh] md:h-[95vh] p-0 overflow-hidden flex flex-col md:flex-row gap-0 sm:rounded-xl border-none outline-none bg-background">
                 <DialogTitle className="sr-only">Post Detail</DialogTitle>
-                {/* Left: Image */}
-                <div className="w-full md:w-3/5 bg-black flex items-center justify-center relative h-[50%] md:h-full shrink-0">
+
+                {/* Left: Image Section */}
+                <div className="w-full md:w-[60%] lg:w-[65%] bg-black flex items-center justify-center relative h-[45%] md:h-full shrink-0">
                     {post.embedCode ? (
                         <div
-                            className="w-full h-full flex items-center justify-center overflow-hidden [&>iframe]:max-w-full [&>iframe]:max-h-full [&>blockquote]:max-w-full [&>blockquote]:max-h-full [&>blockquote]:bg-white [&>blockquote]:mx-auto"
+                            className="w-full h-full flex items-center justify-center overflow-hidden [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:aspect-video"
                             dangerouslySetInnerHTML={{ __html: post.embedCode }}
                         />
                     ) : (post.images && post.images.length > 1) ? (
                         <Carousel className="w-full h-full">
                             <CarouselContent className="h-full">
                                 {post.images.map((img, idx) => (
-                                    <CarouselItem key={idx} className="flex items-center justify-center h-full">
-                                        <img
-                                            src={img}
-                                            alt={`${post.caption || "Community post"} - ${idx + 1}`}
-                                            className="max-h-full max-w-full object-contain"
-                                        />
+                                    <CarouselItem key={idx} className="flex items-center justify-center h-full p-0">
+                                        <div className="w-full h-full flex items-center justify-center bg-black">
+                                            <img
+                                                src={img}
+                                                alt={`${post.caption || "Community post"} - ${idx + 1}`}
+                                                className="max-h-full max-w-full object-contain"
+                                            />
+                                        </div>
                                     </CarouselItem>
                                 ))}
                             </CarouselContent>
                             <CarouselPrevious
-                                className="!absolute !left-4 !top-1/2 !-translate-y-1/2 z-50 h-12 w-12 rounded-full backdrop-blur-md bg-white/20 hover:bg-white/40 border border-white/30 text-white shadow-lg transition-all duration-200 disabled:opacity-30"
+                                className="!absolute !left-4 !top-1/2 !-translate-y-1/2 z-50 h-8 w-8 rounded-full bg-white/80 hover:bg-white text-black border-none shadow-sm transition-all opacity-70 hover:opacity-100"
                             />
                             <CarouselNext
-                                className="!absolute !right-4 !top-1/2 !-translate-y-1/2 z-50 h-12 w-12 rounded-full backdrop-blur-md bg-white/20 hover:bg-white/40 border border-white/30 text-white shadow-lg transition-all duration-200 disabled:opacity-30"
+                                className="!absolute !right-4 !top-1/2 !-translate-y-1/2 z-50 h-8 w-8 rounded-full bg-white/80 hover:bg-white text-black border-none shadow-sm transition-all opacity-70 hover:opacity-100"
                             />
                         </Carousel>
                     ) : (
@@ -143,138 +147,177 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                             className="max-h-full max-w-full object-contain"
                         />
                     )}
-
                 </div>
 
-                {/* Right: Content & Comments */}
-                <div className="w-full md:w-2/5 flex flex-col bg-background h-[50%] md:h-full min-h-0">
-                    {/* Header */}
-                    <div className="p-4 flex items-center border-b shrink-0">
-                        <Avatar className="h-8 w-8 mr-3">
-                            <AvatarImage src={account?.profileImageUrl || undefined} />
-                            <AvatarFallback>{account?.name?.charAt(0) || "U"}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm truncate">{account?.name || "ibookee"}</p>
-                            {post.location && (
-                                <p className="text-xs text-muted-foreground flex items-center truncate">
-                                    <MapPin className="w-3 h-3 mr-1" />
-                                    {post.location}
-                                </p>
-                            )}
-                        </div>
-                        {post.sourceUrl && (
-                            <Button variant="ghost" size="icon" onClick={() => window.open(post.sourceUrl!, '_blank')} title="Original Post">
-                                <ExternalLink className="w-4 h-4" />
-                            </Button>
-                        )}
-                    </div>
-
-                    {/* Scrollable Area: Caption + Comments */}
-                    <ScrollArea className="flex-1 p-4">
-                        <div className="space-y-4">
-                            {/* Caption */}
-                            <div className="flex gap-3">
-                                <Avatar className="h-8 w-8 shrink-0">
-                                    <AvatarImage src={account?.profileImageUrl || undefined} />
-                                    <AvatarFallback>{account?.name?.charAt(0) || "U"}</AvatarFallback>
-                                </Avatar>
-                                <div className="text-sm">
-                                    <span className="font-semibold mr-2">{account?.name || "ibookee"}</span>
-                                    <span className="whitespace-pre-wrap">{post.caption}</span>
-                                    <div className="flex flex-wrap gap-1 mt-2">
-                                        {post.hashtags?.map((tag) => (
-                                            <span key={tag} className="text-primary">#{tag}</span>
-                                        ))}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground mt-2">
-                                        {post.postedAt ? formatDistanceToNow(new Date(post.postedAt), { addSuffix: true, locale: ko }) :
-                                            formatDistanceToNow(new Date(post.createdAt || ""), { addSuffix: true, locale: ko })}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <Separator />
-
-                            {/* Comments List */}
-                            <div className="space-y-4">
-                                {commentsLoading ? (
-                                    <p className="text-sm text-muted-foreground text-center">댓글을 불러오는 중...</p>
-                                ) : comments.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground text-center py-4">아직 댓글이 없습니다.</p>
-                                ) : (
-                                    comments.map((comment) => (
-                                        <div key={comment.id} className="flex gap-3 group">
-                                            <Avatar className="h-8 w-8 shrink-0">
-                                                <AvatarFallback>{comment.nickname.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1 text-sm">
-                                                <div className="flex items-start justify-between">
-                                                    <div>
-                                                        <span className="font-semibold mr-2">{comment.nickname}</span>
-                                                        <span>{comment.content}</span>
-                                                    </div>
-                                                    {user?.role === 'admin' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            onClick={() => deleteCommentMutation.mutate(comment.id)}
-                                                        >
-                                                            <Trash2 className="h-3 w-3 text-destructive" />
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    {formatDistanceToNow(new Date(comment.createdAt || ""), { addSuffix: true, locale: ko })}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
+                {/* Right: Content Section */}
+                <div className="w-full md:w-[40%] lg:w-[35%] flex flex-col bg-background h-[55%] md:h-full min-h-0 border-l border-border">
+                    {/* Header: User Profile */}
+                    <div className="p-3.5 flex items-center justify-between border-b shrink-0">
+                        <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8 ring-1 ring-border">
+                                <AvatarImage src={account?.profileImageUrl || undefined} />
+                                <AvatarFallback className="text-xs bg-secondary">{account?.name?.charAt(0) || "U"}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col justify-center -space-y-0.5">
+                                <span className="font-semibold text-sm hover:opacity-70 cursor-pointer transition-opacity">
+                                    {account?.name || "ibookee"}
+                                </span>
+                                {post.location && (
+                                    <span className="text-[11px] text-muted-foreground truncate max-w-[150px]">
+                                        {post.location}
+                                    </span>
                                 )}
                             </div>
                         </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground/80">
+                            <MoreHorizontal className="w-5 h-5" />
+                        </Button>
+                    </div>
+
+                    {/* Scrollable Area: Caption & Comments */}
+                    <ScrollArea className="flex-1 p-0">
+                        <div className="p-4 space-y-5">
+                            {/* Caption */}
+                            <div className="flex gap-3 relative group">
+                                <Avatar className="h-8 w-8 shrink-0 ring-1 ring-border mt-0.5">
+                                    <AvatarImage src={account?.profileImageUrl || undefined} />
+                                    <AvatarFallback className="text-xs bg-secondary">{account?.name?.charAt(0) || "U"}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 text-sm pt-0.5">
+                                    <div className="inline">
+                                        <span className="font-semibold mr-2 hover:opacity-70 cursor-pointer transition-opacity">
+                                            {account?.name || "ibookee"}
+                                        </span>
+                                        <span className="whitespace-pre-wrap leading-relaxed text-foreground/90">
+                                            {post.caption}
+                                        </span>
+                                    </div>
+                                    {post.hashtags && post.hashtags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1.5">
+                                            {post.hashtags.map((tag) => (
+                                                <span key={tag} className="text-[#00376b] dark:text-blue-400 cursor-pointer hover:underline text-sm">
+                                                    #{tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <div className="mt-2 text-xs text-muted-foreground font-medium">
+                                        {formatDistanceToNow(postDate, { addSuffix: true, locale: ko })}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Comments List */}
+                            {commentsLoading ? (
+                                <div className="flex justify-center py-4">
+                                    <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                                </div>
+                            ) : comments.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <p className="text-sm text-muted-foreground">아직 댓글이 없습니다.</p>
+                                    <p className="text-xs text-muted-foreground mt-1">첫 번째 댓글을 남겨보세요.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {comments.map((comment) => (
+                                        <div key={comment.id} className="flex gap-3 group">
+                                            <Avatar className="h-8 w-8 shrink-0 ring-1 ring-border mt-0.5">
+                                                <AvatarFallback className="text-xs">{comment.nickname.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 text-sm pt-0.5">
+                                                <div className="inline">
+                                                    <span className="font-semibold mr-2">{comment.nickname}</span>
+                                                    <span className="text-foreground/90 leading-relaxed">{comment.content}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground font-medium">
+                                                    <span>{formatDistanceToNow(new Date(comment.createdAt || ""), { addSuffix: true, locale: ko })}</span>
+                                                    {(comments.length > 0) && ( // Placeholder for reply feature
+                                                        <span className="cursor-pointer hover:text-muted-foreground/80">답글 달기</span>
+                                                    )}
+                                                    {user?.role === 'admin' && (
+                                                        <span
+                                                            className="cursor-pointer text-destructive/80 hover:text-destructive ml-auto sm:ml-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            onClick={() => deleteCommentMutation.mutate(comment.id)}
+                                                        >
+                                                            삭제
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-4 w-4 shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Heart className="w-3 h-3 text-muted-foreground" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </ScrollArea>
 
-                    {/* Footer: Stats & Comment Form */}
-                    <div className="border-t p-4 shrink-0 bg-background z-10">
-                        <div className="flex items-center gap-4 mb-3">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="p-0 hover:bg-transparent"
-                                onClick={handleLike}
-                                disabled={likeMutation.isPending}
-                            >
-                                <div className="flex items-center gap-1">
-                                    <Heart className={`w-6 h-6 ${(post.likes || 0) > 0 ? "fill-red-500 text-red-500" : ""}`} />
-                                    <span className="font-semibold text-sm">{post.likes || 0}</span>
-                                </div>
-                            </Button>
-                            <div className="flex items-center gap-1">
-                                <MessageCircle className="w-6 h-6" />
-                                <span className="font-semibold text-sm">{post.commentCount || 0}</span>
+                    {/* Footer: Actions, Likes, Date, Form */}
+                    <div className="border-t bg-background shrink-0 p-3.5 pb-2">
+                        {/* Action Buttons */}
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-4">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 p-0 hover:bg-transparent"
+                                    onClick={handleLike}
+                                    disabled={likeMutation.isPending}
+                                >
+                                    <Heart className={`w-7 h-7 transition-all hover:scale-110 active:scale-90 ${(post.likes || 0) > 0 ? "fill-red-500 text-red-500" : "text-foreground hover:text-muted-foreground"}`} />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-transparent">
+                                    <MessageCircle className="w-7 h-7 text-foreground hover:text-muted-foreground transition-all -rotate-90" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-transparent">
+                                    <Send className="w-7 h-7 text-foreground hover:text-muted-foreground transition-all -rotate-12" />
+                                </Button>
                             </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-transparent">
+                                <Bookmark className="w-7 h-7 text-foreground hover:text-muted-foreground transition-all" />
+                            </Button>
                         </div>
 
+                        {/* Likes Count */}
+                        <div className="mb-1.5 px-0.5">
+                            <span className="font-semibold text-sm">좋아요 {post.likes || 0}개</span>
+                        </div>
+
+                        {/* Post Date */}
+                        <div className="mb-3 px-0.5">
+                            <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">
+                                {format(postDate, "yyyy년 M월 d일")}
+                            </span>
+                        </div>
+
+                        {/* Comment Form */}
                         {user ? (
-                            <form onSubmit={handleSubmitComment} className="flex flex-col gap-2">
-                                <div className="flex gap-2">
-                                    <Input
-                                        placeholder="댓글 달기..."
-                                        value={commentText}
-                                        onChange={(e) => setCommentText(e.target.value)}
-                                        className="flex-1 h-9 text-sm"
-                                        required
-                                    />
-                                    <Button type="submit" size="sm" disabled={!commentText.trim() || commentMutation.isPending}>
-                                        게시
-                                    </Button>
+                            <form onSubmit={handleSubmitComment} className="flex items-center gap-2 pt-3 border-t -mx-3.5 px-3.5 relative">
+                                <div className="absolute top-3 left-3.5 md:left-3 cursor-pointer">
+                                    <Smile className="w-6 h-6 text-foreground/80 hover:text-muted-foreground" />
                                 </div>
+                                <Input
+                                    placeholder="댓글 달기..."
+                                    value={commentText}
+                                    onChange={(e) => setCommentText(e.target.value)}
+                                    className="flex-1 h-10 border-none shadow-none focus-visible:ring-0 pl-8 pr-12 text-sm bg-transparent"
+                                    required
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={!commentText.trim() || commentMutation.isPending}
+                                    className="absolute right-3.5 top-3 text-sm font-semibold text-blue-500 hover:text-blue-700 disabled:opacity-50 disabled:cursor-default transition-colors"
+                                >
+                                    게시
+                                </button>
                             </form>
                         ) : (
-                            <div className="text-center p-3 bg-muted/50 rounded-lg">
-                                <p className="text-sm text-muted-foreground">댓글을 작성하려면 로그인이 필요합니다.</p>
+                            <div className="pt-3 border-t -mx-3.5 px-3.5 text-center">
+                                <p className="text-xs text-muted-foreground py-2 cursor-pointer hover:text-primary transition-colors">
+                                    로그인하고 댓글을 남겨보세요.
+                                </p>
                             </div>
                         )}
                     </div>
