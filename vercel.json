@@ -3,20 +3,10 @@
     "version": 2,
     "buildCommand": "npm run build",
     "installCommand": "npm install",
-    "outputDirectory": "dist",
-    "functions": {
-        "dist/index.cjs": {
-            "runtime": "@vercel/node@3.0.0"
-        }
-    },
     "rewrites": [
         {
-            "source": "/assets/(.*)",
-            "destination": "/public/assets/$1"
-        },
-        {
             "source": "/(.*)",
-            "destination": "/index.cjs"
+            "destination": "/api"
         }
     ]
 }

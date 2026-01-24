@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 
 const app = express();
 const httpServer = createServer(app);
@@ -60,10 +62,12 @@ app.use((req, res, next) => {
   next();
 });
 
-import { db } from "./db";
-import { sql } from "drizzle-orm";
+// Initialize function for async setup
+let initialized = false;
+async function initializeApp() {
+  if (initialized) return;
+  initialized = true;
 
-(async () => {
   if (process.env.DATABASE_URL) {
     try {
       console.log("Running migration to add 'role' column...");
@@ -84,24 +88,32 @@ import { sql } from "drizzle-orm";
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
   }
+}
 
-  // Only start server if not running in Vercel serverless
-  if (!process.env.VERCEL) {
+// For Vercel serverless: export handler that initializes on first request
+const handler = async (req: Request, res: Response) => {
+  await initializeApp();
+  app(req, res);
+};
+
+// Start server for non-Vercel environments
+if (!process.env.VERCEL) {
+  (async () => {
+    await initializeApp();
+
+    if (process.env.NODE_ENV !== "production") {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
+    }
+
     const port = parseInt(process.env.PORT || "5001", 10);
     httpServer.listen(port, "0.0.0.0", () => {
       log(`serving on port ${port}`);
     });
-  }
-})();
+  })();
+}
 
-// Export for Vercel serverless
-export default app;
+export default handler;
