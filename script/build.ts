@@ -99,7 +99,10 @@ const __dirname = dirname(__filename);
         // 2. Static files are handled by filesystem
         { handle: "filesystem" },
 
-        // 3. SPA Fallback: All other routes go to index.html
+        // 3. Dynamic Assets: If not found in filesystem, let server handle /assets (e.g. uploads)
+        { src: "/assets/(.*)", dest: "/index" },
+
+        // 4. SPA Fallback: All other routes go to index.html
         { src: "/(.*)", dest: "/index.html" }
       ]
     }, null, 2)
