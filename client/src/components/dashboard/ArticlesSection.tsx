@@ -192,32 +192,27 @@ export function ArticlesSection() {
         },
     });
 
-    // Sync content state when dialog opens or article changes
-    useEffect(() => {
-        if (isDialogOpen) {
-            if (editingArticle) {
-                // Ensure values are set after render cycle
-                setContent(editingArticle.content || "");
-                setSelectedCategory(editingArticle.category);
-                setIsFeatured(editingArticle.featured ?? false);
-                setImageUrl(editingArticle.imageUrl ?? "");
-                setPublishedAt(editingArticle.publishedAt ? new Date(editingArticle.publishedAt).toISOString().split('T')[0] : "");
-                setSourceUrl(editingArticle.sourceUrl ?? "");
-                setFileUrl(editingArticle.fileUrl ?? "");
-            } else {
-                setContent("");
-                setSelectedCategory("column");
-                setIsFeatured(false);
-                setImageUrl("");
-                setPublishedAt("");
-                setSourceUrl("");
-                setFileUrl("");
-            }
-        }
-    }, [isDialogOpen, editingArticle]);
-
     const openDialog = (article: Article | null) => {
         setEditingArticle(article);
+
+        if (article) {
+            setContent(article.content || "");
+            setSelectedCategory(article.category);
+            setIsFeatured(article.featured ?? false);
+            setImageUrl(article.imageUrl ?? "");
+            setPublishedAt(article.publishedAt ? new Date(article.publishedAt).toISOString().split('T')[0] : "");
+            setSourceUrl(article.sourceUrl ?? "");
+            setFileUrl(article.fileUrl ?? "");
+        } else {
+            setContent("");
+            setSelectedCategory("column");
+            setIsFeatured(false);
+            setImageUrl("");
+            setPublishedAt("");
+            setSourceUrl("");
+            setFileUrl("");
+        }
+
         setIsDialogOpen(true);
     };
 
