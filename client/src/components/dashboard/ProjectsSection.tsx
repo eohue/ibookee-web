@@ -38,8 +38,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, Edit, Trash2 } from "lucide-react";
-import type { Project } from "@shared/schema";
+import { Plus, Edit, Trash2, Link as LinkIcon, X } from "lucide-react";
+import type { Project, RelatedArticle } from "@shared/schema";
 import { MultiSelect } from "@/components/ui/multi-select-custom";
 import { PROJECT_CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
 import { SubprojectManager } from "./SubprojectManager";
@@ -61,6 +61,7 @@ export function ProjectsSection() {
     const [pdfUrl, setPdfUrl] = useState("");
     const [description, setDescription] = useState("");
     const [partnerLogos, setPartnerLogos] = useState<string[]>([]);
+    const [relatedArticles, setRelatedArticles] = useState<RelatedArticle[]>([]);
     const [currentPage, setCurrentPage] = useState(getPageFromUrl);
 
 
@@ -190,12 +191,14 @@ export function ProjectsSection() {
             setPdfUrl(project.pdfUrl ?? "");
             setDescription(project.description);
             setPartnerLogos((project.partnerLogos as unknown as string[]) ?? []);
+            setRelatedArticles((project.relatedArticles as unknown as RelatedArticle[]) ?? []);
         } else {
             setSelectedCategories(["youth"]);
             setImageUrl("");
             setPdfUrl("");
             setDescription("");
             setPartnerLogos([]);
+            setRelatedArticles([]);
         }
         setIsDialogOpen(true);
     };
@@ -225,6 +228,7 @@ export function ProjectsSection() {
             scale: (formData.get("scale") as string) || null,
             featured: false,
             partnerLogos: partnerLogos,
+            relatedArticles: relatedArticles,
         };
 
         if (editingProject) {
@@ -354,6 +358,70 @@ export function ProjectsSection() {
                                     label="PDF 업로드"
                                 />
                             </div>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <Label>관련 기사 ({relatedArticles.length}/5)</Label>
+                                    {relatedArticles.length < 5 && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setRelatedArticles([...relatedArticles, { title: "", url: "" }])}
+                                        >
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            기사 추가
+                                        </Button>
+                                    )}
+                                </div>
+                                <div className="space-y-3">
+                                    {relatedArticles.map((article, index) => (
+                                        <div key={index} className="flex gap-2 items-start border p-3 rounded-md bg-muted/20">
+                                            <div className="grid gap-2 flex-1">
+                                                <Input
+                                                    placeholder="기사 제목"
+                                                    value={article.title}
+                                                    onChange={(e) => {
+                                                        const newArticles = [...relatedArticles];
+                                                        newArticles[index].title = e.target.value;
+                                                        setRelatedArticles(newArticles);
+                                                    }}
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <LinkIcon className="w-4 h-4 text-muted-foreground" />
+                                                    <Input
+                                                        placeholder="URL (https://...)"
+                                                        value={article.url}
+                                                        onChange={(e) => {
+                                                            const newArticles = [...relatedArticles];
+                                                            newArticles[index].url = e.target.value;
+                                                            setRelatedArticles(newArticles);
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-muted-foreground hover:text-destructive"
+                                                onClick={() => {
+                                                    const newArticles = relatedArticles.filter((_, i) => i !== index);
+                                                    setRelatedArticles(newArticles);
+                                                }}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    {relatedArticles.length === 0 && (
+                                        <div className="text-sm text-muted-foreground text-center py-4 border border-dashed rounded-md">
+                                            등록된 관련 기사가 없습니다.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="year">준공 연도</Label>

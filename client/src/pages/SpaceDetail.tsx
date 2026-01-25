@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import type { Project, Subproject } from "@shared/schema";
+import type { Project, Subproject, RelatedArticle } from "@shared/schema";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, ArrowRight, MapPin, Calendar, Home, Users, AlertCircle, RefreshCw, Building2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Calendar, Home, Users, AlertCircle, RefreshCw, Building2, Newspaper } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { CATEGORY_LABELS } from "@/lib/constants";
@@ -189,6 +189,36 @@ export default function SpaceDetail() {
               data-testid="text-project-description"
               dangerouslySetInnerHTML={{ __html: project.description }}
             />
+
+            {(() => {
+              const relatedArticles = (project.relatedArticles as unknown as RelatedArticle[]) ?? [];
+              if (relatedArticles.length === 0) return null;
+
+              return (
+                <div className="border-t border-border pt-12 mb-12">
+                  <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                    <Newspaper className="w-5 h-5" />
+                    관련 기사
+                  </h3>
+                  <div className="grid gap-3">
+                    {relatedArticles.map((article, index) => (
+                      <a
+                        key={index}
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-4 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors group"
+                      >
+                        <span className="font-medium text-foreground group-hover:text-primary transition-colors">
+                          {article.title}
+                        </span>
+                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {(() => {
               const partnerLogos = (project.partnerLogos as unknown as string[]) ?? [];

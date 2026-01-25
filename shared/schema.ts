@@ -23,6 +23,7 @@ export const projects = pgTable("projects", {
   featured: boolean("featured").default(false),
   partnerLogos: jsonb("partner_logos"), // Array of PartnerLogo objects
   pdfUrl: text("pdf_url"),
+  relatedArticles: jsonb("related_articles"), // Array of { title: string, url: string }
 }, (table) => {
   return {
     yearIndex: index("projects_year_idx").on(table.year),
@@ -37,6 +38,11 @@ export type Project = typeof projects.$inferSelect;
 export interface PartnerLogo {
   url: string;
   link?: string;
+}
+
+export interface RelatedArticle {
+  title: string;
+  url: string;
 }
 
 // Subprojects (서브 프로젝트: 보린주택 2호, 3호 등)
