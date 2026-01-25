@@ -13,7 +13,7 @@ const footerLinks = {
   ],
   services: [
     { name: "Projects", href: "/space" },
-    { name: "Community", href: "/community" },
+    { name: "Life", href: "/community" },
     { name: "Contact", href: "/contact" },
   ],
 };

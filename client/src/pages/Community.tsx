@@ -1,18 +1,16 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink, Loader2, MessageCircle, Info } from "lucide-react";
+import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink, Loader2, MessageCircle, Info, Home } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CommunityPost, Event, ResidentProgram, SocialAccount } from "@shared/schema";
+import type { CommunityPost, Event, ResidentProgram, SocialAccount, Project } from "@shared/schema";
 import { PostDetailModal } from "@/components/community/PostDetailModal";
-// TODO: Resident Reporter Feature Tasks
-// - [x] Create Admin Dashboard for Reporter (`/admin/reporter`) <!-- id: 7 -->
-// - [x] Update Community Page with Reporter Section & Submission Modal <!-- id: 8 -->
-// - [/] Verify functionality <!-- id: 9 -->
+import { ProgramApplicationModal } from "@/components/community/ProgramApplicationModal";
 import { ReporterSubmissionModal } from "@/components/community/ReporterSubmissionModal";
 import { ReporterArticleModal } from "@/components/community/ReporterArticleModal";
 import { useAuth } from "@/hooks/use-auth";
@@ -70,6 +68,7 @@ export default function Community() {
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [isReporterModalOpen, setIsReporterModalOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<ResidentReporter | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<ResidentProgram | null>(null);
   const observerRef = useRef<HTMLDivElement>(null);
 
   const { data: socialAccounts = [], isLoading: accountsLoading } = useQuery<SocialAccount[]>({
@@ -188,7 +187,7 @@ export default function Community() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
               <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
-                Community
+                Life
               </p>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
                 입주민 라이프
@@ -197,6 +196,49 @@ export default function Community() {
                 아이부키 입주민들의 생생한 일상과 커뮤니티 활동을 만나보세요.
                 외롭지 않은 나만의 집, 함께 만들어가는 이야기입니다.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Housing Recruitment Section */}
+        <section className="py-16 bg-gradient-to-r from-primary/5 to-primary/10" data-testid="section-housing-recruitment">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Home className="w-6 h-6 text-primary" />
+                  </div>
+                  <p className="text-primary font-medium text-sm uppercase tracking-widest">
+                    Housing Recruitment
+                  </p>
+                </div>
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                  입주자 모집 공고
+                </h2>
+                <p className="text-muted-foreground mb-6 max-w-xl">
+                  아이부키의 다양한 주거 프로젝트에서 새로운 입주자를 모집합니다.
+                  나에게 맞는 공간을 찾아보세요.
+                </p>
+                <Link href="/space">
+                  <Button size="lg" className="group">
+                    입주 가능 프로젝트 보기
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+              <div className="flex-shrink-0 hidden md:block">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-background rounded-lg p-6 shadow-sm border border-border text-center">
+                    <p className="text-3xl font-bold text-primary mb-1">20+</p>
+                    <p className="text-sm text-muted-foreground">운영 중인 프로젝트</p>
+                  </div>
+                  <div className="bg-background rounded-lg p-6 shadow-sm border border-border text-center">
+                    <p className="text-3xl font-bold text-primary mb-1">1,000+</p>
+                    <p className="text-sm text-muted-foreground">입주 세대</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -480,27 +522,31 @@ export default function Community() {
                   return (
                     <Card
                       key={program.id}
-                      className="p-6 md:p-8"
+                      className="p-6 md:p-8 bg-background border-2 border-border shadow-lg hover:shadow-xl transition-shadow"
                       data-testid={`program-${program.id}`}
                     >
-                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                      <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-6">
                         <IconComponent className="w-7 h-7 text-primary" />
                       </div>
-                      <h3 className="text-xl font-semibold text-foreground mb-3">
+                      <h3 className="text-xl font-bold text-foreground mb-3">
                         {program.title}
                       </h3>
-                      <p className="text-muted-foreground mb-6">
+                      <p className="text-foreground/80 mb-6">
                         {program.description}
                       </p>
                       <ul className="space-y-2 mb-6">
                         {defaultBenefits.map((benefit, index) => (
-                          <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                          <li key={index} className="flex items-center gap-2 text-sm text-foreground/70">
+                            <div className="w-2 h-2 rounded-full bg-primary" />
                             {benefit}
                           </li>
                         ))}
                       </ul>
-                      <Button variant="outline" className="w-full group" data-testid={`button-apply-${program.id}`}>
+                      <Button
+                        className="w-full group"
+                        data-testid={`button-apply-${program.id}`}
+                        onClick={() => setSelectedProgram(program)}
+                      >
                         신청하기
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
@@ -619,6 +665,11 @@ export default function Community() {
         article={selectedArticle}
         isOpen={!!selectedArticle}
         onClose={() => setSelectedArticle(null)}
+      />
+      <ProgramApplicationModal
+        program={selectedProgram}
+        isOpen={!!selectedProgram}
+        onClose={() => setSelectedProgram(null)}
       />
     </div>
   );
