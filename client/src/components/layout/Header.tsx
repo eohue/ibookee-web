@@ -16,8 +16,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
-import logoWhite from "@assets/logo_white.svg";
-import logoDark from "@assets/logo.svg";
+import logoWhite from "@assets/logo_white.png";
+import logoDark from "@assets/logo_dark.png";
 
 const navigation = [
   { name: "About Us", href: "/about" },

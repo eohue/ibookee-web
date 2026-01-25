@@ -1,8 +1,8 @@
 import { Link } from "wouter";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { useFooterSettings } from "@/hooks/use-site-settings";
-import logoDark from "@assets/logo.svg";
-import logoWhite from "@assets/logo_white.svg";
+import logoDark from "@assets/logo_dark.png";
+import logoWhite from "@assets/logo_white.png";
 import { useEffect, useState } from "react";
 
 const footerLinks = {
