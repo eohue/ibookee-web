@@ -240,8 +240,8 @@ export class DatabaseStorage implements IStorage {
         featured: projects.featured,
         partnerLogos: projects.partnerLogos,
         pdfUrl: projects.pdfUrl,
-        // description excluded for list performance
-        description: sql<string>`''`.as('description'),
+        description: projects.description,
+        relatedArticles: projects.relatedArticles,
       })
         .from(projects)
         .orderBy(desc(projects.year))
@@ -314,8 +314,7 @@ export class DatabaseStorage implements IStorage {
         sourceUrl: articles.sourceUrl,
         publishedAt: articles.publishedAt,
         featured: articles.featured,
-        // content is excluded for list performance
-        content: sql<string>`''`.as('content'),
+        content: articles.content,
       })
         .from(articles)
         .orderBy(desc(articles.publishedAt))
@@ -351,7 +350,7 @@ export class DatabaseStorage implements IStorage {
         sourceUrl: articles.sourceUrl,
         publishedAt: articles.publishedAt,
         featured: articles.featured,
-        content: sql<string>`''`.as('content'),
+        content: articles.content,
       })
         .from(articles)
         .where(eq(articles.category, category))
