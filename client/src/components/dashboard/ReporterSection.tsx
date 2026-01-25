@@ -27,8 +27,25 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import type { ResidentReporter } from "@shared/schema";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const ITEMS_PER_PAGE = 10;
+
+function getPageFromUrl(paramName: string): number {
+    const params = new URLSearchParams(window.location.search);
+    const page = parseInt(params.get(paramName) || '1', 10);
+    return page > 0 ? page : 1;
+}
 
 export function ReporterSection() {
     const { toast } = useToast();
@@ -130,6 +147,7 @@ export function ReporterSection() {
                         onDelete={setDeletingArticleId}
                         onView={setViewingArticle}
                         showActions
+                        pageParamName="pendingPage"
                     />
                 </CardContent>
             </Card>
@@ -146,6 +164,7 @@ export function ReporterSection() {
                         onDelete={setDeletingArticleId}
                         onView={setViewingArticle}
                         showManageActions
+                        pageParamName="approvedPage"
                     />
                 </CardContent>
             </Card>
@@ -162,6 +181,7 @@ export function ReporterSection() {
                         onView={setViewingArticle}
                         onApprove={(id) => handleStatusChange(id, "approved")}
                         showReapprove
+                        pageParamName="rejectedPage"
                     />
                 </CardContent>
             </Card>
@@ -245,7 +265,8 @@ function ArticleTable({
     onView,
     showActions,
     showManageActions,
-    showReapprove
+    showReapprove,
+    pageParamName
 }: {
     articles: ResidentReporter[];
     onApprove?: (id: string) => void;
@@ -256,87 +277,159 @@ function ArticleTable({
     showActions?: boolean;
     showManageActions?: boolean;
     showReapprove?: boolean;
+    pageParamName: string;
 }) {
+    const [currentPage, setCurrentPage] = useState(() => getPageFromUrl(pageParamName));
+
+    useEffect(() => {
+        const handlePopState = () => setCurrentPage(getPageFromUrl(pageParamName));
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [pageParamName]);
+
+    const totalPages = Math.ceil((articles?.length || 0) / ITEMS_PER_PAGE);
+    const paginatedArticles = articles?.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    const handlePageChange = (page: number) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set(pageParamName, page.toString());
+        window.history.pushState({}, '', url.toString());
+        setCurrentPage(page);
+    };
+
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+        const pages: (number | 'ellipsis')[] = [];
+        const showEllipsisStart = currentPage > 3;
+        const showEllipsisEnd = currentPage < totalPages - 2;
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (showEllipsisStart) pages.push('ellipsis');
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+                if (!pages.includes(i)) pages.push(i);
+            }
+            if (showEllipsisEnd) pages.push('ellipsis');
+            if (!pages.includes(totalPages)) pages.push(totalPages);
+        }
+        return (
+            <Pagination className="mt-4">
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                    {pages.map((page, idx) =>
+                        page === 'ellipsis' ? (
+                            <PaginationItem key={`ellipsis-${idx}`}><PaginationEllipsis /></PaginationItem>
+                        ) : (
+                            <PaginationItem key={page}>
+                                <PaginationLink onClick={() => handlePageChange(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
+                            </PaginationItem>
+                        )
+                    )}
+                    <PaginationItem>
+                        <PaginationNext
+                            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        );
+    };
+
     if (articles.length === 0) {
         return <p className="text-muted-foreground text-sm py-4">데이터가 없습니다.</p>;
     }
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>제목</TableHead>
-                    <TableHead>작성자</TableHead>
-                    <TableHead>이력</TableHead>
-                    <TableHead>관리</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {articles.map((article) => (
-                    <TableRow key={article.id}>
-                        <TableCell>
-                            <div className="font-medium">{article.title}</div>
-                            <div className="text-xs text-muted-foreground truncate max-w-[200px]">
-                                {article.content?.replace(/<[^>]*>/g, '').substring(0, 50)}...
-                            </div>
-                        </TableCell>
-                        <TableCell>{article.authorName}</TableCell>
-                        <TableCell>
-                            <div className="space-y-1 text-xs">
-                                <div className="flex items-center gap-1 text-muted-foreground">
-                                    <Calendar className="w-3 h-3" />
-                                    작성: {new Date(article.createdAt || "").toLocaleDateString()}
-                                </div>
-                                {article.approvedAt && (
-                                    <div className="flex items-center gap-1 text-green-600">
-                                        <CheckCircle className="w-3 h-3" />
-                                        승인: {new Date(article.approvedAt).toLocaleDateString()}
-                                    </div>
-                                )}
-                                {article.updatedAt && (
-                                    <div className="flex items-center gap-1 text-blue-600">
-                                        <Clock className="w-3 h-3" />
-                                        수정: {new Date(article.updatedAt).toLocaleDateString()}
-                                    </div>
-                                )}
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <div className="flex gap-1.5 flex-wrap">
-                                <Button size="sm" variant="ghost" onClick={() => onView?.(article)}>
-                                    <Eye className="w-4 h-4" />
-                                </Button>
-                                {showActions && (
-                                    <>
-                                        <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => onApprove?.(article.id)}>
-                                            <CheckCircle className="w-4 h-4 mr-1" /> 승인
-                                        </Button>
-                                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={() => onReject?.(article.id)}>
-                                            <XCircle className="w-4 h-4 mr-1" /> 반려
-                                        </Button>
-                                    </>
-                                )}
-                                {showReapprove && (
-                                    <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => onApprove?.(article.id)}>
-                                        <CheckCircle className="w-4 h-4 mr-1" /> 재승인
-                                    </Button>
-                                )}
-                                {(showManageActions || showActions || showReapprove) && (
-                                    <>
-                                        <Button size="sm" variant="ghost" onClick={() => onEdit?.(article)}>
-                                            <Edit className="w-4 h-4" />
-                                        </Button>
-                                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => onDelete?.(article.id)}>
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
-                        </TableCell>
+        <div>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>제목</TableHead>
+                        <TableHead>작성자</TableHead>
+                        <TableHead>이력</TableHead>
+                        <TableHead>관리</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {paginatedArticles.map((article) => (
+                        <TableRow key={article.id}>
+                            <TableCell>
+                                <div className="font-medium">{article.title}</div>
+                                <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                    {article.content?.replace(/<[^>]*>/g, '').substring(0, 50)}...
+                                </div>
+                            </TableCell>
+                            <TableCell>{article.authorName}</TableCell>
+                            <TableCell>
+                                <div className="space-y-1 text-xs">
+                                    <div className="flex items-center gap-1 text-muted-foreground">
+                                        <Calendar className="w-3 h-3" />
+                                        작성: {new Date(article.createdAt || "").toLocaleDateString()}
+                                    </div>
+                                    {article.approvedAt && (
+                                        <div className="flex items-center gap-1 text-green-600">
+                                            <CheckCircle className="w-3 h-3" />
+                                            승인: {new Date(article.approvedAt).toLocaleDateString()}
+                                        </div>
+                                    )}
+                                    {article.updatedAt && (
+                                        <div className="flex items-center gap-1 text-blue-600">
+                                            <Clock className="w-3 h-3" />
+                                            수정: {new Date(article.updatedAt).toLocaleDateString()}
+                                        </div>
+                                    )}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex gap-1.5 flex-wrap">
+                                    <Button size="sm" variant="ghost" onClick={() => onView?.(article)}>
+                                        <Eye className="w-4 h-4" />
+                                    </Button>
+                                    {showActions && (
+                                        <>
+                                            <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => onApprove?.(article.id)}>
+                                                <CheckCircle className="w-4 h-4 mr-1" /> 승인
+                                            </Button>
+                                            <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={() => onReject?.(article.id)}>
+                                                <XCircle className="w-4 h-4 mr-1" /> 반려
+                                            </Button>
+                                        </>
+                                    )}
+                                    {showReapprove && (
+                                        <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => onApprove?.(article.id)}>
+                                            <CheckCircle className="w-4 h-4 mr-1" /> 재승인
+                                        </Button>
+                                    )}
+                                    {(showManageActions || showActions || showReapprove) && (
+                                        <>
+                                            <Button size="sm" variant="ghost" onClick={() => onEdit?.(article)}>
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => onDelete?.(article.id)}>
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+            {renderPagination()}
+        </div>
     );
 }
 

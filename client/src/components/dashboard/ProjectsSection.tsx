@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { MultiImageUpload } from "@/components/ui/multi-image-upload";
 import { FileUpload } from "@/components/ui/file-upload";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 
 import {
     Dialog,
@@ -35,6 +44,14 @@ import { MultiSelect } from "@/components/ui/multi-select-custom";
 import { PROJECT_CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
 import { SubprojectManager } from "./SubprojectManager";
 
+const ITEMS_PER_PAGE = 20;
+
+function getPageFromUrl(): number {
+    const params = new URLSearchParams(window.location.search);
+    const page = parseInt(params.get('projectsPage') || '1', 10);
+    return page > 0 ? page : 1;
+}
+
 export function ProjectsSection() {
     const { toast } = useToast();
     const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -44,11 +61,79 @@ export function ProjectsSection() {
     const [pdfUrl, setPdfUrl] = useState("");
     const [description, setDescription] = useState("");
     const [partnerLogos, setPartnerLogos] = useState<string[]>([]);
+    const [currentPage, setCurrentPage] = useState(getPageFromUrl);
 
 
     const { data: projects, isLoading } = useQuery<Project[]>({
         queryKey: ["/api/admin/projects"],
     });
+
+    useEffect(() => {
+        const handlePopState = () => setCurrentPage(getPageFromUrl());
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    const totalPages = Math.ceil((projects?.length || 0) / ITEMS_PER_PAGE);
+    const paginatedProjects = projects?.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    const handlePageChange = (page: number) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('projectsPage', page.toString());
+        window.history.pushState({}, '', url.toString());
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+        const pages: (number | 'ellipsis')[] = [];
+        const showEllipsisStart = currentPage > 3;
+        const showEllipsisEnd = currentPage < totalPages - 2;
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (showEllipsisStart) pages.push('ellipsis');
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+                if (!pages.includes(i)) pages.push(i);
+            }
+            if (showEllipsisEnd) pages.push('ellipsis');
+            if (!pages.includes(totalPages)) pages.push(totalPages);
+        }
+        return (
+            <Pagination className="mt-6">
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                    {pages.map((page, idx) =>
+                        page === 'ellipsis' ? (
+                            <PaginationItem key={`ellipsis-${idx}`}><PaginationEllipsis /></PaginationItem>
+                        ) : (
+                            <PaginationItem key={page}>
+                                <PaginationLink onClick={() => handlePageChange(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
+                            </PaginationItem>
+                        )
+                    )}
+                    <PaginationItem>
+                        <PaginationNext
+                            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        );
+    };
 
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
@@ -230,6 +315,7 @@ export function ProjectsSection() {
                             <div className="space-y-2">
                                 <Label>설명</Label>
                                 <RichTextEditor
+                                    key={editingProject?.id || "new"}
                                     value={description}
                                     onChange={setDescription}
                                     className="min-h-[200px] mb-12"
@@ -365,56 +451,61 @@ export function ProjectsSection() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-4">
-                    {projects.map((project) => (
-                        <Card key={project.id} data-testid={`card-project-${project.id}`}>
-                            <CardContent className="p-4">
-                                <div className="flex items-start gap-4">
-                                    {project.imageUrl && (
-                                        <img
-                                            src={project.imageUrl}
-                                            alt={project.title}
-                                            className="w-24 h-16 object-cover rounded-md"
-                                        />
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                                            <h3 className="font-medium">{project.title}</h3>
-                                            {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
-                                                <Badge key={cat} variant="secondary" className="text-xs">
-                                                    {CATEGORY_LABELS[cat] || cat}
-                                                </Badge>
-                                            ))}
-                                            {project.featured && <Badge>추천</Badge>}
+                <>
+                    <div className="grid gap-4">
+                        {paginatedProjects?.map((project) => (
+                            <Card key={project.id} data-testid={`card-project-${project.id}`}>
+                                <CardContent className="p-4">
+                                    <div className="flex items-start gap-4">
+                                        {project.imageUrl && (
+                                            <img
+                                                src={project.imageUrl}
+                                                alt={project.title}
+                                                className="w-24 h-16 object-cover rounded-md"
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                                                <h3 className="font-medium">{project.title}</h3>
+                                                {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
+                                                    <Badge key={cat} variant="secondary" className="text-xs">
+                                                        {CATEGORY_LABELS[cat] || cat}
+                                                    </Badge>
+                                                ))}
+                                                {project.featured && <Badge>추천</Badge>}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground line-clamp-1">
+                                                {project.location} | {project.year}년 | {project.units}세대
+                                            </p>
                                         </div>
-                                        <p className="text-sm text-muted-foreground line-clamp-1">
-                                            {project.location} | {project.year}년 | {project.units}세대
-                                        </p>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => openDialog(project)}
+                                                data-testid={`button-edit-project-${project.id}`}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => deleteMutation.mutate(project.id)}
+                                                data-testid={`button-delete-project-${project.id}`}
+                                            >
+                                                <Trash2 className="w-4 h-4 text-destructive" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => openDialog(project)}
-                                            data-testid={`button-edit-project-${project.id}`}
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => deleteMutation.mutate(project.id)}
-                                            data-testid={`button-delete-project-${project.id}`}
-                                        >
-                                            <Trash2 className="w-4 h-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                </div>
-                                <SubprojectManager projectId={project.id} projectTitle={project.title} />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                                    <SubprojectManager projectId={project.id} projectTitle={project.title} />
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                    {renderPagination()}
+                </>
             )}
         </div>
     );

@@ -338,6 +338,8 @@ export function EventsSection() {
                                                 src={event.imageUrl}
                                                 alt={event.title}
                                                 className="w-24 h-16 object-cover rounded-md"
+                                                loading="lazy"
+                                                decoding="async"
                                             />
                                         )}
                                         <div className="flex-1 min-w-0">

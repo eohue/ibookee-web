@@ -408,6 +408,8 @@ export function CommunitySection() {
                                                 src={post.imageUrl}
                                                 alt={post.caption || "커뮤니티 포스트"}
                                                 className="w-full h-24 object-cover"
+                                                loading="lazy"
+                                                decoding="async"
                                             />
                                         ) : (
                                             <div className="w-full h-24 bg-muted flex items-center justify-center">

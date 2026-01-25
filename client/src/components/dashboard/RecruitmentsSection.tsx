@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +20,24 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Edit, Trash2, FileText, Download } from "lucide-react";
 import { FileUpload } from "@/components/ui/file-upload";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import type { HousingRecruitment } from "@shared/schema";
+
+const ITEMS_PER_PAGE = 20;
+
+function getPageFromUrl(): number {
+    const params = new URLSearchParams(window.location.search);
+    const page = parseInt(params.get('recruitmentsPage') || '1', 10);
+    return page > 0 ? page : 1;
+}
 
 export function RecruitmentsSection() {
     const { toast } = useToast();
@@ -29,10 +46,78 @@ export function RecruitmentsSection() {
     const [fileUrl, setFileUrl] = useState("");
     const [published, setPublished] = useState(true);
     const [content, setContent] = useState("");
+    const [currentPage, setCurrentPage] = useState(getPageFromUrl);
 
     const { data: recruitments, isLoading } = useQuery<HousingRecruitment[]>({
         queryKey: ["/api/admin/recruitments"],
     });
+
+    useEffect(() => {
+        const handlePopState = () => setCurrentPage(getPageFromUrl());
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    const totalPages = Math.ceil((recruitments?.length || 0) / ITEMS_PER_PAGE);
+    const paginatedRecruitments = recruitments?.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    const handlePageChange = (page: number) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('recruitmentsPage', page.toString());
+        window.history.pushState({}, '', url.toString());
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+        const pages: (number | 'ellipsis')[] = [];
+        const showEllipsisStart = currentPage > 3;
+        const showEllipsisEnd = currentPage < totalPages - 2;
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (showEllipsisStart) pages.push('ellipsis');
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+                if (!pages.includes(i)) pages.push(i);
+            }
+            if (showEllipsisEnd) pages.push('ellipsis');
+            if (!pages.includes(totalPages)) pages.push(totalPages);
+        }
+        return (
+            <Pagination className="mt-6">
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                    {pages.map((page, idx) =>
+                        page === 'ellipsis' ? (
+                            <PaginationItem key={`ellipsis-${idx}`}><PaginationEllipsis /></PaginationItem>
+                        ) : (
+                            <PaginationItem key={page}>
+                                <PaginationLink onClick={() => handlePageChange(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
+                            </PaginationItem>
+                        )
+                    )}
+                    <PaginationItem>
+                        <PaginationNext
+                            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        );
+    };
 
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
@@ -188,58 +273,61 @@ export function RecruitmentsSection() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-4">
-                    {recruitments.map((recruitment) => (
-                        <Card key={recruitment.id} data-testid={`card-recruitment-${recruitment.id}`}>
-                            <CardContent className="p-4">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                        <FileText className="w-5 h-5 text-primary" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                                            <h3 className="font-medium">{recruitment.title}</h3>
-                                            <Badge variant={recruitment.published ? "default" : "secondary"}>
-                                                {recruitment.published ? "공개" : "비공개"}
-                                            </Badge>
+                <>
+                    <div className="grid gap-4">
+                        {paginatedRecruitments?.map((recruitment) => (
+                            <Card key={recruitment.id} data-testid={`card-recruitment-${recruitment.id}`}>
+                                <CardContent className="p-4">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            <FileText className="w-5 h-5 text-primary" />
                                         </div>
-                                        <p className="text-sm text-muted-foreground line-clamp-1">
-                                            {recruitment.createdAt ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR") : ""}
-                                            {recruitment.fileUrl && " · 첨부파일 있음"}
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        {recruitment.fileUrl && (
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                                                <h3 className="font-medium">{recruitment.title}</h3>
+                                                <Badge variant={recruitment.published ? "default" : "secondary"}>
+                                                    {recruitment.published ? "공개" : "비공개"}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground line-clamp-1">
+                                                {recruitment.createdAt ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR") : ""}
+                                                {recruitment.fileUrl && " · 첨부파일 있음"}
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            {recruitment.fileUrl && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    asChild
+                                                >
+                                                    <a href={recruitment.fileUrl} target="_blank" rel="noopener noreferrer" title="파일 다운로드">
+                                                        <Download className="w-4 h-4" />
+                                                    </a>
+                                                </Button>
+                                            )}
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                asChild
+                                                onClick={() => openDialog(recruitment)}
                                             >
-                                                <a href={recruitment.fileUrl} target="_blank" rel="noopener noreferrer" title="파일 다운로드">
-                                                    <Download className="w-4 h-4" />
-                                                </a>
+                                                <Edit className="w-4 h-4" />
                                             </Button>
-                                        )}
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => openDialog(recruitment)}
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => deleteMutation.mutate(recruitment.id)}
-                                        >
-                                            <Trash2 className="w-4 h-4 text-destructive" />
-                                        </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => deleteMutation.mutate(recruitment.id)}
+                                            >
+                                                <Trash2 className="w-4 h-4 text-destructive" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                    {renderPagination()}
+                </>
             )}
         </div>
     );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +26,24 @@ import {
 } from "@/components/ui/select";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import type { ResidentProgram } from "@shared/schema";
+
+const ITEMS_PER_PAGE = 20;
+
+function getPageFromUrl(): number {
+    const params = new URLSearchParams(window.location.search);
+    const page = parseInt(params.get('programsPage') || '1', 10);
+    return page > 0 ? page : 1;
+}
 
 export function ProgramsSection() {
     const { toast } = useToast();
@@ -35,10 +52,78 @@ export function ProgramsSection() {
     const [selectedType, setSelectedType] = useState("small-group");
     const [selectedStatus, setSelectedStatus] = useState("open");
     const [imageUrl, setImageUrl] = useState("");
+    const [currentPage, setCurrentPage] = useState(getPageFromUrl);
 
     const { data: programs, isLoading } = useQuery<ResidentProgram[]>({
         queryKey: ["/api/admin/programs"],
     });
+
+    useEffect(() => {
+        const handlePopState = () => setCurrentPage(getPageFromUrl());
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    const totalPages = Math.ceil((programs?.length || 0) / ITEMS_PER_PAGE);
+    const paginatedPrograms = programs?.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    const handlePageChange = (page: number) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('programsPage', page.toString());
+        window.history.pushState({}, '', url.toString());
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+        const pages: (number | 'ellipsis')[] = [];
+        const showEllipsisStart = currentPage > 3;
+        const showEllipsisEnd = currentPage < totalPages - 2;
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (showEllipsisStart) pages.push('ellipsis');
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+                if (!pages.includes(i)) pages.push(i);
+            }
+            if (showEllipsisEnd) pages.push('ellipsis');
+            if (!pages.includes(totalPages)) pages.push(totalPages);
+        }
+        return (
+            <Pagination className="mt-6">
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                    {pages.map((page, idx) =>
+                        page === 'ellipsis' ? (
+                            <PaginationItem key={`ellipsis-${idx}`}><PaginationEllipsis /></PaginationItem>
+                        ) : (
+                            <PaginationItem key={page}>
+                                <PaginationLink onClick={() => handlePageChange(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
+                            </PaginationItem>
+                        )
+                    )}
+                    <PaginationItem>
+                        <PaginationNext
+                            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        );
+    };
 
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
@@ -281,55 +366,60 @@ export function ProgramsSection() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-4">
-                    {programs.map((program) => (
-                        <Card key={program.id} data-testid={`card-program-${program.id}`}>
-                            <CardContent className="p-4">
-                                <div className="flex items-start gap-4">
-                                    {program.imageUrl && (
-                                        <img
-                                            src={program.imageUrl}
-                                            alt={program.title}
-                                            className="w-24 h-16 object-cover rounded-md"
-                                        />
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                                            <h3 className="font-medium">{program.title}</h3>
-                                            <Badge variant="outline" className="text-xs">
-                                                {typeLabels[program.programType] || program.programType}
-                                            </Badge>
-                                            <Badge variant="secondary" className="text-xs">
-                                                {statusLabels[program.status || "open"] || program.status}
-                                            </Badge>
+                <>
+                    <div className="grid gap-4">
+                        {paginatedPrograms?.map((program) => (
+                            <Card key={program.id} data-testid={`card-program-${program.id}`}>
+                                <CardContent className="p-4">
+                                    <div className="flex items-start gap-4">
+                                        {program.imageUrl && (
+                                            <img
+                                                src={program.imageUrl}
+                                                alt={program.title}
+                                                className="w-24 h-16 object-cover rounded-md"
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                                                <h3 className="font-medium">{program.title}</h3>
+                                                <Badge variant="outline" className="text-xs">
+                                                    {typeLabels[program.programType] || program.programType}
+                                                </Badge>
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {statusLabels[program.status || "open"] || program.status}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground line-clamp-1">
+                                                {program.description}
+                                            </p>
                                         </div>
-                                        <p className="text-sm text-muted-foreground line-clamp-1">
-                                            {program.description}
-                                        </p>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => openDialog(program)}
+                                                data-testid={`button-edit-program-${program.id}`}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => deleteMutation.mutate(program.id)}
+                                                data-testid={`button-delete-program-${program.id}`}
+                                            >
+                                                <Trash2 className="w-4 h-4 text-destructive" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => openDialog(program)}
-                                            data-testid={`button-edit-program-${program.id}`}
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => deleteMutation.mutate(program.id)}
-                                            data-testid={`button-delete-program-${program.id}`}
-                                        >
-                                            <Trash2 className="w-4 h-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                    {renderPagination()}
+                </>
             )}
         </div>
     );
