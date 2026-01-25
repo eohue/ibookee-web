@@ -63,6 +63,7 @@ export function ProjectsSection() {
     const [partnerLogos, setPartnerLogos] = useState<string[]>([]);
     const [relatedArticles, setRelatedArticles] = useState<RelatedArticle[]>([]);
     const [currentPage, setCurrentPage] = useState(getPageFromUrl);
+    const [editorKey, setEditorKey] = useState(0);
 
 
     const { data: projects, isLoading } = useQuery<Project[]>({
@@ -200,6 +201,7 @@ export function ProjectsSection() {
             setPartnerLogos([]);
             setRelatedArticles([]);
         }
+        setEditorKey(prev => prev + 1);
         setIsDialogOpen(true);
     };
 
@@ -319,7 +321,7 @@ export function ProjectsSection() {
                             <div className="space-y-2">
                                 <Label>설명</Label>
                                 <RichTextEditor
-                                    key={editingProject?.id || "new"}
+                                    key={editorKey}
                                     value={description}
                                     onChange={setDescription}
                                     className="min-h-[200px] mb-12"
