@@ -70,7 +70,7 @@ export default function About() {
                 디자이너
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                아이부키는 '공간을 통해 삶을 디자인하는(Space to Life)' 소셜 하우징 플랫폼 기업입니다.
+                아이부키는 '공간을 통해 삶을 디자인하는(Space to Life)' 소셜 하우징 플랫폼 기업입니다.<br />
                 단순한 시공/임대 사업자를 넘어, 공공성과 수익성을 결합한 새로운 주거 모델을 만들어갑니다.
               </p>
             </div>

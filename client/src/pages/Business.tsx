@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Link } from "wouter";
@@ -102,6 +103,10 @@ const esgMetrics = [
 export default function Business() {
   const { getImageUrl } = usePageImages();
 
+  const { data: projects = [] } = useQuery<any[]>({
+    queryKey: ["/api/projects"],
+  });
+
   const solutions = solutionsData.map(s => ({
     ...s,
     case: {
@@ -125,7 +130,7 @@ export default function Business() {
                 새로운 균형
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                아이부키는 공공-민간 협력을 통해 지속가능한 소셜 하우징 모델을 구축합니다.
+                아이부키는 공공-민간 협력을 통해 지속가능한 소셜 하우징 모델을 구축합니다.<br />
                 검증된 사업 역량과 운영 노하우로 안정적인 투자 수익을 제공합니다.
               </p>
             </div>
@@ -192,59 +197,85 @@ export default function Business() {
             </div>
 
             <div className="space-y-16">
-              {solutions.map((solution, index) => (
-                <div
-                  key={solution.id}
-                  className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center ${index % 2 === 1 ? "lg:flex-row-reverse" : ""
-                    }`}
-                  data-testid={`solution-${solution.id}`}
-                >
-                  <div className={index % 2 === 1 ? "lg:order-2" : ""}>
-                    <span className="inline-block px-3 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full mb-4">
-                      {solution.titleEn}
-                    </span>
-                    <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                      {solution.title}
-                    </h3>
-                    <p className="text-lg text-muted-foreground mb-6">
-                      {solution.description}
-                    </p>
-                    <ul className="space-y-3 mb-8">
-                      {solution.features.map((feature, i) => (
-                        <li key={i} className="flex items-center gap-3 text-muted-foreground">
-                          <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Card className="p-4 bg-background">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={solution.case.image}
-                          alt={solution.case.name}
-                          className="w-20 h-20 rounded-lg object-cover"
-                        />
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                            Case Study
-                          </p>
-                          <h4 className="font-semibold text-foreground">{solution.case.name}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {solution.case.location} · {solution.case.units}세대
-                          </p>
-                        </div>
-                      </div>
-                    </Card>
+              {solutions.map((solution, index) => {
+                // Find matching project from DB
+                // Mapping strategy:
+                // purchase-agreement -> 다다름하우스
+                // land-lease -> 홍시주택
+                // urban-regeneration -> 장안생활
+                let targetTitle = "";
+                if (solution.id === "purchase-agreement") targetTitle = "다다름하우스";
+                else if (solution.id === "land-lease") targetTitle = "홍시주택";
+                else if (solution.id === "urban-regeneration") targetTitle = "장안생활";
+
+                const project = projects.find(p => p.title === targetTitle);
+
+                // Use project data if available, fallback to hardcoded solution.case
+                const caseName = project ? project.title : solution.case.name;
+                const caseLocation = project ? project.location : solution.case.location;
+                const caseUnits = project && project.units ? project.units : solution.case.units;
+                const caseImage = project ? project.imageUrl : solution.case.image;
+                const caseUrl = project ? `/space/${project.id}` : "#";
+
+                return (
+                  <div
+                    key={solution.id}
+                    className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center ${index % 2 === 1 ? "lg:flex-row-reverse" : ""
+                      }`}
+                    data-testid={`solution-${solution.id}`}
+                  >
+                    <div className={index % 2 === 1 ? "lg:order-2" : ""}>
+                      <span className="inline-block px-3 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full mb-4">
+                        {solution.titleEn}
+                      </span>
+                      <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                        {solution.title}
+                      </h3>
+                      <p className="text-lg text-muted-foreground mb-6">
+                        {solution.description}
+                      </p>
+                      <ul className="space-y-3 mb-8">
+                        {solution.features.map((feature, i) => (
+                          <li key={i} className="flex items-center gap-3 text-muted-foreground">
+                            <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <Link href={caseUrl} className={project ? "cursor-pointer" : "cursor-default"}>
+                        <Card className="p-4 bg-background hover:border-primary transition-colors">
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={caseImage}
+                              alt={caseName}
+                              className="w-20 h-20 rounded-lg object-cover"
+                            />
+                            <div>
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                                Case Study
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold text-foreground">{caseName}</h4>
+                                {project && <ArrowRight className="w-3 h-3 text-muted-foreground" />}
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {caseLocation} · {caseUnits}세대
+                              </p>
+                            </div>
+                          </div>
+                        </Card>
+                      </Link>
+                    </div>
+                    <div className={index % 2 === 1 ? "lg:order-1" : ""}>
+                      <img
+                        src={caseImage}
+                        alt={solution.title}
+                        className="rounded-lg w-full aspect-[4/3] object-cover"
+                      />
+                    </div>
                   </div>
-                  <div className={index % 2 === 1 ? "lg:order-1" : ""}>
-                    <img
-                      src={solution.case.image}
-                      alt={solution.title}
-                      className="rounded-lg w-full aspect-[4/3] object-cover"
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

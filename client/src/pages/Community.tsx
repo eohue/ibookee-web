@@ -197,7 +197,7 @@ export default function Community() {
                 입주민 라이프
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                아이부키 입주민들의 생생한 일상과 커뮤니티 활동을 만나보세요.
+                아이부키 입주민들의 생생한 일상과 커뮤니티 활동을 만나보세요.<br />
                 외롭지 않은 나만의 집, 함께 만들어가는 이야기입니다.
               </p>
             </div>
@@ -289,7 +289,7 @@ export default function Community() {
                   Ibookee Life
                 </p>
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                  소셜 스트림
+                  소셜<br />스트림
                 </h2>
               </div>
               <div className="flex flex-wrap items-center gap-2">

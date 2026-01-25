@@ -50,7 +50,7 @@ export default function Space() {
                 프로젝트
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                아이부키가 만든 공간들을 둘러보세요. 각 프로젝트는 입주민의 필요와 지역의 특성을 반영하여 설계되었습니다.
+                아이부키가 만든 공간들을 둘러보세요.<br />각 프로젝트는 입주민의 필요와 지역의 특성을 반영하여 설계되었습니다.
               </p>
             </div>
           </div>
