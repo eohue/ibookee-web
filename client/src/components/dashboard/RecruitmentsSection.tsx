@@ -15,11 +15,11 @@ import {
     DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Edit, Trash2, FileText, Download } from "lucide-react";
 import { FileUpload } from "@/components/ui/file-upload";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import type { HousingRecruitment } from "@shared/schema";
 
 export function RecruitmentsSection() {
@@ -28,6 +28,7 @@ export function RecruitmentsSection() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [fileUrl, setFileUrl] = useState("");
     const [published, setPublished] = useState(true);
+    const [content, setContent] = useState("");
 
     const { data: recruitments, isLoading } = useQuery<HousingRecruitment[]>({
         queryKey: ["/api/admin/recruitments"],
@@ -80,12 +81,14 @@ export function RecruitmentsSection() {
         setEditingRecruitment(null);
         setFileUrl("");
         setPublished(true);
+        setContent("");
     };
 
     const openDialog = (recruitment: HousingRecruitment | null) => {
         setEditingRecruitment(recruitment);
         setFileUrl(recruitment?.fileUrl || "");
         setPublished(recruitment?.published ?? true);
+        setContent(recruitment?.content || "");
         setIsDialogOpen(true);
     };
 
@@ -94,7 +97,7 @@ export function RecruitmentsSection() {
         const formData = new FormData(e.currentTarget);
         const data: Record<string, any> = {
             title: formData.get("title") as string,
-            content: formData.get("content") as string || null,
+            content: content || null,
             fileUrl: fileUrl || null,
             published,
         };
@@ -133,12 +136,10 @@ export function RecruitmentsSection() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="content">공고 내용</Label>
-                                <Textarea
-                                    id="content"
-                                    name="content"
-                                    defaultValue={editingRecruitment?.content || ""}
-                                    rows={5}
+                                <Label>공고 내용</Label>
+                                <RichTextEditor
+                                    value={content}
+                                    onChange={setContent}
                                     placeholder="공고 상세 내용을 입력하세요"
                                 />
                             </div>
