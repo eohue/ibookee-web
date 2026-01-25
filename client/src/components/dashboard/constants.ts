@@ -11,14 +11,16 @@ import {
     History,
     Settings,
     UserCog,
+    Home,
 } from "lucide-react";
 
-export type Section = "overview" | "projects" | "articles" | "resources" | "events" | "programs" | "inquiries" | "social-accounts" | "community" | "site-settings" | "history" | "partners" | "page-images" | "users" | "reporter" | "applications";
+export type Section = "overview" | "projects" | "articles" | "resources" | "events" | "programs" | "inquiries" | "social-accounts" | "community" | "site-settings" | "history" | "partners" | "page-images" | "users" | "reporter" | "applications" | "recruitment";
 
 export const menuItems = [
     { id: "overview" as Section, title: "개요", icon: LayoutDashboard },
     { id: "users" as Section, title: "사용자 관리", icon: UserCog },
     { id: "projects" as Section, title: "프로젝트(Space)", icon: Building2 },
+    { id: "recruitment" as Section, title: "입주자 모집 공고", icon: Home },
     { id: "articles" as Section, title: "인사이트", icon: FileText },
     { id: "reporter" as Section, title: "입주민 기자단", icon: FileText }, // Added
     { id: "resources" as Section, title: "자료실 관리", icon: FileText },

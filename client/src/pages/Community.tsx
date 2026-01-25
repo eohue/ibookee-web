@@ -8,7 +8,7 @@ import { SiInstagram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CommunityPost, Event, ResidentProgram, SocialAccount, Project } from "@shared/schema";
+import type { CommunityPost, Event, ResidentProgram, SocialAccount, Project, HousingRecruitment } from "@shared/schema";
 import { PostDetailModal } from "@/components/community/PostDetailModal";
 import { ProgramApplicationModal } from "@/components/community/ProgramApplicationModal";
 import { ReporterSubmissionModal } from "@/components/community/ReporterSubmissionModal";
@@ -73,6 +73,10 @@ export default function Community() {
 
   const { data: socialAccounts = [], isLoading: accountsLoading } = useQuery<SocialAccount[]>({
     queryKey: ["/api/social-accounts"],
+  });
+
+  const { data: recruitments = [], isLoading: recruitmentsLoading } = useQuery<HousingRecruitment[]>({
+    queryKey: ["/api/recruitments"],
   });
 
   const {
@@ -203,43 +207,77 @@ export default function Community() {
         {/* Housing Recruitment Section */}
         <section className="py-16 bg-gradient-to-r from-primary/5 to-primary/10" data-testid="section-housing-recruitment">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Home className="w-6 h-6 text-primary" />
-                  </div>
-                  <p className="text-primary font-medium text-sm uppercase tracking-widest">
-                    Housing Recruitment
-                  </p>
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <Home className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-primary font-medium text-sm uppercase tracking-widest">
+                  Housing Recruitment
+                </p>
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground">
                   입주자 모집 공고
                 </h2>
-                <p className="text-muted-foreground mb-6 max-w-xl">
-                  아이부키의 다양한 주거 프로젝트에서 새로운 입주자를 모집합니다.
-                  나에게 맞는 공간을 찾아보세요.
-                </p>
+              </div>
+            </div>
+
+            {recruitmentsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-background rounded-lg p-4 border border-border animate-pulse">
+                    <div className="h-5 bg-muted rounded w-2/3 mb-2" />
+                    <div className="h-4 bg-muted rounded w-1/4" />
+                  </div>
+                ))}
+              </div>
+            ) : recruitments.length === 0 ? (
+              <div className="bg-background rounded-lg p-8 border border-border text-center">
+                <p className="text-muted-foreground">현재 모집 중인 공고가 없습니다.</p>
                 <Link href="/space">
-                  <Button size="lg" className="group">
-                    입주 가능 프로젝트 보기
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <Button variant="outline" className="mt-4">
+                    프로젝트 둘러보기
                   </Button>
                 </Link>
               </div>
-              <div className="flex-shrink-0 hidden md:block">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-background rounded-lg p-6 shadow-sm border border-border text-center">
-                    <p className="text-3xl font-bold text-primary mb-1">20+</p>
-                    <p className="text-sm text-muted-foreground">운영 중인 프로젝트</p>
+            ) : (
+              <div className="space-y-3">
+                {recruitments.map((recruitment) => (
+                  <div
+                    key={recruitment.id}
+                    className="bg-background rounded-lg p-4 border border-border hover:border-primary/50 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">
+                          {recruitment.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {recruitment.createdAt
+                            ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR")
+                            : ""}
+                        </p>
+                      </div>
+                      {recruitment.fileUrl && (
+                        <a
+                          href={recruitment.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium flex-shrink-0"
+                        >
+                          <ArrowRight className="w-4 h-4" />
+                          공고문 보기
+                        </a>
+                      )}
+                    </div>
+                    {recruitment.content && (
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                        {recruitment.content}
+                      </p>
+                    )}
                   </div>
-                  <div className="bg-background rounded-lg p-6 shadow-sm border border-border text-center">
-                    <p className="text-3xl font-bold text-primary mb-1">1,000+</p>
-                    <p className="text-sm text-muted-foreground">입주 세대</p>
-                  </div>
-                </div>
+                ))}
               </div>
-            </div>
+            )}
           </div>
         </section>
 

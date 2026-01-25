@@ -17,6 +17,7 @@ import { registerUploadRoutes, setupStaticAssets } from "./routes/upload";
 import { registerUserRoutes } from "./routes/users";
 import { registerMetadataRoutes } from "./routes/metadata";
 import { registerReporterRoutes } from "./routes/reporters";
+import { registerRecruitmentRoutes } from "./routes/recruitments";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -49,6 +50,7 @@ export async function registerRoutes(
   registerPageRoutes(app);
   registerStatsRoutes(app);
   registerReporterRoutes(app);
+  registerRecruitmentRoutes(app);
 
   return httpServer;
 }

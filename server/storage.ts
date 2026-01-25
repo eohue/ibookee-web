@@ -18,7 +18,8 @@ import {
   pageImages,
   users,
   communityPostComments,
-  residentReporters, // Added residentReporters table
+  residentReporters,
+  housingRecruitments,
   type Project,
   type InsertProject,
   type Inquiry,
@@ -54,11 +55,13 @@ import {
   type CommunityPostComment,
   type InsertCommunityPostComment,
   type CommunityFeedItem,
-  type ResidentReporter, // Added ResidentReporter type
+  type ResidentReporter,
   type InsertResidentReporter,
   type ResidentReporterComment,
   type InsertResidentReporterComment,
   residentReporterComments,
+  type HousingRecruitment,
+  type InsertHousingRecruitment,
 } from "@shared/schema";
 import fs from "fs";
 import path from "path";
@@ -205,6 +208,14 @@ export interface IStorage {
   getReporterArticleComments(articleId: string): Promise<ResidentReporterComment[]>;
   createReporterArticleComment(comment: InsertResidentReporterComment): Promise<ResidentReporterComment>;
   deleteReporterArticleComment(commentId: string): Promise<void>;
+
+  // Housing Recruitments
+  getHousingRecruitments(): Promise<HousingRecruitment[]>;
+  getHousingRecruitment(id: string): Promise<HousingRecruitment | undefined>;
+  getPublishedHousingRecruitments(): Promise<HousingRecruitment[]>;
+  createHousingRecruitment(recruitment: InsertHousingRecruitment): Promise<HousingRecruitment>;
+  updateHousingRecruitment(id: string, recruitment: Partial<InsertHousingRecruitment>): Promise<HousingRecruitment | undefined>;
+  deleteHousingRecruitment(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1032,6 +1043,36 @@ export class DatabaseStorage implements IStorage {
         .where(eq(residentReporters.id, comment.articleId));
     }
   }
+
+  // Housing Recruitments
+  async getHousingRecruitments(): Promise<HousingRecruitment[]> {
+    return db.select().from(housingRecruitments).orderBy(desc(housingRecruitments.createdAt));
+  }
+
+  async getHousingRecruitment(id: string): Promise<HousingRecruitment | undefined> {
+    const result = await db.select().from(housingRecruitments).where(eq(housingRecruitments.id, id));
+    return result[0];
+  }
+
+  async getPublishedHousingRecruitments(): Promise<HousingRecruitment[]> {
+    return db.select().from(housingRecruitments)
+      .where(eq(housingRecruitments.published, true))
+      .orderBy(desc(housingRecruitments.createdAt));
+  }
+
+  async createHousingRecruitment(recruitment: InsertHousingRecruitment): Promise<HousingRecruitment> {
+    const result = await db.insert(housingRecruitments).values(recruitment).returning();
+    return result[0];
+  }
+
+  async updateHousingRecruitment(id: string, recruitment: Partial<InsertHousingRecruitment>): Promise<HousingRecruitment | undefined> {
+    const result = await db.update(housingRecruitments).set(recruitment).where(eq(housingRecruitments.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteHousingRecruitment(id: string): Promise<void> {
+    await db.delete(housingRecruitments).where(eq(housingRecruitments.id, id));
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -1054,6 +1095,7 @@ export class MemStorage implements IStorage {
   private residentReporters: Map<string, ResidentReporter> = new Map();
   private residentReporterComments: Map<string, ResidentReporterComment> = new Map();
   private subprojects: Map<string, Subproject> = new Map();
+  private housingRecruitments: Map<string, HousingRecruitment> = new Map();
 
   async getStatsCounts(): Promise<any> {
     return {
@@ -2149,6 +2191,51 @@ export class MemStorage implements IStorage {
         this.persist();
       }
     }
+  }
+
+  // Housing Recruitments
+  async getHousingRecruitments(): Promise<HousingRecruitment[]> {
+    return Array.from(this.housingRecruitments.values())
+      .sort((a, b) => (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0));
+  }
+
+  async getHousingRecruitment(id: string): Promise<HousingRecruitment | undefined> {
+    return this.housingRecruitments.get(id);
+  }
+
+  async getPublishedHousingRecruitments(): Promise<HousingRecruitment[]> {
+    return Array.from(this.housingRecruitments.values())
+      .filter(r => r.published)
+      .sort((a, b) => (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0));
+  }
+
+  async createHousingRecruitment(recruitment: InsertHousingRecruitment): Promise<HousingRecruitment> {
+    const id = this.getId();
+    const newRecruitment: HousingRecruitment = {
+      id,
+      title: recruitment.title,
+      content: recruitment.content ?? null,
+      fileUrl: recruitment.fileUrl ?? null,
+      published: recruitment.published ?? true,
+      createdAt: new Date(),
+    };
+    this.housingRecruitments.set(id, newRecruitment);
+    this.persist();
+    return newRecruitment;
+  }
+
+  async updateHousingRecruitment(id: string, recruitment: Partial<InsertHousingRecruitment>): Promise<HousingRecruitment | undefined> {
+    const existing = this.housingRecruitments.get(id);
+    if (!existing) return undefined;
+    const updated: HousingRecruitment = { ...existing, ...recruitment };
+    this.housingRecruitments.set(id, updated);
+    this.persist();
+    return updated;
+  }
+
+  async deleteHousingRecruitment(id: string): Promise<void> {
+    this.housingRecruitments.delete(id);
+    this.persist();
   }
 }
 

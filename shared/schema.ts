@@ -374,6 +374,20 @@ export const insertResidentReporterCommentSchema = createInsertSchema(residentRe
 export type InsertResidentReporterComment = z.infer<typeof insertResidentReporterCommentSchema>;
 export type ResidentReporterComment = typeof residentReporterComments.$inferSelect;
 
+// Housing Recruitments (입주자 모집 공고)
+export const housingRecruitments = pgTable("housing_recruitments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  content: text("content"),
+  fileUrl: text("file_url"), // 공고문 파일 URL (PDF 등)
+  published: boolean("published").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertHousingRecruitmentSchema = createInsertSchema(housingRecruitments).omit({ id: true, createdAt: true });
+export type InsertHousingRecruitment = z.infer<typeof insertHousingRecruitmentSchema>;
+export type HousingRecruitment = typeof housingRecruitments.$inferSelect;
+
 // Re-export auth models
 export * from "./models/auth";
 
