@@ -5,10 +5,13 @@ import { isAuthenticated } from "../replit_integrations/auth";
 
 export function registerProjectRoutes(app: Express) {
   // Public Projects API
-  app.get("/api/projects", async (_req, res) => {
+  app.get("/api/projects", async (req, res) => {
     try {
-      const projects = await storage.getProjects();
-      res.json(projects);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const result = await storage.getProjects(page, limit);
+      // Return projects array for backward compatibility
+      res.json(result.projects);
     } catch (error) {
       console.error("Failed to fetch projects:", error);
       res.status(500).json({ error: "Failed to fetch projects" });
@@ -49,8 +52,8 @@ export function registerProjectRoutes(app: Express) {
   // Admin Projects CRUD
   app.get("/api/admin/projects", isAuthenticated, async (_req, res) => {
     try {
-      const projects = await storage.getProjects();
-      res.json(projects);
+      const result = await storage.getProjects();
+      res.json(result.projects);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch projects" });
     }

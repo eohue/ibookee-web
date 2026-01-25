@@ -66,7 +66,7 @@ import { nanoid } from "nanoid"; // Added nanoid import
 
 export interface IStorage {
   // Projects
-  getProjects(): Promise<Project[]>;
+  getProjects(page?: number, limit?: number): Promise<{ projects: Project[], total: number }>;
   getProject(id: string): Promise<Project | undefined>;
   getProjectsByCategory(category: string): Promise<Project[]>;
   createProject(project: InsertProject): Promise<Project>;
@@ -209,8 +209,41 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   // Projects
-  async getProjects(): Promise<Project[]> {
-    return db.select().from(projects).orderBy(sql`${projects.year} DESC`);
+  async getProjects(page: number = 1, limit: number = 100): Promise<{ projects: Project[], total: number }> {
+    const offset = (page - 1) * limit;
+
+    const [projectsResult, countResult] = await Promise.all([
+      db.select({
+        id: projects.id,
+        title: projects.title,
+        titleEn: projects.titleEn,
+        location: projects.location,
+        category: projects.category,
+        imageUrl: projects.imageUrl,
+        year: projects.year,
+        completionMonth: projects.completionMonth,
+        units: projects.units,
+        siteArea: projects.siteArea,
+        grossFloorArea: projects.grossFloorArea,
+        scale: projects.scale,
+        featured: projects.featured,
+        partnerLogos: projects.partnerLogos,
+        pdfUrl: projects.pdfUrl,
+        // description excluded for list performance
+        description: sql<string>`''`.as('description'),
+      })
+        .from(projects)
+        .orderBy(desc(projects.year))
+        .limit(limit)
+        .offset(offset),
+
+      db.select({ count: count() }).from(projects)
+    ]);
+
+    return {
+      projects: projectsResult,
+      total: countResult[0]?.count || 0
+    };
   }
 
   async getProject(id: string): Promise<Project | undefined> {
@@ -1195,8 +1228,13 @@ export class MemStorage implements IStorage {
   }
 
   // Projects
-  async getProjects(): Promise<Project[]> {
-    return Array.from(this.projects.values()).sort((a, b) => b.year - a.year);
+  async getProjects(page: number = 1, limit: number = 100): Promise<{ projects: Project[], total: number }> {
+    const allProjects = Array.from(this.projects.values()).sort((a, b) => b.year - a.year);
+    const offset = (page - 1) * limit;
+    return {
+      projects: allProjects.slice(offset, offset + limit),
+      total: allProjects.length
+    };
   }
 
   async getProject(id: string): Promise<Project | undefined> {
@@ -1209,7 +1247,19 @@ export class MemStorage implements IStorage {
 
   async createProject(project: InsertProject): Promise<Project> {
     const id = this.getId();
-    const newProject: Project = { ...project, id, featured: project.featured ?? false, titleEn: project.titleEn ?? null, units: project.units ?? null, partnerLogos: project.partnerLogos ?? null, pdfUrl: project.pdfUrl ?? null };
+    const newProject: Project = {
+      ...project,
+      id,
+      featured: project.featured ?? false,
+      titleEn: project.titleEn ?? null,
+      units: project.units ?? null,
+      completionMonth: project.completionMonth ?? null,
+      siteArea: project.siteArea ?? null,
+      grossFloorArea: project.grossFloorArea ?? null,
+      scale: project.scale ?? null,
+      partnerLogos: project.partnerLogos ?? null,
+      pdfUrl: project.pdfUrl ?? null
+    };
     this.projects.set(id, newProject);
     this.persist();
     return newProject;
@@ -1299,7 +1349,8 @@ export class MemStorage implements IStorage {
       imageUrl: article.imageUrl ?? null,
       featured: article.featured ?? false,
       publishedAt: new Date(),
-      fileUrl: article.fileUrl ?? null
+      fileUrl: article.fileUrl ?? null,
+      sourceUrl: article.sourceUrl ?? null
     };
     this.articles.set(id, newArticle);
     this.persist();
@@ -1884,6 +1935,7 @@ export class MemStorage implements IStorage {
       isVerified: userData.isVerified ?? existing?.isVerified ?? false,
       realName: userData.realName ?? existing?.realName ?? null,
       phoneNumber: userData.phoneNumber ?? existing?.phoneNumber ?? null,
+      nickname: userData.nickname ?? existing?.nickname ?? null,
     };
     this.users.set(id, newUser);
     this.persist();

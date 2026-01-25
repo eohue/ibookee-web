@@ -23,6 +23,11 @@ export const projects = pgTable("projects", {
   featured: boolean("featured").default(false),
   partnerLogos: jsonb("partner_logos"), // Array of PartnerLogo objects
   pdfUrl: text("pdf_url"),
+}, (table) => {
+  return {
+    yearIndex: index("projects_year_idx").on(table.year),
+    featuredIndex: index("projects_featured_idx").on(table.featured),
+  };
 });
 
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true });
