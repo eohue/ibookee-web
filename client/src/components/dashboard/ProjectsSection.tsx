@@ -66,7 +66,7 @@ export function ProjectsSection() {
     const [editorKey, setEditorKey] = useState(0);
 
 
-    const { data: projects, isLoading } = useQuery<Project[]>({
+    const { data: projects, isLoading, isError, error } = useQuery<Project[]>({
         queryKey: ["/api/admin/projects"],
     });
 
@@ -514,6 +514,11 @@ export function ProjectsSection() {
 
             {isLoading ? (
                 <div className="text-center py-12 text-muted-foreground">로딩 중...</div>
+            ) : isError ? (
+                <div className="text-center py-12 text-destructive">
+                    프로젝트 내용을 불러오는데 실패했습니다.<br />
+                    {error?.message || "알 수 없는 오류가 발생했습니다."}
+                </div>
             ) : !projects || projects.length === 0 ? (
                 <Card>
                     <CardContent className="py-12 text-center text-muted-foreground">
