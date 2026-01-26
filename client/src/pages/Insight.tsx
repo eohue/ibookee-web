@@ -202,7 +202,7 @@ export default function Insight() {
           </div>
         </section>
 
-        <section className="sticky top-16 md:top-20 z-40 bg-background border-b border-border py-4">
+        <section className="sticky top-16 md:top-20 z-40 bg-background/95 backdrop-blur-sm border-b border-border py-2">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center gap-2">
               {categories.map((category) => (

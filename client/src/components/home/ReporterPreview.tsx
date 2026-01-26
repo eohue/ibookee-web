@@ -70,7 +70,7 @@ export default function ReporterPreview({ articles = [], isLoading }: ReporterPr
                                 {displayedArticles.map((article) => (
                                     <div key={article.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4">
                                         <Link href="/community">
-                                            <Card className="h-full hover:shadow-lg transition-all cursor-pointer border-none shadow-sm overflow-hidden group/card">
+                                            <Card className="h-full hover-card-strong transition-all cursor-pointer overflow-hidden group/card bg-card border-border/60">
                                                 <div className="aspect-[16/9] relative overflow-hidden bg-muted">
                                                     <img
                                                         src={article.imageUrl || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"}
