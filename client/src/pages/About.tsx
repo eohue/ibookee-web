@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Building2, Users, Award, Target, ChevronRight } from "lucide-react";
-import { useCompanyStats, usePageImages } from "@/hooks/use-site-settings";
+import { useCompanyStats, usePageImages, useCeoMessage } from "@/hooks/use-site-settings";
 import type { HistoryMilestone, Partner } from "@shared/schema";
 
 const defaultHistoryMilestones = [
@@ -30,6 +30,7 @@ const defaultPartners = [
 export default function About() {
   const { stats } = useCompanyStats();
   const { getImageUrl } = usePageImages();
+  const { ceoMessage } = useCeoMessage();
 
   const { data: historyData } = useQuery<HistoryMilestone[]>({
     queryKey: ["/api/history"],
@@ -128,32 +129,41 @@ export default function About() {
                   className="rounded-lg w-full max-w-md aspect-[3/4] object-cover"
                 />
                 <div className="mt-4">
-                  <h3 className="text-xl font-semibold text-foreground">김아이</h3>
-                  <p className="text-muted-foreground">대표이사 / CEO</p>
+                  <h3 className="text-xl font-semibold text-foreground">{ceoMessage.ceoName || "김아이"}</h3>
+                  <p className="text-muted-foreground">{ceoMessage.signature || "대표이사 / CEO"}</p>
                 </div>
               </div>
               <div>
                 <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
-                  CEO Message
+                  {ceoMessage.title}
                 </p>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
-                  "주거는 상품이 아니라,<br />
-                  지속 가능한 삶을 담는 그릇이어야 합니다."
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8 text-pretty whitespace-pre-wrap">
+                  {ceoMessage.quote || `"주거는 상품이 아니라,\n지속 가능한 삶을 담는 그릇이어야 합니다."`}
                 </h2>
                 <div className="prose prose-lg dark:prose-invert max-w-none">
-                  <p className="text-muted-foreground leading-relaxed mb-6">
-                    오스트리아 빈의 사회주택 모델이 우리에게 준 교훈은 명확합니다.
-                    주거는 시혜가 아닌 존엄이며, 가난한 자를 위한 주택일수록 더욱 품격 있게 디자인되어야 한다는 것입니다.
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed mb-6">
-                    아이부키는 지난 13년간 보린주택을 시작으로 안암생활, 장안생활에 이르기까지 한국형 사회주택의 새로운 표준을 제시해 왔습니다.
-                    우리는 공공성(Affordability)과 수익성(Profitability)이 조화롭게 공존하는 '제3의 섹터' 모델을 통해,
-                    부동산 시장의 새로운 대안을 증명해내고 있습니다.
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    단순히 물리적인 벽을 쌓는 것을 넘어, 사람과 사람이 연결되고 지역 사회가 다시 살아나는 '리빙 플랫폼'을 지향합니다.
-                    아이부키가 가는 길이 우리나라 사회주택이 가는 길입니다.
-                  </p>
+                  {ceoMessage.paragraphs && ceoMessage.paragraphs.length > 0 ? (
+                    ceoMessage.paragraphs.map((paragraph, index) => (
+                      <p key={index} className="text-muted-foreground leading-relaxed mb-6 last:mb-0">
+                        {paragraph}
+                      </p>
+                    ))
+                  ) : (
+                    <>
+                      <p className="text-muted-foreground leading-relaxed mb-6">
+                        오스트리아 빈의 사회주택 모델이 우리에게 준 교훈은 명확합니다.
+                        주거는 시혜가 아닌 존엄이며, 가난한 자를 위한 주택일수록 더욱 품격 있게 디자인되어야 한다는 것입니다.
+                      </p>
+                      <p className="text-muted-foreground leading-relaxed mb-6">
+                        아이부키는 지난 13년간 보린주택을 시작으로 안암생활, 장안생활에 이르기까지 한국형 사회주택의 새로운 표준을 제시해 왔습니다.
+                        우리는 공공성(Affordability)과 수익성(Profitability)이 조화롭게 공존하는 '제3의 섹터' 모델을 통해,
+                        부동산 시장의 새로운 대안을 증명해내고 있습니다.
+                      </p>
+                      <p className="text-muted-foreground leading-relaxed">
+                        단순히 물리적인 벽을 쌓는 것을 넘어, 사람과 사람이 연결되고 지역 사회가 다시 살아나는 '리빙 플랫폼'을 지향합니다.
+                        아이부키가 가는 길이 우리나라 사회주택이 가는 길입니다.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
