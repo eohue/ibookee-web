@@ -39,7 +39,7 @@ export default function FeaturedProjects({ projects = [], isLoading }: FeaturedP
   const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
 
   return (
-    <section className="py-20 md:py-24 bg-card" data-testid="section-featured-projects">
+    <section className="py-20 md:py-24" data-testid="section-featured-projects">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
@@ -63,7 +63,7 @@ export default function FeaturedProjects({ projects = [], isLoading }: FeaturedP
             <div className="flex gap-6">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4 first:pl-0">
-                  <div className="overflow-hidden rounded-lg bg-background border border-border">
+                  <div className="overflow-hidden rounded-lg glass">
                     <Skeleton className="aspect-[4/3] w-full" />
                     <div className="p-5 space-y-3">
                       <Skeleton className="h-4 w-24" />
@@ -88,7 +88,7 @@ export default function FeaturedProjects({ projects = [], isLoading }: FeaturedP
                   <div key={project.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4">
                     <Link
                       href={`/space/${project.id}`}
-                      className="group/card block h-full overflow-hidden rounded-lg bg-background border border-border hover-elevate transition-all duration-300"
+                      className="group/card block h-full overflow-hidden rounded-lg glass hover-elevate transition-all duration-300"
                       data-testid={`card-project-${project.id}`}
                     >
                       <div className="relative aspect-[4/3] overflow-hidden">

@@ -120,7 +120,7 @@ export default function Dashboard() {
         </Sidebar>
 
         <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex items-center justify-between gap-4 p-4 border-b bg-background">
+          <header className="flex items-center justify-between gap-4 p-4 border-b glass sticky top-0 z-10">
             <div className="flex items-center gap-4">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
               <h1 className="text-lg font-semibold">
