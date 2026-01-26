@@ -5,7 +5,10 @@ import * as schema from "@shared/schema";
 const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
-  console.warn("DATABASE_URL must be set for database usage. Falling back to memory storage.");
+  throw new Error(
+    "🚨 DATABASE_URL environment variable is missing!\n" +
+    "This application requires a PostgreSQL connection to function."
+  );
 }
 
 // Supabase requires SSL connection in production
