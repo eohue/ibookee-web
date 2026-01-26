@@ -482,7 +482,7 @@ export default function Community() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {reporterArticles.map(article => (
-                  <Card key={article.id} className="overflow-hidden glass-interactive cursor-pointer" onClick={() => setSelectedArticle(article)}>
+                  <Card key={article.id} className="overflow-hidden glass-interactive cursor-pointer border-border/60 shadow-sm hover:shadow-md transition-all" onClick={() => setSelectedArticle(article)}>
                     {article.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden relative">
                         <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
@@ -560,7 +560,7 @@ export default function Community() {
                   return (
                     <Card
                       key={program.id}
-                      className="p-6 md:p-8 glass-interactive"
+                      className="p-6 md:p-8 glass-interactive border-border/60 shadow-sm hover:shadow-md bg-background"
                       data-testid={`program-${program.id}`}
                     >
                       <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-6">
@@ -650,7 +650,7 @@ export default function Community() {
                     className="block"
                   >
                     <Card
-                      className="overflow-hidden glass-interactive cursor-pointer h-full"
+                      className="overflow-hidden glass-interactive cursor-pointer h-full border-border/60 shadow-sm hover:shadow-md transition-all"
                       data-testid={`event-${event.id}`}
                     >
                       {event.imageUrl && (

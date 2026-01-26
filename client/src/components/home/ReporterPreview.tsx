@@ -65,13 +65,13 @@ export default function ReporterPreview({ articles = [], isLoading }: ReporterPr
                     </div>
                 ) : displayedArticles.length > 0 ? (
                     <div className="relative group">
-                        <div className="overflow-hidden" ref={emblaRef}>
-                            <div className="flex -ml-4">
+                        <div className="overflow-hidden py-8" ref={emblaRef}>
+                            <div className="flex -ml-4 px-2">
                                 {displayedArticles.map((article) => (
                                     <div key={article.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4">
                                         <Link href="/community">
                                             <Card
-                                                className="overflow-hidden hover-card-strong cursor-pointer h-full transition-all duration-300"
+                                                className="overflow-hidden hover-card-strong cursor-pointer h-full transition-all duration-300 border-border/60 shadow-sm"
                                                 data-testid={`article-${article.id}`}
                                             >
                                                 <div className="aspect-[16/9] overflow-hidden relative group">

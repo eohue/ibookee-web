@@ -83,13 +83,13 @@ export default function FeaturedProjects({ projects = [], isLoading }: FeaturedP
           </div>
         ) : (
           <div className="relative group">
-            <div className="overflow-hidden" ref={emblaRef}>
-              <div className="flex -ml-6 pb-4">
+            <div className="overflow-hidden py-8" ref={emblaRef}>
+              <div className="flex -ml-6 px-2">
                 {displayProjects.map((project) => (
                   <div key={project.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-6">
                     <Link href={`/space/${project.id}`}>
                       <div
-                        className="group rounded-2xl border border-border/50 bg-card overflow-hidden hover-card-strong cursor-pointer h-full flex flex-col"
+                        className="group rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden hover-card-strong cursor-pointer h-full flex flex-col"
                         data-testid={`card-project-${project.id}`}
                       >
                         <div className="relative aspect-[4/3] overflow-hidden">
