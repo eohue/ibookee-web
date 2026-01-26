@@ -19,8 +19,6 @@ interface FooterSettings {
 
 interface CeoMessage {
   title: string;
-  ceoName: string;
-  quote: string;
   paragraphs: string[];
   signature: string;
 }
@@ -43,8 +41,6 @@ const defaultFooter: FooterSettings = {
 
 const defaultCeo: CeoMessage = {
   title: "CEO 인사말",
-  ceoName: "", // Default empty
-  quote: "주거는 상품이 아니라, 지속 가능한 삶을 담는 그릇이어야 합니다.", // Default quote
   paragraphs: [
     "아이부키는 사회주택 전문 기업으로서 주거 취약계층의 주거 안정과 삶의 질 향상을 위해 노력하고 있습니다.",
     "우리는 단순히 집을 짓는 것이 아닌, 커뮤니티를 만들고 이웃과 함께하는 삶의 가치를 실현합니다.",

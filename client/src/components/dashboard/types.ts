@@ -36,7 +36,6 @@ export interface FooterSettings {
 export interface CeoMessage {
     title: string;
     ceoName: string;
-    quote: string;
     paragraphs: string[];
     signature: string;
 }
