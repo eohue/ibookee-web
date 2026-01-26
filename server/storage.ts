@@ -62,9 +62,9 @@ export interface IStorage {
 
   // Articles
   // Articles
-  getArticles(page?: number, limit?: number): Promise<{ articles: Article[], total: number }>;
+  getArticles(page?: number, limit?: number): Promise<{ articles: Omit<Article, "content">[], total: number }>;
   getArticle(id: string): Promise<Article | undefined>;
-  getArticlesByCategory(category: string, page?: number, limit?: number): Promise<{ articles: Article[], total: number }>;
+  getArticlesByCategory(category: string, page?: number, limit?: number): Promise<{ articles: Omit<Article, "content">[], total: number }>;
   createArticle(article: InsertArticle): Promise<Article>;
   updateArticle(id: string, article: Partial<InsertArticle>): Promise<Article | undefined>;
   deleteArticle(id: string): Promise<void>;
@@ -265,7 +265,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Articles
-  async getArticles(page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
+  async getArticles(page: number = 1, limit: number = 100): Promise<{ articles: Omit<Article, "content">[], total: number }> {
     return this.articleRepo.getArticles(page, limit);
   }
 
@@ -273,7 +273,7 @@ export class DatabaseStorage implements IStorage {
     return this.articleRepo.getArticle(id);
   }
 
-  async getArticlesByCategory(category: string, page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
+  async getArticlesByCategory(category: string, page: number = 1, limit: number = 100): Promise<{ articles: Omit<Article, "content">[], total: number }> {
     return this.articleRepo.getArticlesByCategory(category, page, limit);
   }
 

@@ -12,6 +12,9 @@ export function registerArticleRoutes(app: Express) {
             const limit = parseInt(req.query.limit as string) || 999; // Default high limit for backward compatibility
 
             const result = await storage.getArticles(page, limit);
+
+            // Add caching to reduce DB load
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
             res.json(result);
         } catch (error: any) {
             console.error("Fetch articles error:", error);
@@ -38,6 +41,7 @@ export function registerArticleRoutes(app: Express) {
     app.get("/api/articles/category/:category", async (req, res) => {
         try {
             const articles = await storage.getArticlesByCategory(req.params.category);
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
             res.json(articles);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch articles" });

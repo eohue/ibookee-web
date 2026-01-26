@@ -7,7 +7,7 @@ import {
 } from "@shared/schema";
 
 export class ArticleRepository {
-    async getArticles(page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
+    async getArticles(page: number = 1, limit: number = 100): Promise<{ articles: Omit<Article, "content">[], total: number }> {
         const offset = (page - 1) * limit;
 
         const [articlesResult, countResult] = await Promise.all([
@@ -22,7 +22,6 @@ export class ArticleRepository {
                 sourceUrl: articles.sourceUrl,
                 publishedAt: articles.publishedAt,
                 featured: articles.featured,
-                content: articles.content,
             })
                 .from(articles)
                 .orderBy(desc(articles.publishedAt))
@@ -43,7 +42,7 @@ export class ArticleRepository {
         return result[0];
     }
 
-    async getArticlesByCategory(category: string, page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
+    async getArticlesByCategory(category: string, page: number = 1, limit: number = 100): Promise<{ articles: Omit<Article, "content">[], total: number }> {
         const offset = (page - 1) * limit;
 
         const [articlesResult, countResult] = await Promise.all([
@@ -58,7 +57,6 @@ export class ArticleRepository {
                 sourceUrl: articles.sourceUrl,
                 publishedAt: articles.publishedAt,
                 featured: articles.featured,
-                content: articles.content,
             })
                 .from(articles)
                 .where(eq(articles.category, category))

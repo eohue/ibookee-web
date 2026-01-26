@@ -27,9 +27,11 @@ const isServerless = !!process.env.VERCEL;
 const poolConfig = {
   connectionString,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: isServerless ? 5 : 20, // Serverless: 5, VPS/Render: 20 for better concurrency
+  // Render/Neon free tier limits are often low (e.g. 10-20). 
+  // We set max to 10 to be safe and allow some headroom for migrations/admin connectivity.
+  max: isServerless ? 5 : 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: isServerless ? 10000 : 30000, // Longer timeout for non-serverless
+  connectionTimeoutMillis: isServerless ? 10000 : 30000,
 };
 
 // Singleton pattern for handling connection pool in serverless environment
