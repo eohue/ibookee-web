@@ -35,9 +35,17 @@ export function ResourcesSection() {
 
     // Fetch all articles, but we will filter them on the client side for now as the API returns all.
     // Optimization: In real world, we might want a query param to filter by category on backend.
-    const { data: articles, isLoading } = useQuery<Article[]>({
-        queryKey: ["/api/admin/articles"],
+    // Fetch all articles, but we will filter them on the client side for now as the API returns all.
+    // Optimization: In real world, we might want a query param to filter by category on backend.
+    const { data, isLoading } = useQuery<{ articles: Article[], total: number }>({
+        queryKey: ["/api/admin/articles", "all"],
+        queryFn: async () => {
+            const res = await apiRequest("GET", "/api/admin/articles?page=1&limit=1000");
+            return res.json();
+        }
     });
+
+    const articles = data?.articles || [];
 
     const createMutation = useMutation({
         mutationFn: async (data: any) => {

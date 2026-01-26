@@ -110,10 +110,13 @@ export function registerCommunityRoutes(app: Express) {
     });
 
     // Admin Community Posts CRUD
-    app.get("/api/admin/community-posts", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/community-posts", isAuthenticated, async (req, res) => {
         try {
-            const { posts } = await storage.getCommunityPosts(1, 1000); // Admin gets all (capped at 1000)
-            res.json(posts);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 20;
+
+            const result = await storage.getCommunityPosts(page, limit);
+            res.json(result);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch community posts" });
         }

@@ -45,6 +45,8 @@ function Router() {
   );
 }
 
+import ScrollToTop from "@/components/layout/ScrollToTop";
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -53,6 +55,7 @@ function App() {
         <AuthProvider>
           <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" attribute="class">
             <Router />
+            <ScrollToTop />
           </ThemeProvider>
         </AuthProvider>
       </TooltipProvider>

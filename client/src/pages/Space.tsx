@@ -7,6 +7,7 @@ import { MapPin, Grid3X3, Map, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import type { Project } from "@shared/schema";
 
 import { PROJECT_CATEGORIES } from "@/lib/constants";
@@ -16,9 +17,12 @@ const categories = [
   ...PROJECT_CATEGORIES
 ];
 
+import { useScrollVisible } from "@/hooks/use-scroll-visible";
+
 export default function Space() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const { isVisible } = useScrollVisible();
 
   const { data: projects = [], isLoading, isError, refetch } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
@@ -56,7 +60,13 @@ export default function Space() {
           </div>
         </section>
 
-        <section className="sticky top-14 z-40 bg-background/95 backdrop-blur-sm border-b border-border py-2" data-testid="section-filter">
+        <section
+          className={cn(
+            "sticky z-40 bg-background/95 backdrop-blur-sm border-b border-border py-2 transition-[top] duration-300",
+            isVisible ? "top-14" : "top-0"
+          )}
+          data-testid="section-filter"
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-2">

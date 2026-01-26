@@ -25,6 +25,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
+import { useScrollVisible } from "@/hooks/use-scroll-visible";
 import logoWhite from "@assets/logo_white.png";
 import logoDark from "@assets/logo_dark.png";
 import { cn } from "@/lib/utils";
@@ -40,18 +41,10 @@ const navigation = [
 
 export default function Header() {
   const [location] = useLocation();
-  const [isScrolled, setIsScrolled] = useState(false);
+  const { isVisible, isScrolled } = useScrollVisible();
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, isLoading: authLoading, logoutMutation } = useAuth();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -82,7 +75,8 @@ export default function Header() {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
         isTransparent
           ? "bg-transparent border-transparent py-4"
-          : "bg-background/80 backdrop-blur-md border-border py-2"
+          : "bg-background/80 backdrop-blur-md border-border py-2",
+        !isVisible && "-translate-y-full"
       )}
       data-testid="header"
     >
@@ -121,7 +115,7 @@ export default function Header() {
                               : "text-foreground hover:text-primary focus:text-primary",
                             isActive && !isTransparent && "text-primary font-semibold",
                             isActive && isTransparent && "text-white font-bold bg-white/10",
-                            isEmphasis && "font-bold text-lg"
+                            isEmphasis ? "font-bold text-lg" : "font-light"
                           )}
                         >
                           {item.name}
@@ -244,7 +238,7 @@ export default function Header() {
                         href={item.href}
                         className={cn(
                           "px-4 py-3 rounded-lg transition-all duration-200",
-                          isEmphasis ? "font-bold text-xl" : "text-base font-medium",
+                          isEmphasis ? "font-bold text-xl" : "text-base font-light",
                           isActive
                             ? "bg-primary/10 text-primary translate-x-1"
                             : "text-muted-foreground hover:text-foreground hover:bg-muted"

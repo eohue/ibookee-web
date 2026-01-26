@@ -60,25 +60,17 @@ export function ArticlesSection() {
     const [fileUrl, setFileUrl] = useState("");
     const [currentPage, setCurrentPage] = useState(getPageFromUrl);
 
-    const { data: articles, isLoading } = useQuery<Article[]>({
-        queryKey: ["/api/admin/articles"],
+    const { data, isLoading } = useQuery<{ articles: Article[], total: number }>({
+        queryKey: ["/api/admin/articles", currentPage],
+        queryFn: async () => {
+            const res = await apiRequest("GET", `/api/admin/articles?page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
+            return res.json();
+        }
     });
 
-    // Sync page state with URL on mount and popstate
-    useEffect(() => {
-        const handlePopState = () => {
-            setCurrentPage(getPageFromUrl());
-        };
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, []);
-
     // Pagination logic
-    const totalPages = Math.ceil((articles?.length || 0) / ITEMS_PER_PAGE);
-    const paginatedArticles = articles?.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
+    const totalPages = Math.ceil((data?.total || 0) / ITEMS_PER_PAGE);
+    const articles = data?.articles || [];
 
     const handlePageChange = (page: number) => {
         const url = new URL(window.location.href);
@@ -432,7 +424,7 @@ export function ArticlesSection() {
             ) : (
                 <>
                     <div className="grid gap-4">
-                        {paginatedArticles?.map((article) => (
+                        {articles?.map((article) => (
                             <Card key={article.id} data-testid={`card-article-${article.id}`}>
                                 <CardContent className="p-4">
                                     <div className="flex items-start gap-4">

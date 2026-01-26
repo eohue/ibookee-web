@@ -52,13 +52,10 @@ export function registerArticleRoutes(app: Express) {
     app.get("/api/admin/articles", isAuthenticated, async (req, res) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 100;
+            const limit = parseInt(req.query.limit as string) || 20;
 
             const result = await storage.getArticles(page, limit);
-            // Admin dashboard might expect array, but it should handle object. 
-            // If strictly array needed by frontend: res.json(result.articles);
-            // Let's return full result for future pagination Support in Admin.
-            res.json(result.articles);
+            res.json(result);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch articles" });
         }

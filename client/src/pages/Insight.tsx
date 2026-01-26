@@ -41,10 +41,14 @@ function getCategoryFromUrl(): string {
 }
 
 
+import { cn } from "@/lib/utils";
+import { useScrollVisible } from "@/hooks/use-scroll-visible";
+
 
 export default function Insight() {
   const [activeCategory, setActiveCategory] = useState(getCategoryFromUrl);
   const [currentPage, setCurrentPage] = useState(getPageFromUrl);
+  const { isVisible } = useScrollVisible();
 
   const { data, isLoading, isError, refetch } = useQuery<{ articles: Article[]; total: number }>({
     queryKey: ["/api/articles", activeCategory, currentPage],
@@ -202,7 +206,12 @@ export default function Insight() {
           </div>
         </section>
 
-        <section className="sticky top-14 z-40 bg-background/95 backdrop-blur-sm border-b border-border py-2">
+        <section
+          className={cn(
+            "sticky z-40 bg-background/95 backdrop-blur-sm border-b border-border py-2 transition-[top] duration-300",
+            isVisible ? "top-14" : "top-0"
+          )}
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center gap-2">
               {categories.map((category) => (

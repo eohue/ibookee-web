@@ -58,25 +58,16 @@ export function CommunitySection() {
         queryKey: ["/api/admin/social-accounts"],
     });
 
-    const { data: posts, isLoading } = useQuery<CommunityPost[]>({
-        queryKey: ["/api/admin/community-posts"],
+    const { data, isLoading } = useQuery<{ posts: CommunityPost[], total: number }>({
+        queryKey: ["/api/admin/community-posts", currentPage],
+        queryFn: async () => {
+            const res = await apiRequest("GET", `/api/admin/community-posts?page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
+            return res.json();
+        }
     });
 
-    // Sync page state with URL on mount and popstate
-    useEffect(() => {
-        const handlePopState = () => {
-            setCurrentPage(getPageFromUrl());
-        };
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, []);
-
-    // Pagination logic
-    const totalPages = Math.ceil((posts?.length || 0) / ITEMS_PER_PAGE);
-    const paginatedPosts = posts?.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
+    const posts = data?.posts || [];
+    const totalPages = Math.ceil((data?.total || 0) / ITEMS_PER_PAGE);
 
     const handlePageChange = (page: number) => {
         const url = new URL(window.location.href);
@@ -393,7 +384,7 @@ export function CommunitySection() {
             ) : (
                 <>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                        {paginatedPosts?.map((post) => {
+                        {posts?.map((post) => {
                             const account = post.accountId ? accounts?.find(a => a.id === post.accountId) : null;
                             return (
                                 <Card key={post.id} data-testid={`card-community-post-${post.id}`} className="overflow-hidden">
