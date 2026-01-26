@@ -11,13 +11,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 import logoWhite from "@assets/logo_white.png";
 import logoDark from "@assets/logo_dark.png";
+import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "About Us", href: "/about" },
@@ -63,60 +73,78 @@ export default function Header() {
   };
 
   const isHomePage = location === "/";
-  const headerBg = isScrolled || !isHomePage
-    ? "bg-background/95 backdrop-blur-md border-b border-border"
-    : "bg-transparent";
+  // Refined transparency logic
+  const isTransparent = isHomePage && !isScrolled;
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerBg}`}
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
+        isTransparent
+          ? "bg-transparent border-transparent py-4"
+          : "bg-background/80 backdrop-blur-md border-border py-2"
+      )}
       data-testid="header"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="flex items-center justify-between">
           <Link
             href="/"
-            className="flex items-center"
+            className="flex items-center z-50 relative"
             data-testid="link-home"
           >
             <img
-              src={isScrolled || (!isHomePage && !isDark) ? (isDark ? logoWhite : logoDark) : logoWhite}
+              src={isTransparent && !isDark ? logoWhite : (isDark ? logoWhite : logoDark)}
               alt="IBOOKEE 아이부키"
-              className="h-8 md:h-10 w-auto object-contain object-left"
+              className="h-8 md:h-10 w-auto object-contain object-left transition-all duration-300"
               style={{ maxWidth: '160px' }}
             />
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-1">
-            {navigation.map((item) => {
-              const isEmphasis = item.name === "Space" || item.name === "Life";
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`px-4 py-2 rounded-md transition-colors ${isEmphasis ? "font-black text-xl" : "text-sm font-medium"
-                    } ${location === item.href
-                      ? isScrolled || !isHomePage
-                        ? "text-primary bg-primary/10"
-                        : "text-white bg-white/20"
-                      : isScrolled || !isHomePage
-                        ? "text-foreground hover:text-primary hover:bg-muted"
-                        : "text-white/90 hover:text-white hover:bg-white/10"
-                    }`}
-                  data-testid={`link-nav-${item.name.toLowerCase().replace(" ", "-")}`}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center justify-center flex-1 px-8">
+            <NavigationMenu className="max-w-none">
+              <NavigationMenuList className="gap-1">
+                {navigation.map((item) => {
+                  const isEmphasis = item.name === "Space" || item.name === "Life";
+                  const isActive = location === item.href;
+
+                  return (
+                    <NavigationMenuItem key={item.name}>
+                      <Link href={item.href}>
+                        <NavigationMenuLink
+                          className={cn(
+                            navigationMenuTriggerStyle(),
+                            "h-10 px-4 text-base transition-all bg-transparent hover:bg-transparent focus:bg-transparent",
+                            isTransparent
+                              ? "text-white hover:text-white/80 focus:text-white"
+                              : "text-foreground hover:text-primary focus:text-primary",
+                            isActive && !isTransparent && "text-primary font-semibold",
+                            isActive && isTransparent && "text-white font-bold bg-white/10",
+                            isEmphasis && "font-bold text-lg"
+                          )}
+                        >
+                          {item.name}
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  );
+                })}
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
 
           <div className="flex items-center gap-2">
             <Button
               size="icon"
               variant="ghost"
               onClick={toggleTheme}
-              className={isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}
+              className={cn(
+                "rounded-full transition-colors",
+                isTransparent
+                  ? "text-white hover:bg-white/10 hover:text-white"
+                  : "text-foreground hover:bg-muted hover:text-foreground"
+              )}
               data-testid="button-theme-toggle"
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -129,13 +157,18 @@ export default function Header() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`hidden md:flex gap-2 ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
+                      className={cn(
+                        "hidden md:flex gap-2 rounded-full px-4",
+                        isTransparent
+                          ? "text-white hover:bg-white/10 hover:text-white"
+                          : "text-foreground hover:bg-muted"
+                      )}
                     >
                       <User className="w-4 h-4" />
                       <span className="max-w-[100px] truncate">{user?.firstName}</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>내 계정</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
@@ -154,7 +187,7 @@ export default function Header() {
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className="text-red-600 focus:text-red-600 cursor-pointer"
+                      className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/20"
                       onClick={() => logoutMutation.mutate()}
                     >
                       <LogOut className="w-4 h-4 mr-2" />
@@ -165,12 +198,17 @@ export default function Header() {
               ) : (
                 <Link href="/auth">
                   <Button
-                    variant="ghost"
+                    variant={isTransparent ? "ghost" : "default"}
                     size="sm"
-                    className={`hidden md:flex ${isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}`}
+                    className={cn(
+                      "hidden md:flex rounded-full gap-2",
+                      isTransparent
+                        ? "text-white hover:bg-white/10 hover:text-white"
+                        : ""
+                    )}
                     data-testid="button-login"
                   >
-                    <LogIn className="w-4 h-4 mr-2" />
+                    <LogIn className="w-4 h-4" />
                     로그인
                   </Button>
                 </Link>
@@ -182,62 +220,82 @@ export default function Header() {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className={isScrolled || !isHomePage ? "" : "text-white hover:bg-white/10"}
+                  className={cn(
+                    "rounded-full",
+                    isTransparent ? "text-white hover:bg-white/10" : ""
+                  )}
                   data-testid="button-mobile-menu"
                 >
-                  <Menu className="w-5 h-5" />
+                  <Menu className="w-6 h-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] sm:w-[320px]">
-                <nav className="flex flex-col gap-2 mt-8">
+              <SheetContent side="right" className="w-[300px] sm:w-[350px] pr-0">
+                <SheetHeader className="px-6 mb-8 text-left">
+                  <SheetTitle className="text-2xl font-bold">Menu</SheetTitle>
+                </SheetHeader>
+
+                <nav className="flex flex-col gap-1 px-4">
                   {navigation.map((item) => {
                     const isEmphasis = item.name === "Space" || item.name === "Life";
+                    const isActive = location === item.href;
                     return (
                       <Link
                         key={item.name}
                         href={item.href}
-                        className={`px-4 py-3 rounded-md transition-colors ${isEmphasis ? "font-black text-2xl" : "text-base font-medium"
-                          } ${location === item.href
-                            ? "text-primary bg-primary/10"
-                            : "text-foreground hover:text-primary hover:bg-muted"
-                          }`}
+                        className={cn(
+                          "px-4 py-3 rounded-lg transition-all duration-200",
+                          isEmphasis ? "font-bold text-xl" : "text-base font-medium",
+                          isActive
+                            ? "bg-primary/10 text-primary translate-x-1"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        )}
                         onClick={() => setMobileMenuOpen(false)}
-                        data-testid={`link-mobile-nav-${item.name.toLowerCase().replace(" ", "-")}`}
                       >
                         {item.name}
                       </Link>
                     );
                   })}
 
-                  <div className="border-t border-border mt-4 pt-4">
+                  <div className="my-4 h-px bg-border mx-4" />
+
+                  <div className="px-4 space-y-2">
                     {!authLoading && (
                       isAuthenticated ? (
-                        user?.role === 'admin' ? (
-                          <Link
-                            href="/dashboard"
-                            className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
-                            onClick={() => setMobileMenuOpen(false)}
-                            data-testid="link-mobile-dashboard"
-                          >
-                            <LayoutDashboard className="w-5 h-5" />
-                            관리자
-                          </Link>
-                        ) : (
+                        <>
                           <Link
                             href="/mypage"
-                            className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
+                            className="flex items-center gap-3 px-4 py-3 text-base font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
-                            data-testid="link-mobile-mypage"
                           >
                             <User className="w-5 h-5" />
                             마이페이지
                           </Link>
-                        )
+                          {user?.role === 'admin' && (
+                            <Link
+                              href="/dashboard"
+                              className="flex items-center gap-3 px-4 py-3 text-base font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              <LayoutDashboard className="w-5 h-5" />
+                              관리자
+                            </Link>
+                          )}
+                          <button
+                            onClick={() => {
+                              logoutMutation.mutate();
+                              setMobileMenuOpen(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-base font-medium rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                          >
+                            <LogOut className="w-5 h-5" />
+                            로그아웃
+                          </button>
+                        </>
                       ) : (
                         <Link
                           href="/auth"
-                          className="flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md text-foreground hover:text-primary hover:bg-muted"
-                          data-testid="link-mobile-login"
+                          className="flex items-center gap-3 px-4 py-3 text-base font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          onClick={() => setMobileMenuOpen(false)}
                         >
                           <LogIn className="w-5 h-5" />
                           로그인
