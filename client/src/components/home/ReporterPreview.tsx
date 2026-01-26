@@ -70,43 +70,38 @@ export default function ReporterPreview({ articles = [], isLoading }: ReporterPr
                                 {displayedArticles.map((article) => (
                                     <div key={article.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4">
                                         <Link href="/community">
-                                            <Card className="h-full hover-card-strong transition-all cursor-pointer overflow-hidden group/card bg-card border-border/60">
-                                                <div className="aspect-[16/9] relative overflow-hidden bg-muted">
+                                            <Card
+                                                className="overflow-hidden hover-card-strong cursor-pointer h-full transition-all duration-300"
+                                                data-testid={`article-${article.id}`}
+                                            >
+                                                <div className="aspect-[16/9] overflow-hidden relative group">
                                                     <img
                                                         src={article.imageUrl || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"}
                                                         alt={article.title}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110"
+                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                     />
-                                                    <div className="absolute top-4 left-4">
-                                                        <Badge className="bg-white/90 text-black hover:bg-white flex items-center gap-1">
-                                                            <Newspaper className="w-3 h-3" />
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                                </div>
+                                                <div className="p-6">
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <Newspaper className="w-4 h-4 text-primary" />
+                                                        <Badge variant="secondary" className="bg-secondary/50">
                                                             안암 리포트
                                                         </Badge>
                                                     </div>
-                                                </div>
-                                                <CardContent className="p-6">
-                                                    <div className="flex items-center gap-2 mb-3">
-                                                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                                                            {article.authorName} 기자
-                                                        </span>
-                                                        <span className="text-xs text-muted-foreground">
-                                                            {new Date(article.createdAt || "").toLocaleDateString()}
-                                                        </span>
-                                                    </div>
-                                                    <h3 className="font-bold text-xl mb-3 line-clamp-2 group-hover/card:text-primary transition-colors">
+                                                    <h3 className="font-bold text-lg text-foreground mb-3 line-clamp-2 group-hover:text-primary transition-colors">
                                                         {article.title}
                                                     </h3>
-                                                    <div className="mt-auto flex items-center gap-4 text-sm text-muted-foreground">
-                                                        <div className="flex items-center gap-1">
-                                                            <Heart className="w-4 h-4" />
-                                                            <span>{article.likes || 0}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <MessageCircle className="w-4 h-4" />
-                                                            <span>{article.commentCount || 0}</span>
-                                                        </div>
+                                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+                                                        {article.content.replace(/<[^>]*>?/gm, "").substring(0, 100)}...
+                                                    </p>
+                                                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/50">
+                                                        <span>{article.authorName} 기자</span>
+                                                        {article.createdAt && (
+                                                            <span>{new Date(article.createdAt).toLocaleDateString("ko-KR")}</span>
+                                                        )}
                                                     </div>
-                                                </CardContent>
+                                                </div>
                                             </Card>
                                         </Link>
                                     </div>

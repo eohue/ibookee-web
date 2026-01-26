@@ -56,7 +56,7 @@ export default function Space() {
           </div>
         </section>
 
-        <section className="sticky top-16 md:top-20 z-40 bg-background/95 backdrop-blur-sm border-b border-border py-2" data-testid="section-filter">
+        <section className="sticky top-14 z-40 bg-background/95 backdrop-blur-sm border-b border-border py-2" data-testid="section-filter">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-2">

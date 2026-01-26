@@ -88,54 +88,51 @@ export default function FeaturedProjects({ projects = [], isLoading }: FeaturedP
                 {displayProjects.map((project) => (
                   <div key={project.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-6">
                     <Link href={`/space/${project.id}`}>
-                      <Card
-                        className="group/card h-full overflow-hidden hover-card-strong cursor-pointer"
+                      <div
+                        className="group rounded-2xl border border-border/50 bg-card overflow-hidden hover-card-strong cursor-pointer h-full flex flex-col"
                         data-testid={`card-project-${project.id}`}
                       >
-                        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-md">
-                          <div className="absolute inset-0 z-10 bg-black/20 group-hover/card:bg-black/10 transition-colors duration-500" />
+                        <div className="relative aspect-[4/3] overflow-hidden">
                           <img
                             src={project.imageUrl}
                             alt={project.title}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           />
-
-                          {/* Overlay Content */}
-                          <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
-                            {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
-                              <Badge key={cat} variant="secondary" className="backdrop-blur-md bg-white/90 text-black border-0 shadow-sm font-medium">
-                                {CATEGORY_LABELS[cat] || cat}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-
-                        <CardContent className="pt-6 px-2 pb-2">
-                          <h3 className="text-2xl font-bold text-foreground mb-1 group-hover/card:text-primary transition-colors">
-                            {project.title}
-                          </h3>
-                          {project.titleEn && (
-                            <p className="text-muted-foreground text-sm font-medium tracking-wide mb-3 uppercase opacity-70">
-                              {project.titleEn}
-                            </p>
-                          )}
-
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-4">
-                            <div className="flex items-center gap-1.5">
-                              <MapPin className="w-4 h-4 text-primary/70" />
-                              <span className="line-clamp-1">{project.location}</span>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+                          <div className="absolute top-4 left-4">
+                            <div className="flex flex-wrap gap-1">
+                              {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
+                                <Badge key={cat} variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0 mr-1 hover:bg-white/30">
+                                  {CATEGORY_LABELS[cat] || cat}
+                                </Badge>
+                              ))}
                             </div>
-                            <div className="w-px h-3 bg-border" />
-                            <span className="font-medium">{project.year}</span>
-                            {project.units && (
-                              <>
-                                <div className="w-px h-3 bg-border" />
-                                <span>{project.units}세대</span>
-                              </>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 p-5 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                            <h3 className="text-xl font-bold text-white mb-1">{project.title}</h3>
+                            {project.titleEn && (
+                              <p className="text-white/70 text-sm font-medium tracking-wide">{project.titleEn}</p>
                             )}
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                        <div className="p-5 flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 text-primary text-sm mb-3">
+                              <MapPin className="w-4 h-4" />
+                              <span className="font-medium">{project.location}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                              {project.description.replace(/<[^>]*>?/gm, "")}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/50">
+                            <span>{project.year}년 준공</span>
+                            {project.units && (
+                              <span className="font-semibold text-foreground">{project.units}세대</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </Link>
                   </div>
                 ))}
