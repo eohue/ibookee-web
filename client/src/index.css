@@ -139,6 +139,11 @@
     @apply glass hover:bg-white/80 dark:hover:bg-black/60 hover:shadow-md hover:scale-[1.01] hover:border-primary/20;
   }
 
+  /* Strong Card Hover Effect */
+  .hover-card-strong {
+    @apply transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:-translate-y-1;
+  }
+
   /* Hide ugly search cancel button in Chrome until we can style it properly */
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;

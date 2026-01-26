@@ -126,46 +126,51 @@ export default function Space() {
                   <Link
                     key={project.id}
                     href={`/space/${project.id}`}
-                    className="group overflow-hidden rounded-lg bg-card border border-border hover-elevate cursor-pointer block"
-                    data-testid={`card-project-${project.id}`}
                   >
-                    <div className="relative aspect-[4/3] overflow-hidden">
-                      <img
-                        src={project.imageUrl}
-                        alt={project.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      <div className="absolute top-4 left-4">
-                        <div className="flex flex-wrap gap-1">
-                          {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
-                            <Badge key={cat} variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0 mr-1">
-                              {getCategoryLabel(cat)}
-                            </Badge>
-                          ))}
+                    <div
+                      className="group rounded-2xl border border-border/50 bg-card overflow-hidden hover-card-strong cursor-pointer h-full flex flex-col"
+                      data-testid={`card-project-${project.id}`}
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <img
+                          src={project.imageUrl}
+                          alt={project.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute top-4 left-4">
+                          <div className="flex flex-wrap gap-1">
+                            {(Array.isArray(project.category) ? project.category : [project.category as unknown as string]).map((cat) => (
+                              <Badge key={cat} variant="secondary" className="bg-white/20 backdrop-blur-sm text-white border-0 mr-1 hover:bg-white/30">
+                                {getCategoryLabel(cat)}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 p-5 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                          <h3 className="text-xl font-bold text-white mb-1">{project.title}</h3>
+                          {project.titleEn && (
+                            <p className="text-white/70 text-sm font-medium tracking-wide">{project.titleEn}</p>
+                          )}
                         </div>
                       </div>
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <h3 className="text-xl font-bold text-white">{project.title}</h3>
-                        {project.titleEn && (
-                          <p className="text-white/80 text-sm">{project.titleEn}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="p-5">
-                      <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
-                        <MapPin className="w-4 h-4" />
-                        <span>{project.location}</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                        {project.description.replace(/<[^>]*>?/gm, "")}
-                      </p>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{project.year}년 준공</span>
-                        {project.units && (
-                          <span className="font-medium text-foreground">{project.units}세대</span>
-                        )}
+                      <div className="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 text-primary text-sm mb-3">
+                            <MapPin className="w-4 h-4" />
+                            <span className="font-medium">{project.location}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                            {project.description.replace(/<[^>]*>?/gm, "")}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/50">
+                          <span>{project.year}년 준공</span>
+                          {project.units && (
+                            <span className="font-semibold text-foreground">{project.units}세대</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </Link>

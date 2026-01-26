@@ -354,39 +354,42 @@ export default function Insight() {
                             <Link
                               key={article.id}
                               href={`/insight/${article.id}`}
-                              className="block"
+                              className="block h-full"
                             >
                               <Card
-                                className="overflow-hidden hover-elevate cursor-pointer h-full"
+                                className="overflow-hidden hover-card-strong cursor-pointer h-full transition-all duration-300"
                                 data-testid={`article-${article.id}`}
                               >
-                                <div className="aspect-[16/9] overflow-hidden">
+                                <div className="aspect-[16/9] overflow-hidden relative group">
                                   {article.imageUrl ? (
-                                    <img
-                                      src={article.imageUrl}
-                                      alt={article.title}
-                                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                                    />
+                                    <>
+                                      <img
+                                        src={article.imageUrl}
+                                        alt={article.title}
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                      />
+                                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                    </>
                                   ) : (
-                                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                                    <div className="w-full h-full bg-muted flex items-center justify-center group-hover:bg-muted/80 transition-colors">
                                       <CategoryIcon className="w-12 h-12 text-muted-foreground" />
                                     </div>
                                   )}
                                 </div>
-                                <div className="p-5">
+                                <div className="p-6">
                                   <div className="flex items-center gap-2 mb-3">
                                     <CategoryIcon className="w-4 h-4 text-primary" />
-                                    <Badge variant="secondary">
+                                    <Badge variant="secondary" className="bg-secondary/50">
                                       {getCategoryLabel(article.category)}
                                     </Badge>
                                   </div>
-                                  <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                                  <h3 className="font-bold text-lg text-foreground mb-3 line-clamp-2 group-hover:text-primary transition-colors">
                                     {article.title}
                                   </h3>
-                                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
                                     {article.excerpt}
                                   </p>
-                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/50">
                                     <span>{article.author}</span>
                                     {article.publishedAt && (
                                       <span>{new Date(article.publishedAt).toLocaleDateString("ko-KR")}</span>
