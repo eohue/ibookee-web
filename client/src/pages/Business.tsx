@@ -62,6 +62,24 @@ const solutionsData = [
       units: 120,
     },
   },
+  {
+    id: "public-support-rental",
+    title: "공공지원민간임대",
+    titleEn: "Public-Supported Private Rental",
+    description: "공공의 지원을 통해 합리적인 임대료로 장기간 거주할 수 있는 민간임대주택 모델",
+    features: [
+      "시세 대비 저렴한 임대료",
+      "장기 거주 보장 (최대 10년)",
+      "청년·신혼부부 우선 공급",
+      "보증금 반환 보증 가입",
+    ],
+    imageKey: "solution-family",
+    case: {
+      name: "길동생활",
+      location: "서울 강동구",
+      units: 0,
+    },
+  },
 ];
 
 const esgMetrics = [
@@ -207,6 +225,7 @@ export default function Business() {
                 if (solution.id === "purchase-agreement") targetTitle = "다다름하우스";
                 else if (solution.id === "land-lease") targetTitle = "홍시주택";
                 else if (solution.id === "urban-regeneration") targetTitle = "장안생활";
+                else if (solution.id === "public-support-rental") targetTitle = "길동생활";
 
                 const project = projects.find(p => p.title === targetTitle);
 
