@@ -167,6 +167,14 @@
     @apply hidden;
   }
 
+  .glass {
+    @apply bg-white/80 dark:bg-black/70 backdrop-blur-xl border border-white/40 dark:border-white/20 shadow-md transition-all duration-300;
+  }
+
+  .glass-interactive {
+    @apply glass hover:bg-white hover:border-primary/50 hover:shadow-xl hover:scale-[1.02];
+  }
+
   /* Placeholder styling for contentEditable div */
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);

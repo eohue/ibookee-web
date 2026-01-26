@@ -48,7 +48,7 @@ export default function CommunityPreview() {
           ) : posts.slice(0, 8).map((item) => (
             <Link key={item.id} href={`/community`}>
               <div
-                className="group relative aspect-square overflow-hidden rounded-lg bg-muted cursor-pointer"
+                className="group relative aspect-square overflow-hidden rounded-lg glass-interactive cursor-pointer"
                 data-testid={`card-community-${item.id}`}
               >
                 <img

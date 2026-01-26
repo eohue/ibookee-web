@@ -63,9 +63,7 @@ export default function Header() {
   };
 
   const isHomePage = location === "/";
-  const headerBg = isScrolled || !isHomePage
-    ? "glass border-x-0 border-t-0 rounded-none"
-    : "bg-transparent";
+  const headerBg = "glass border-x-0 border-t-0 rounded-none";
 
   return (
     <header
