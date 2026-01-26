@@ -8,11 +8,12 @@ import type { ResidentReporter } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export default function ReporterPreview() {
-    const { data: articles, isLoading } = useQuery<ResidentReporter[]>({
-        queryKey: ["/api/resident-reporter"],
-    });
+interface ReporterPreviewProps {
+    articles?: ResidentReporter[];
+    isLoading: boolean;
+}
 
+export default function ReporterPreview({ articles = [], isLoading }: ReporterPreviewProps) {
     const displayedArticles = articles?.slice(0, 6) || [];
 
     const [emblaRef, emblaApi] = useEmblaCarousel({

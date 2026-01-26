@@ -1,8 +1,13 @@
 import { Building, Users, Calendar, Award } from "lucide-react";
-import { useCompanyStats } from "@/hooks/use-site-settings";
+import { defaultStats, type CompanyStats } from "@/hooks/use-site-settings";
 
-export default function StatsSection() {
-  const { stats, isLoading } = useCompanyStats();
+interface StatsSectionProps {
+  stats?: CompanyStats | null;
+  isLoading: boolean;
+}
+
+export default function StatsSection({ stats: propStats, isLoading }: StatsSectionProps) {
+  const stats = propStats || defaultStats;
 
   const statItems = [
     {

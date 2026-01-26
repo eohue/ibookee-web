@@ -18,6 +18,7 @@ import { registerUserRoutes } from "./routes/users";
 import { registerMetadataRoutes } from "./routes/metadata";
 import { registerReporterRoutes } from "./routes/reporters";
 import { registerRecruitmentRoutes } from "./routes/recruitments";
+import { registerHomeRoutes } from "./routes/home";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -51,6 +52,7 @@ export async function registerRoutes(
   registerStatsRoutes(app);
   registerReporterRoutes(app);
   registerRecruitmentRoutes(app);
+  registerHomeRoutes(app);
 
   return httpServer;
 }

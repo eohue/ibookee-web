@@ -43,7 +43,9 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       const logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      log(logLine);
+      if (process.env.NODE_ENV !== "production") {
+        log(logLine);
+      }
     }
   });
 

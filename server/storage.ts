@@ -1,25 +1,5 @@
-import { eq, and, arrayContains, sql, desc, count } from "drizzle-orm";
-import { db } from "./db";
+// Imports kept for IStorage interface definition
 import {
-  projects,
-  inquiries,
-  articles,
-  communityPosts,
-  socialAccounts,
-  events,
-  editablePages,
-  residentPrograms,
-  programApplications,
-  projectImages,
-  partners,
-  subprojects,
-  historyMilestones,
-  siteSettings,
-  pageImages,
-  users,
-  communityPostComments,
-  residentReporters,
-  housingRecruitments,
   type Project,
   type InsertProject,
   type Inquiry,
@@ -59,13 +39,11 @@ import {
   type InsertResidentReporter,
   type ResidentReporterComment,
   type InsertResidentReporterComment,
-  residentReporterComments,
   type HousingRecruitment,
   type InsertHousingRecruitment,
 } from "@shared/schema";
-import fs from "fs";
-import path from "path";
-import { nanoid } from "nanoid"; // Added nanoid import
+import { ProjectRepository } from "./repositories/projectRepository";
+import { ArticleRepository } from "./repositories/articleRepository";
 
 export interface IStorage {
   // Projects
@@ -218,859 +196,487 @@ export interface IStorage {
   deleteHousingRecruitment(id: string): Promise<void>;
 }
 
+import { UserRepository } from "./repositories/userRepository";
+
+import { CommunityRepository } from "./repositories/communityRepository";
+
+import { InquiryRepository } from "./repositories/inquiryRepository";
+import { EventRepository } from "./repositories/eventRepository";
+import { ProgramRepository } from "./repositories/programRepository";
+
+import { StatsRepository } from "./repositories/statsRepository";
+import { SiteRepository } from "./repositories/siteRepository";
+import { HousingRepository } from "./repositories/housingRepository";
+import { ReporterRepository } from "./repositories/reporterRepository";
+
 export class DatabaseStorage implements IStorage {
+  private projectRepo = new ProjectRepository();
+  private articleRepo = new ArticleRepository();
+  private userRepo = new UserRepository();
+  private communityRepo = new CommunityRepository();
+  private inquiryRepo = new InquiryRepository();
+  private eventRepo = new EventRepository();
+  private programRepo = new ProgramRepository();
+  private statsRepo = new StatsRepository();
+  private siteRepo = new SiteRepository();
+  private housingRepo = new HousingRepository();
+  private reporterRepo = new ReporterRepository();
+
   // Projects
   async getProjects(page: number = 1, limit: number = 100): Promise<{ projects: Project[], total: number }> {
-    const offset = (page - 1) * limit;
-
-    const [projectsResult, countResult] = await Promise.all([
-      db.select({
-        id: projects.id,
-        title: projects.title,
-        titleEn: projects.titleEn,
-        location: projects.location,
-        category: projects.category,
-        imageUrl: projects.imageUrl,
-        year: projects.year,
-        completionMonth: projects.completionMonth,
-        units: projects.units,
-        siteArea: projects.siteArea,
-        grossFloorArea: projects.grossFloorArea,
-        scale: projects.scale,
-        featured: projects.featured,
-        partnerLogos: projects.partnerLogos,
-        pdfUrl: projects.pdfUrl,
-        description: projects.description,
-        relatedArticles: projects.relatedArticles,
-      })
-        .from(projects)
-        .orderBy(desc(projects.year))
-        .limit(limit)
-        .offset(offset),
-
-      db.select({ count: count() }).from(projects)
-    ]);
-
-    return {
-      projects: projectsResult,
-      total: countResult[0]?.count || 0
-    };
+    return this.projectRepo.getProjects(page, limit);
   }
 
   async getProject(id: string): Promise<Project | undefined> {
-    const result = await db.select().from(projects).where(eq(projects.id, id));
-    return result[0];
+    return this.projectRepo.getProject(id);
   }
 
   async getProjectsByCategory(category: string): Promise<Project[]> {
-    return db.select().from(projects).where(arrayContains(projects.category, [category])).orderBy(sql`${projects.year} DESC`);
+    return this.projectRepo.getProjectsByCategory(category);
   }
 
   async createProject(project: InsertProject): Promise<Project> {
-    const result = await db.insert(projects).values(project).returning();
-    return result[0];
+    return this.projectRepo.createProject(project);
   }
 
   async updateProject(id: string, project: Partial<InsertProject>): Promise<Project | undefined> {
-    const result = await db.update(projects).set(project).where(eq(projects.id, id)).returning();
-    return result[0];
+    return this.projectRepo.updateProject(id, project);
   }
 
   async deleteProject(id: string): Promise<void> {
-    await db.delete(projects).where(eq(projects.id, id));
+    return this.projectRepo.deleteProject(id);
   }
 
   // Inquiries
   async getInquiries(): Promise<Inquiry[]> {
-    return db.select().from(inquiries);
+    return this.inquiryRepo.getInquiries();
   }
 
   async getInquiriesByType(type: string): Promise<Inquiry[]> {
-    return db.select().from(inquiries).where(eq(inquiries.type, type));
+    return this.inquiryRepo.getInquiriesByType(type);
   }
 
   async createInquiry(inquiry: InsertInquiry): Promise<Inquiry> {
-    const result = await db.insert(inquiries).values(inquiry).returning();
-    return result[0];
+    return this.inquiryRepo.createInquiry(inquiry);
   }
 
   async deleteInquiry(id: string): Promise<void> {
-    await db.delete(inquiries).where(eq(inquiries.id, id));
+    return this.inquiryRepo.deleteInquiry(id);
   }
 
   // Articles
   async getArticles(page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
-    const offset = (page - 1) * limit;
-
-    const [articlesResult, countResult] = await Promise.all([
-      db.select({
-        id: articles.id,
-        title: articles.title,
-        excerpt: articles.excerpt,
-        author: articles.author,
-        category: articles.category,
-        imageUrl: articles.imageUrl,
-        fileUrl: articles.fileUrl,
-        sourceUrl: articles.sourceUrl,
-        publishedAt: articles.publishedAt,
-        featured: articles.featured,
-        content: articles.content,
-      })
-        .from(articles)
-        .orderBy(desc(articles.publishedAt))
-        .limit(limit)
-        .offset(offset),
-
-      db.select({ count: count() }).from(articles)
-    ]);
-
-    return {
-      articles: articlesResult,
-      total: countResult[0]?.count || 0
-    };
+    return this.articleRepo.getArticles(page, limit);
   }
 
   async getArticle(id: string): Promise<Article | undefined> {
-    const result = await db.select().from(articles).where(eq(articles.id, id));
-    return result[0];
+    return this.articleRepo.getArticle(id);
   }
 
   async getArticlesByCategory(category: string, page: number = 1, limit: number = 100): Promise<{ articles: Article[], total: number }> {
-    const offset = (page - 1) * limit;
-
-    const [articlesResult, countResult] = await Promise.all([
-      db.select({
-        id: articles.id,
-        title: articles.title,
-        excerpt: articles.excerpt,
-        author: articles.author,
-        category: articles.category,
-        imageUrl: articles.imageUrl,
-        fileUrl: articles.fileUrl,
-        sourceUrl: articles.sourceUrl,
-        publishedAt: articles.publishedAt,
-        featured: articles.featured,
-        content: articles.content,
-      })
-        .from(articles)
-        .where(eq(articles.category, category))
-        .orderBy(desc(articles.publishedAt))
-        .limit(limit)
-        .offset(offset),
-
-      db.select({ count: count() }).from(articles).where(eq(articles.category, category))
-    ]);
-
-    return {
-      articles: articlesResult,
-      total: countResult[0]?.count || 0
-    };
+    return this.articleRepo.getArticlesByCategory(category, page, limit);
   }
 
   async createArticle(article: InsertArticle): Promise<Article> {
-    const result = await db.insert(articles).values(article).returning();
-    return result[0];
+    return this.articleRepo.createArticle(article);
   }
 
   async updateArticle(id: string, article: Partial<InsertArticle>): Promise<Article | undefined> {
-    const result = await db.update(articles).set(article).where(eq(articles.id, id)).returning();
-    return result[0];
+    return this.articleRepo.updateArticle(id, article);
   }
 
   async deleteArticle(id: string): Promise<void> {
-    await db.delete(articles).where(eq(articles.id, id));
+    return this.articleRepo.deleteArticle(id);
   }
 
   // Stats Optimization
   async getStatsCounts() {
-    const [
-      projectCount,
-      inquiryCount,
-      articleCount,
-      communityPostCount,
-      eventCount,
-      programCount,
-      partnerCount,
-      userCount,
-      adminCount,
-      residentCount,
-      milestoneCount,
-      reporterArticleCount,
-      pendingReporterCount,
-      approvedReporterCount,
-      programApplicationCount,
-      pendingApplicationCount
-    ] = await Promise.all([
-      db.select({ count: count() }).from(projects),
-      db.select({ count: count() }).from(inquiries),
-      db.select({ count: count() }).from(articles),
-      db.select({ count: count() }).from(communityPosts),
-      db.select({ count: count() }).from(events),
-      db.select({ count: count() }).from(residentPrograms),
-      db.select({ count: count() }).from(partners),
-      db.select({ count: count() }).from(users),
-      db.select({ count: count() }).from(users).where(eq(users.role, 'admin')),
-      db.select({ count: count() }).from(users).where(eq(users.role, 'resident')),
-      db.select({ count: count() }).from(historyMilestones),
-      db.select({ count: count() }).from(residentReporters),
-      db.select({ count: count() }).from(residentReporters).where(eq(residentReporters.status, 'pending')),
-      db.select({ count: count() }).from(residentReporters).where(eq(residentReporters.status, 'approved')),
-      db.select({ count: count() }).from(programApplications),
-      db.select({ count: count() }).from(programApplications).where(eq(programApplications.status, 'pending')),
-    ]);
-
-    return {
-      projectCount: projectCount[0].count,
-      inquiryCount: inquiryCount[0].count,
-      articleCount: articleCount[0].count,
-      communityPostCount: communityPostCount[0].count,
-      eventCount: eventCount[0].count,
-      programCount: programCount[0].count,
-      partnerCount: partnerCount[0].count,
-      userCount: userCount[0].count,
-      adminCount: adminCount[0].count,
-      residentCount: residentCount[0].count,
-      milestoneCount: milestoneCount[0].count,
-      reporterArticleCount: reporterArticleCount[0].count,
-      pendingReporterCount: pendingReporterCount[0].count,
-      approvedReporterCount: approvedReporterCount[0].count,
-      applicationCount: programApplicationCount[0].count,
-      pendingApplicationCount: pendingApplicationCount[0].count,
-    };
+    return this.statsRepo.getStatsCounts();
   }
 
   // Social Accounts
   async getSocialAccounts(): Promise<SocialAccount[]> {
-    return db.select().from(socialAccounts);
+    return this.siteRepo.getSocialAccounts();
   }
 
   async getSocialAccount(id: string): Promise<SocialAccount | undefined> {
-    const result = await db.select().from(socialAccounts).where(eq(socialAccounts.id, id));
-    return result[0];
+    return this.siteRepo.getSocialAccount(id);
   }
 
   async createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount> {
-    const result = await db.insert(socialAccounts).values(account).returning();
-    return result[0];
+    return this.siteRepo.createSocialAccount(account);
   }
 
   async updateSocialAccount(id: string, account: Partial<InsertSocialAccount>): Promise<SocialAccount | undefined> {
-    const result = await db.update(socialAccounts).set(account).where(eq(socialAccounts.id, id)).returning();
-    return result[0];
+    return this.siteRepo.updateSocialAccount(id, account);
   }
 
   async deleteSocialAccount(id: string): Promise<void> {
-    await db.delete(socialAccounts).where(eq(socialAccounts.id, id));
+    return this.siteRepo.deleteSocialAccount(id);
   }
 
   // Community Posts
   async getCommunityPosts(page: number = 1, limit: number = 20): Promise<{ posts: CommunityPost[], total: number }> {
-    const offset = (page - 1) * limit;
-    const [totalResult] = await db.select({ count: sql<number>`count(*)` }).from(communityPosts);
-    const posts = await db.select().from(communityPosts)
-      .orderBy(communityPosts.postedAt, communityPosts.createdAt)
-      .limit(limit)
-      .offset(offset);
-    return { posts, total: Number(totalResult?.count || 0) };
+    return this.communityRepo.getCommunityPosts(page, limit);
   }
 
   async getCommunityPost(id: string): Promise<CommunityPost | undefined> {
-    const result = await db.select().from(communityPosts).where(eq(communityPosts.id, id));
-    return result[0];
+    return this.communityRepo.getCommunityPost(id);
   }
 
   async getCommunityPostsByHashtag(hashtag: string, page: number = 1, limit: number = 20): Promise<{ posts: CommunityPost[], total: number }> {
-    const offset = (page - 1) * limit;
-    const [totalResult] = await db.select({ count: sql<number>`count(*)` }).from(communityPosts)
-      .where(arrayContains(communityPosts.hashtags, [hashtag]));
-    const posts = await db.select().from(communityPosts)
-      .where(arrayContains(communityPosts.hashtags, [hashtag]))
-      .orderBy(communityPosts.postedAt, communityPosts.createdAt)
-      .limit(limit)
-      .offset(offset);
-    return { posts, total: Number(totalResult?.count || 0) };
+    return this.communityRepo.getCommunityPostsByHashtag(hashtag, page, limit);
   }
 
   async createCommunityPost(post: InsertCommunityPost): Promise<CommunityPost> {
-    const result = await db.insert(communityPosts).values(post).returning();
-    return result[0];
+    return this.communityRepo.createCommunityPost(post);
   }
 
   async updateCommunityPost(id: string, post: Partial<InsertCommunityPost>): Promise<CommunityPost | undefined> {
-    const result = await db.update(communityPosts).set(post).where(eq(communityPosts.id, id)).returning();
-    return result[0];
+    return this.communityRepo.updateCommunityPost(id, post);
   }
 
   async deleteCommunityPost(id: string): Promise<void> {
-    await db.delete(communityPosts).where(eq(communityPosts.id, id));
+    return this.communityRepo.deleteCommunityPost(id);
   }
 
   async getCommunityPostComments(postId: string): Promise<CommunityPostComment[]> {
-    return await db.select().from(communityPostComments).where(eq(communityPostComments.postId, postId)).orderBy(communityPostComments.createdAt);
+    return this.communityRepo.getCommunityPostComments(postId);
   }
 
   async createCommunityPostComment(comment: InsertCommunityPostComment): Promise<CommunityPostComment> {
-    const [newComment] = await db
-      .insert(communityPostComments)
-      .values(comment)
-      .returning();
-
-    // Increment comment count
-    await db.update(communityPosts)
-      .set({ commentCount: sql`${communityPosts.commentCount} + 1` })
-      .where(eq(communityPosts.id, comment.postId));
-
-    return newComment;
+    return this.communityRepo.createCommunityPostComment(comment);
   }
 
   async deleteCommunityPostComment(id: string): Promise<void> {
-    const [comment] = await db
-      .delete(communityPostComments)
-      .where(eq(communityPostComments.id, id))
-      .returning();
-
-    if (comment) {
-      await db.update(communityPosts)
-        .set({ commentCount: sql`${communityPosts.commentCount} - 1` })
-        .where(eq(communityPosts.id, comment.postId));
-    }
+    return this.communityRepo.deleteCommunityPostComment(id);
   }
 
   async likeCommunityPost(id: string): Promise<void> {
-    await db.update(communityPosts)
-      .set({ likes: sql`${communityPosts.likes} + 1` })
-      .where(eq(communityPosts.id, id));
+    return this.communityRepo.likeCommunityPost(id);
   }
 
   async getUnifiedCommunityFeed(limit: number): Promise<CommunityFeedItem[]> {
-    const socialPosts = await db.select().from(communityPosts).orderBy(sql`${communityPosts.postedAt} DESC`).limit(limit);
-    const programList = await db.select().from(residentPrograms).where(eq(residentPrograms.published, true)).orderBy(sql`${residentPrograms.createdAt} DESC`).limit(limit);
-    const eventList = await db.select().from(events).where(eq(events.published, true)).orderBy(sql`${events.date} DESC`).limit(limit);
-
-    const items: CommunityFeedItem[] = [
-      ...socialPosts.map(post => ({
-        id: post.id,
-        type: 'social' as const,
-        title: post.caption || "",
-        imageUrl: post.imageUrl || (post.images && post.images.length > 0 ? post.images[0] : null),
-        date: post.postedAt,
-        likes: post.likes || 0,
-        comments: post.commentCount || 0,
-        hashtags: post.hashtags || []
-      })),
-      ...programList.map(program => ({
-        id: program.id,
-        type: 'program' as const,
-        title: program.title,
-        imageUrl: program.imageUrl,
-        date: program.createdAt, // or startDate? using createdAt for feed usually
-      })),
-      ...eventList.map(event => ({
-        id: event.id,
-        type: 'event' as const,
-        title: event.title,
-        imageUrl: event.imageUrl,
-        date: event.date
-      }))
-    ];
-
-    return items
-      .sort((a, b) => {
-        const dateA = a.date ? new Date(a.date).getTime() : 0;
-        const dateB = b.date ? new Date(b.date).getTime() : 0;
-        return dateB - dateA;
-      })
-      .slice(0, limit);
+    return this.communityRepo.getUnifiedCommunityFeed(limit);
   }
 
   // Events
   async getEvents(): Promise<Event[]> {
-    return db.select().from(events);
+    return this.eventRepo.getEvents();
   }
 
   async getEvent(id: string): Promise<Event | undefined> {
-    const result = await db.select().from(events).where(eq(events.id, id));
-    return result[0];
+    return this.eventRepo.getEvent(id);
   }
 
   async createEvent(event: InsertEvent): Promise<Event> {
-    const result = await db.insert(events).values(event).returning();
-    return result[0];
+    return this.eventRepo.createEvent(event);
   }
 
   async updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined> {
-    const result = await db.update(events).set(event).where(eq(events.id, id)).returning();
-    return result[0];
+    return this.eventRepo.updateEvent(id, event);
   }
 
   async deleteEvent(id: string): Promise<void> {
-    await db.delete(events).where(eq(events.id, id));
+    return this.eventRepo.deleteEvent(id);
   }
 
   // Editable Pages
   async getEditablePages(): Promise<EditablePage[]> {
-    return db.select().from(editablePages);
+    return this.siteRepo.getEditablePages();
   }
 
   async getEditablePage(slug: string): Promise<EditablePage | undefined> {
-    const result = await db.select().from(editablePages).where(eq(editablePages.slug, slug));
-    return result[0];
+    return this.siteRepo.getEditablePage(slug);
   }
 
   async upsertEditablePage(page: InsertEditablePage): Promise<EditablePage> {
-    const existing = await this.getEditablePage(page.slug);
-    if (existing) {
-      const result = await db.update(editablePages)
-        .set({ ...page, updatedAt: new Date() })
-        .where(eq(editablePages.slug, page.slug))
-        .returning();
-      return result[0];
-    }
-    const result = await db.insert(editablePages).values(page).returning();
-    return result[0];
+    return this.siteRepo.upsertEditablePage(page);
   }
 
   // Resident Programs
   async getResidentPrograms(): Promise<ResidentProgram[]> {
-    return db.select().from(residentPrograms);
+    return this.programRepo.getResidentPrograms();
   }
 
   async getResidentProgram(id: string): Promise<ResidentProgram | undefined> {
-    const result = await db.select().from(residentPrograms).where(eq(residentPrograms.id, id));
-    return result[0];
+    return this.programRepo.getResidentProgram(id);
   }
 
   async getResidentProgramsByType(type: string): Promise<ResidentProgram[]> {
-    return db.select().from(residentPrograms).where(eq(residentPrograms.programType, type));
+    return this.programRepo.getResidentProgramsByType(type);
   }
 
   async createResidentProgram(program: InsertResidentProgram): Promise<ResidentProgram> {
-    const result = await db.insert(residentPrograms).values(program).returning();
-    return result[0];
+    return this.programRepo.createResidentProgram(program);
   }
 
   async updateResidentProgram(id: string, program: Partial<InsertResidentProgram>): Promise<ResidentProgram | undefined> {
-    const result = await db.update(residentPrograms).set(program).where(eq(residentPrograms.id, id)).returning();
-    return result[0];
+    return this.programRepo.updateResidentProgram(id, program);
   }
 
   async deleteResidentProgram(id: string): Promise<void> {
-    await db.delete(residentPrograms).where(eq(residentPrograms.id, id));
+    return this.programRepo.deleteResidentProgram(id);
   }
 
   // Program Applications
   async getProgramApplications(): Promise<ProgramApplication[]> {
-    return db.select().from(programApplications);
+    return this.programRepo.getProgramApplications();
   }
 
   async getProgramApplicationsByProgram(programId: string): Promise<ProgramApplication[]> {
-    return db.select().from(programApplications).where(eq(programApplications.programId, programId));
+    return this.programRepo.getProgramApplicationsByProgram(programId);
   }
 
   async getProgramApplicationsByUser(userId: string): Promise<ProgramApplication[]> {
-    return db.select().from(programApplications).where(eq(programApplications.userId, userId));
+    return this.programRepo.getProgramApplicationsByUser(userId);
   }
 
   async createProgramApplication(application: InsertProgramApplication): Promise<ProgramApplication> {
-    const result = await db.insert(programApplications).values(application).returning();
-    return result[0];
+    return this.programRepo.createProgramApplication(application);
   }
 
   async updateProgramApplicationStatus(id: string, status: string): Promise<ProgramApplication | undefined> {
-    const result = await db.update(programApplications).set({ status }).where(eq(programApplications.id, id)).returning();
-    return result[0];
+    return this.programRepo.updateProgramApplicationStatus(id, status);
   }
 
   async deleteProgramApplication(id: string): Promise<void> {
-    await db.delete(programApplications).where(eq(programApplications.id, id));
+    return this.programRepo.deleteProgramApplication(id);
   }
 
   // Project Images
   async getProjectImages(projectId: string): Promise<ProjectImage[]> {
-    return db.select().from(projectImages).where(eq(projectImages.projectId, projectId));
+    return this.projectRepo.getProjectImages(projectId);
   }
 
   async createProjectImage(image: InsertProjectImage): Promise<ProjectImage> {
-    const result = await db.insert(projectImages).values(image).returning();
-    return result[0];
+    return this.projectRepo.createProjectImage(image);
   }
 
   async deleteProjectImage(id: string): Promise<void> {
-    await db.delete(projectImages).where(eq(projectImages.id, id));
+    return this.projectRepo.deleteProjectImage(id);
   }
 
   // Subprojects
   async getSubprojects(parentProjectId: string): Promise<Subproject[]> {
-    return db.select().from(subprojects)
-      .where(eq(subprojects.parentProjectId, parentProjectId))
-      .orderBy(subprojects.displayOrder);
+    return this.projectRepo.getSubprojects(parentProjectId);
   }
 
   async getSubproject(id: string): Promise<Subproject | undefined> {
-    const result = await db.select().from(subprojects).where(eq(subprojects.id, id));
-    return result[0];
+    return this.projectRepo.getSubproject(id);
   }
 
   async createSubproject(subproject: InsertSubproject): Promise<Subproject> {
-    const result = await db.insert(subprojects).values(subproject).returning();
-    return result[0];
+    return this.projectRepo.createSubproject(subproject);
   }
 
   async updateSubproject(id: string, subproject: Partial<InsertSubproject>): Promise<Subproject | undefined> {
-    const result = await db.update(subprojects).set(subproject).where(eq(subprojects.id, id)).returning();
-    return result[0];
+    return this.projectRepo.updateSubproject(id, subproject);
   }
 
   async deleteSubproject(id: string): Promise<void> {
-    await db.delete(subprojects).where(eq(subprojects.id, id));
+    return this.projectRepo.deleteSubproject(id);
   }
 
   // Partners
   async getPartners(): Promise<Partner[]> {
-    return db.select().from(partners);
+    return this.siteRepo.getPartners();
   }
 
   async createPartner(partner: InsertPartner): Promise<Partner> {
-    const result = await db.insert(partners).values(partner).returning();
-    return result[0];
+    return this.siteRepo.createPartner(partner);
   }
 
   async updatePartner(id: string, partner: Partial<InsertPartner>): Promise<Partner | undefined> {
-    const result = await db.update(partners).set(partner).where(eq(partners.id, id)).returning();
-    return result[0];
+    return this.siteRepo.updatePartner(id, partner);
   }
 
   async deletePartner(id: string): Promise<void> {
-    await db.delete(partners).where(eq(partners.id, id));
+    return this.siteRepo.deletePartner(id);
   }
 
   // History Milestones
   async getHistoryMilestones(): Promise<HistoryMilestone[]> {
-    return db.select().from(historyMilestones).orderBy(historyMilestones.year);
+    return this.siteRepo.getHistoryMilestones();
   }
 
   async createHistoryMilestone(milestone: InsertHistoryMilestone): Promise<HistoryMilestone> {
-    const result = await db.insert(historyMilestones).values(milestone).returning();
-    return result[0];
+    return this.siteRepo.createHistoryMilestone(milestone);
   }
 
   async updateHistoryMilestone(id: string, milestone: Partial<InsertHistoryMilestone>): Promise<HistoryMilestone | undefined> {
-    const result = await db.update(historyMilestones).set(milestone).where(eq(historyMilestones.id, id)).returning();
-    return result[0];
+    return this.siteRepo.updateHistoryMilestone(id, milestone);
   }
 
   async deleteHistoryMilestone(id: string): Promise<void> {
-    await db.delete(historyMilestones).where(eq(historyMilestones.id, id));
+    return this.siteRepo.deleteHistoryMilestone(id);
   }
 
   // Site Settings
   async getSiteSettings(): Promise<SiteSetting[]> {
-    return db.select().from(siteSettings);
+    return this.siteRepo.getSiteSettings();
   }
 
   async getSiteSetting(key: string): Promise<SiteSetting | undefined> {
-    const result = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
-    return result[0];
+    return this.siteRepo.getSiteSetting(key);
   }
 
   async upsertSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting> {
-    const existing = await this.getSiteSetting(setting.key);
-    if (existing) {
-      const result = await db.update(siteSettings).set({ value: setting.value, updatedAt: new Date() }).where(eq(siteSettings.key, setting.key)).returning();
-      return result[0];
-    }
-    const result = await db.insert(siteSettings).values(setting).returning();
-    return result[0];
+    return this.siteRepo.upsertSiteSetting(setting);
   }
 
   async deleteSiteSetting(key: string): Promise<void> {
-    await db.delete(siteSettings).where(eq(siteSettings.key, key));
+    return this.siteRepo.deleteSiteSetting(key);
   }
 
   // Page Images
   async getPageImages(): Promise<PageImage[]> {
-    return db.select().from(pageImages);
+    return this.siteRepo.getPageImages();
   }
 
   async getPageImagesByPage(pageKey: string): Promise<PageImage[]> {
-    return db.select().from(pageImages).where(eq(pageImages.pageKey, pageKey));
+    return this.siteRepo.getPageImagesByPage(pageKey);
   }
 
   async getPageImage(pageKey: string, imageKey: string): Promise<PageImage | undefined> {
-    const result = await db.select().from(pageImages)
-      .where(and(eq(pageImages.pageKey, pageKey), eq(pageImages.imageKey, imageKey)));
-    return result[0];
+    return this.siteRepo.getPageImage(pageKey, imageKey);
   }
 
   async upsertPageImage(image: InsertPageImage): Promise<PageImage> {
-    const existing = await this.getPageImage(image.pageKey, image.imageKey);
-    if (existing) {
-      const result = await db.update(pageImages)
-        .set({ imageUrl: image.imageUrl, altText: image.altText })
-        .where(eq(pageImages.id, existing.id))
-        .returning();
-      return result[0];
-    }
-    const result = await db.insert(pageImages).values(image).returning();
-    return result[0];
+    return this.siteRepo.upsertPageImage(image);
   }
 
   async replacePageImages(pageKey: string, imageKey: string, images: InsertPageImage[]): Promise<PageImage[]> {
-    // Transactional replacement: delete all matching, then insert new ones
-    return await db.transaction(async (tx) => {
-      // Delete existing images for this key
-      await tx.delete(pageImages)
-        .where(and(eq(pageImages.pageKey, pageKey), eq(pageImages.imageKey, imageKey)));
-
-      if (images.length === 0) return [];
-
-      // Insert new images
-      const results = await tx.insert(pageImages).values(images).returning();
-      return results;
-    });
+    return this.siteRepo.replacePageImages(pageKey, imageKey, images);
   }
 
   async deletePageImage(id: string): Promise<void> {
-    await db.delete(pageImages).where(eq(pageImages.id, id));
+    return this.siteRepo.deletePageImage(id);
   }
 
   // Users
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return this.userRepo.getUser(id);
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
+    return this.userRepo.getUserByEmail(email);
   }
 
   async getUserByGoogleId(googleId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
-    return user;
+    return this.userRepo.getUserByGoogleId(googleId);
   }
 
   async getUserByNaverId(naverId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.naverId, naverId));
-    return user;
+    return this.userRepo.getUserByNaverId(naverId);
   }
 
   async getUserByKakaoId(kakaoId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.kakaoId, kakaoId));
-    return user;
+    return this.userRepo.getUserByKakaoId(kakaoId);
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          profileImageUrl: userData.profileImageUrl,
-          role: userData.role,
-          googleId: userData.googleId,
-          naverId: userData.naverId,
-          kakaoId: userData.kakaoId,
-          isVerified: userData.isVerified,
-          realName: userData.realName,
-          phoneNumber: userData.phoneNumber,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
+    return this.userRepo.upsertUser(userData);
   }
 
   async getUsers(): Promise<User[]> {
-    return db.select().from(users).orderBy(users.createdAt);
+    return this.userRepo.getUsers();
   }
 
   async updateUserRole(id: string, role: string): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({ role, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
+    return this.userRepo.updateUserRole(id, role);
   }
 
   async verifyUserRealName(id: string, realName: string, phoneNumber: string): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({
-        realName,
-        phoneNumber,
-        isVerified: true,
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
+    return this.userRepo.verifyUserRealName(id, realName, phoneNumber);
   }
 
   async deleteUser(id: string): Promise<void> {
-    await db.delete(users).where(eq(users.id, id));
+    return this.userRepo.deleteUser(id);
   }
 
   async updateUserPassword(id: string, hashedPassword: string): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({ password: hashedPassword, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
+    return this.userRepo.updateUserPassword(id, hashedPassword);
   }
 
   async updateUserProfile(id: string, data: { realName?: string; nickname?: string }): Promise<User | undefined> {
-    const updateData: any = { updatedAt: new Date() };
-    if (data.realName !== undefined) updateData.realName = data.realName;
-    if (data.realName !== undefined) updateData.firstName = data.realName; // Also update firstName for display
-    if (data.nickname !== undefined) updateData.nickname = data.nickname;
-
-    const [user] = await db
-      .update(users)
-      .set(updateData)
-      .where(eq(users.id, id))
-      .returning();
-    return user;
-  }
-
-  // Resident Reporter
-  async createReporterArticle(userId: string, data: InsertResidentReporter): Promise<ResidentReporter> {
-    const [article] = await db.insert(residentReporters).values({
-      ...data,
-      userId,
-      status: "pending",
-      createdAt: new Date(),
-      approvedAt: null,
-    }).returning();
-    return article;
-  }
-
-  async getReporterArticles(status?: string): Promise<ResidentReporter[]> {
-    if (status) {
-      return db.select().from(residentReporters).where(eq(residentReporters.status, status)).orderBy(desc(residentReporters.createdAt));
-    }
-    return db.select().from(residentReporters).orderBy(desc(residentReporters.createdAt));
-  }
-
-  async updateReporterArticleStatus(id: string, status: string): Promise<ResidentReporter | undefined> {
-    const [updatedArticle] = await db.update(residentReporters).set({
-      status,
-      approvedAt: status === 'approved' ? new Date() : null,
-    }).where(eq(residentReporters.id, id)).returning();
-    return updatedArticle;
-  }
-
-  async getReporterArticlesByUser(userId: string): Promise<ResidentReporter[]> {
-    return db.select().from(residentReporters).where(eq(residentReporters.userId, userId)).orderBy(desc(residentReporters.createdAt));
-  }
-
-  async updateReporterArticle(id: string, userId: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {
-    // Only allow update if the article belongs to the user and is still pending
-    const [existing] = await db.select().from(residentReporters).where(and(eq(residentReporters.id, id), eq(residentReporters.userId, userId)));
-    if (!existing || existing.status !== 'pending') return undefined;
-
-    const [updatedArticle] = await db.update(residentReporters).set({
-      title: data.title ?? existing.title,
-      content: data.content ?? existing.content,
-      authorName: data.authorName ?? existing.authorName,
-      imageUrl: data.imageUrl ?? existing.imageUrl,
-    }).where(eq(residentReporters.id, id)).returning();
-    return updatedArticle;
-  }
-
-  async adminUpdateReporterArticle(id: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {
-    const [existing] = await db.select().from(residentReporters).where(eq(residentReporters.id, id));
-    if (!existing) return undefined;
-
-    const [updatedArticle] = await db.update(residentReporters).set({
-      title: data.title ?? existing.title,
-      content: data.content ?? existing.content,
-      authorName: data.authorName ?? existing.authorName,
-      imageUrl: data.imageUrl ?? existing.imageUrl,
-      updatedAt: new Date(),
-    }).where(eq(residentReporters.id, id)).returning();
-    return updatedArticle;
-  }
-
-  async deleteReporterArticle(id: string): Promise<boolean> {
-    const [existing] = await db.select().from(residentReporters).where(eq(residentReporters.id, id));
-    if (!existing) return false;
-
-    await db.delete(residentReporters).where(eq(residentReporters.id, id));
-    return true;
+    return this.userRepo.updateUserProfile(id, data);
   }
 
   async updateUserProfileImage(userId: string, profileImageUrl: string): Promise<User | undefined> {
-    const [user] = await db.update(users).set({
-      profileImageUrl,
-      updatedAt: new Date()
-    }).where(eq(users.id, userId)).returning();
-    return user;
+    return this.userRepo.updateUserProfileImage(userId, profileImageUrl);
+  }
+
+  // Resident Reporter
+  // Resident Reporter
+  async createReporterArticle(userId: string, data: InsertResidentReporter): Promise<ResidentReporter> {
+    return this.reporterRepo.createReporterArticle(userId, data);
+  }
+
+  async getReporterArticles(status?: string): Promise<ResidentReporter[]> {
+    return this.reporterRepo.getReporterArticles(status);
+  }
+
+  async getReporterArticlesByUser(userId: string): Promise<ResidentReporter[]> {
+    return this.reporterRepo.getReporterArticlesByUser(userId);
+  }
+
+  async updateReporterArticle(id: string, userId: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {
+    return this.reporterRepo.updateReporterArticle(id, userId, data);
+  }
+
+  async updateReporterArticleStatus(id: string, status: string): Promise<ResidentReporter | undefined> {
+    return this.reporterRepo.updateReporterArticleStatus(id, status);
+  }
+
+  async adminUpdateReporterArticle(id: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {
+    return this.reporterRepo.adminUpdateReporterArticle(id, data);
+  }
+
+  async deleteReporterArticle(id: string): Promise<boolean> {
+    return this.reporterRepo.deleteReporterArticle(id);
   }
 
   async likeReporterArticle(id: string): Promise<void> {
-    await db.update(residentReporters)
-      .set({ likes: sql`${residentReporters.likes} + 1` })
-      .where(eq(residentReporters.id, id));
+    return this.reporterRepo.likeReporterArticle(id);
   }
 
+  // Stats
   async getReporterArticleComments(articleId: string): Promise<ResidentReporterComment[]> {
-    return db.select().from(residentReporterComments).where(eq(residentReporterComments.articleId, articleId)).orderBy(residentReporterComments.createdAt);
+    return this.reporterRepo.getReporterArticleComments(articleId);
   }
 
   async createReporterArticleComment(comment: InsertResidentReporterComment): Promise<ResidentReporterComment> {
-    const [newComment] = await db.insert(residentReporterComments).values(comment).returning();
-
-    await db.update(residentReporters)
-      .set({ commentCount: sql`${residentReporters.commentCount} + 1` })
-      .where(eq(residentReporters.id, comment.articleId));
-
-    return newComment;
+    return this.reporterRepo.createReporterArticleComment(comment);
   }
 
   async deleteReporterArticleComment(commentId: string): Promise<void> {
-    const [comment] = await db.delete(residentReporterComments).where(eq(residentReporterComments.id, commentId)).returning();
-
-    if (comment) {
-      await db.update(residentReporters)
-        .set({ commentCount: sql`${residentReporters.commentCount} - 1` })
-        .where(eq(residentReporters.id, comment.articleId));
-    }
+    return this.reporterRepo.deleteReporterArticleComment(commentId);
   }
 
   // Housing Recruitments
   async getHousingRecruitments(): Promise<HousingRecruitment[]> {
-    return db.select().from(housingRecruitments).orderBy(desc(housingRecruitments.createdAt));
+    return this.housingRepo.getHousingRecruitments();
   }
 
   async getHousingRecruitment(id: string): Promise<HousingRecruitment | undefined> {
-    const result = await db.select().from(housingRecruitments).where(eq(housingRecruitments.id, id));
-    return result[0];
+    return this.housingRepo.getHousingRecruitment(id);
   }
 
   async getPublishedHousingRecruitments(): Promise<HousingRecruitment[]> {
-    return db.select().from(housingRecruitments)
-      .where(eq(housingRecruitments.published, true))
-      .orderBy(desc(housingRecruitments.createdAt));
+    return this.housingRepo.getPublishedHousingRecruitments();
   }
 
   async createHousingRecruitment(recruitment: InsertHousingRecruitment): Promise<HousingRecruitment> {
-    const result = await db.insert(housingRecruitments).values(recruitment).returning();
-    return result[0];
+    return this.housingRepo.createHousingRecruitment(recruitment);
   }
 
   async updateHousingRecruitment(id: string, recruitment: Partial<InsertHousingRecruitment>): Promise<HousingRecruitment | undefined> {
-    const result = await db.update(housingRecruitments).set(recruitment).where(eq(housingRecruitments.id, id)).returning();
-    return result[0];
+    return this.housingRepo.updateHousingRecruitment(id, recruitment);
   }
 
   async deleteHousingRecruitment(id: string): Promise<void> {
-    await db.delete(housingRecruitments).where(eq(housingRecruitments.id, id));
+    return this.housingRepo.deleteHousingRecruitment(id);
   }
 }
 

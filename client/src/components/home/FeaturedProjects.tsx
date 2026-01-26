@@ -9,10 +9,14 @@ import type { Project } from "@shared/schema";
 
 import { CATEGORY_LABELS } from "@/lib/constants";
 
-export default function FeaturedProjects() {
-  const { data: projects = [], isLoading, isError, refetch } = useQuery<Project[]>({
-    queryKey: ["/api/projects"],
-  });
+interface FeaturedProjectsProps {
+  projects?: Project[];
+  isLoading: boolean;
+}
+
+export default function FeaturedProjects({ projects = [], isLoading }: FeaturedProjectsProps) {
+  // Use passed data instead of fetching
+
 
   // Take up to 10 projects, prioritizing featured ones
   const featuredOnly = projects.filter((p) => p.featured);
@@ -54,17 +58,7 @@ export default function FeaturedProjects() {
           </Link>
         </div>
 
-        {isError ? (
-          <div className="text-center py-16">
-            <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">데이터를 불러올 수 없습니다</h3>
-            <p className="text-muted-foreground mb-4">잠시 후 다시 시도해주세요.</p>
-            <Button variant="outline" onClick={() => refetch()} data-testid="button-retry-featured">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              다시 시도
-            </Button>
-          </div>
-        ) : isLoading ? (
+        {isLoading ? (
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex gap-6">
               {[...Array(4)].map((_, i) => (
