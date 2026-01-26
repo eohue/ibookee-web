@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -18,6 +18,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+
+interface FooterSettings {
+  companyName: string;
+  address: string;
+  phone: string;
+  email: string;
+  businessNumber: string;
+  copyright: string;
+}
 
 type FormType = "move-in" | "business" | "recruit" | "resident-auth";
 
@@ -83,6 +92,10 @@ export default function Contact() {
     name: "",
     phone: "",
     unitInfo: "", // Dong-Ho
+  });
+
+  const { data: footerSettings } = useQuery<FooterSettings>({
+    queryKey: ["/api/settings/footer_settings"],
   });
 
   useEffect(() => {
@@ -197,7 +210,7 @@ export default function Contact() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">주소</h3>
                 <p className="text-sm text-muted-foreground">
-                  서울특별시 성동구 왕십리로 115
+                  {footerSettings?.address || "서울특별시 성동구 왕십리로 115"}
                 </p>
               </Card>
               <Card className="p-6 text-center">
@@ -206,7 +219,7 @@ export default function Contact() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">전화</h3>
                 <p className="text-sm text-muted-foreground">
-                  02-1234-5678
+                  {footerSettings?.phone || "02-1234-5678"}
                 </p>
               </Card>
               <Card className="p-6 text-center">
@@ -215,7 +228,7 @@ export default function Contact() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">이메일</h3>
                 <p className="text-sm text-muted-foreground">
-                  contact@ibookee.kr
+                  {footerSettings?.email || "contact@ibookee.kr"}
                 </p>
               </Card>
             </div>

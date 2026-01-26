@@ -54,6 +54,7 @@ export function SiteSettingsSection() {
 
     const defaultCeo: CeoMessage = {
         title: "CEO 인사말",
+        ceoName: "",
         paragraphs: [
             "아이부키는 사회주택 전문 기업으로서 주거 취약계층의 주거 안정과 삶의 질 향상을 위해 노력하고 있습니다.",
             "우리는 단순히 집을 짓는 것이 아닌, 커뮤니티를 만들고 이웃과 함께하는 삶의 가치를 실현합니다.",
@@ -93,6 +94,7 @@ export function SiteSettingsSection() {
         const paragraphsText = formData.get("paragraphs") as string;
         const ceo: CeoMessage = {
             title: formData.get("title") as string,
+            ceoName: formData.get("ceoName") as string,
             paragraphs: paragraphsText.split("\n").filter(p => p.trim()),
             signature: formData.get("signature") as string,
         };
@@ -235,6 +237,10 @@ export function SiteSettingsSection() {
                             <div className="space-y-2">
                                 <Label htmlFor="title">제목</Label>
                                 <Input id="title" name="title" defaultValue={currentCeo.title} data-testid="input-ceo-title" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="ceoName">CEO 이름</Label>
+                                <Input id="ceoName" name="ceoName" defaultValue={currentCeo.ceoName} placeholder="홍길동" data-testid="input-ceo-name" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="paragraphs">본문 (줄바꿈으로 문단 구분)</Label>

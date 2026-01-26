@@ -240,6 +240,7 @@ export interface FooterSettings {
 }
 
 export interface CeoMessage {
+  ceoName: string;
   name: string;
   title: string;
   imageUrl: string;

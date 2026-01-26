@@ -94,7 +94,7 @@ export default function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`px-4 py-2 rounded-md transition-colors ${isEmphasis ? "font-bold text-lg" : "text-sm font-medium"
+                  className={`px-4 py-2 rounded-md transition-colors ${isEmphasis ? "font-black text-xl" : "text-sm font-medium"
                     } ${location === item.href
                       ? isScrolled || !isHomePage
                         ? "text-primary bg-primary/10"
@@ -196,7 +196,7 @@ export default function Header() {
                       <Link
                         key={item.name}
                         href={item.href}
-                        className={`px-4 py-3 rounded-md transition-colors ${isEmphasis ? "font-bold text-xl" : "text-base font-medium"
+                        className={`px-4 py-3 rounded-md transition-colors ${isEmphasis ? "font-black text-2xl" : "text-base font-medium"
                           } ${location === item.href
                             ? "text-primary bg-primary/10"
                             : "text-foreground hover:text-primary hover:bg-muted"
