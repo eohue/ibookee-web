@@ -42,6 +42,7 @@ import { useState, useEffect } from "react";
 const ITEMS_PER_PAGE = 10;
 
 function getPageFromUrl(paramName: string): number {
+    if (typeof window === 'undefined') return 1;
     const params = new URLSearchParams(window.location.search);
     const page = parseInt(params.get(paramName) || '1', 10);
     return page > 0 ? page : 1;
@@ -54,11 +55,67 @@ export function ReporterSection() {
     const [viewingArticle, setViewingArticle] = useState<ResidentReporter | null>(null);
     const [deletingArticleId, setDeletingArticleId] = useState<string | null>(null);
 
-    const { data: response, isLoading } = useQuery<{ articles: ResidentReporter[], total: number }>({
-        queryKey: ["/api/admin/resident-reporter"],
+    // Page states
+    const [pendingPage, setPendingPage] = useState(() => getPageFromUrl('pendingPage'));
+    const [approvedPage, setApprovedPage] = useState(() => getPageFromUrl('approvedPage'));
+    const [rejectedPage, setRejectedPage] = useState(() => getPageFromUrl('rejectedPage'));
+
+    // Sync URL with state
+    const updateUrl = (param: string, page: number) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set(param, page.toString());
+        window.history.pushState({}, '', url.toString());
+    };
+
+    const handlePendingPageChange = (page: number) => {
+        setPendingPage(page);
+        updateUrl('pendingPage', page);
+    };
+
+    const handleApprovedPageChange = (page: number) => {
+        setApprovedPage(page);
+        updateUrl('approvedPage', page);
+    };
+
+    const handleRejectedPageChange = (page: number) => {
+        setRejectedPage(page);
+        updateUrl('rejectedPage', page);
+    };
+
+    // Queries
+    const pendingQuery = useQuery<{ articles: ResidentReporter[], total: number }>({
+        queryKey: ["/api/admin/resident-reporter", "pending", pendingPage],
+        queryFn: async () => {
+            const res = await fetch(`/api/admin/resident-reporter?status=pending&page=${pendingPage}&limit=${ITEMS_PER_PAGE}`);
+            if (!res.ok) throw new Error("Failed to fetch pending");
+            return res.json();
+        }
     });
 
-    const articles = response?.articles || [];
+    const approvedQuery = useQuery<{ articles: ResidentReporter[], total: number }>({
+        queryKey: ["/api/admin/resident-reporter", "approved", approvedPage],
+        queryFn: async () => {
+            const res = await fetch(`/api/admin/resident-reporter?status=approved&page=${approvedPage}&limit=${ITEMS_PER_PAGE}`);
+            if (!res.ok) throw new Error("Failed to fetch approved");
+            return res.json();
+        }
+    });
+
+    const rejectedQuery = useQuery<{ articles: ResidentReporter[], total: number }>({
+        queryKey: ["/api/admin/resident-reporter", "rejected", rejectedPage],
+        queryFn: async () => {
+            const res = await fetch(`/api/admin/resident-reporter?status=rejected&page=${rejectedPage}&limit=${ITEMS_PER_PAGE}`);
+            if (!res.ok) throw new Error("Failed to fetch rejected");
+            return res.json();
+        }
+    });
+
+    const invalidateAll = () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/resident-reporter"] });
+        // Also invalidate public/user queries if needed
+        queryClient.invalidateQueries({ queryKey: ["/api/resident-reporter"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/my/reporter-articles"] });
+    };
 
     const statusMutation = useMutation({
         mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -66,7 +123,7 @@ export function ReporterSection() {
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["/api/admin/resident-reporter"] });
+            invalidateAll();
             toast({
                 title: "상태 업데이트 성공",
                 description: "기사 상태가 변경되었습니다.",
@@ -87,7 +144,7 @@ export function ReporterSection() {
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["/api/admin/resident-reporter"] });
+            invalidateAll();
             toast({ title: "기사가 수정되었습니다." });
             setEditingArticle(null);
         },
@@ -102,7 +159,7 @@ export function ReporterSection() {
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["/api/admin/resident-reporter"] });
+            invalidateAll();
             toast({ title: "기사가 삭제되었습니다." });
             setDeletingArticleId(null);
         },
@@ -115,28 +172,8 @@ export function ReporterSection() {
         statusMutation.mutate({ id, status });
     };
 
-    const pendingArticles = articles.filter(a => a.status === "pending");
-    const approvedArticles = articles.filter(a => a.status === "approved");
-    const rejectedArticles = articles.filter(a => a.status === "rejected");
-
-    if (isLoading) {
-        return (
-            <div className="flex justify-center p-8">
-                <Loader2 className="w-8 h-8 animate-spin" />
-            </div>
-        );
-    }
-
-    // Fetch full viewing article
-    const { data: fullViewingArticle } = useQuery<ResidentReporter>({
-        queryKey: ["/api/resident-reporter", viewingArticle?.id],
-        queryFn: async () => {
-            const res = await fetch(`/api/resident-reporter/${viewingArticle?.id}`);
-            if (!res.ok) throw new Error("Failed");
-            return res.json();
-        },
-        enabled: !!viewingArticle?.id,
-    });
+    // Helper to calculate total pages
+    const getTotalPages = (total: number) => Math.ceil(total / ITEMS_PER_PAGE);
 
     return (
         <div className="space-y-8">
@@ -149,95 +186,79 @@ export function ReporterSection() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>대기 중인 기사 ({pendingArticles.length})</CardTitle>
+                    <CardTitle>대기 중인 기사 ({pendingQuery.data?.total || 0})</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <ArticleTable
-                        articles={pendingArticles}
-                        onApprove={(id) => handleStatusChange(id, "approved")}
-                        onReject={(id) => handleStatusChange(id, "rejected")}
-                        onEdit={setEditingArticle}
-                        onDelete={setDeletingArticleId}
-                        onView={setViewingArticle}
-                        showActions
-                        pageParamName="pendingPage"
-                    />
+                    {pendingQuery.isLoading ? (
+                        <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>
+                    ) : (
+                        <ArticleTable
+                            articles={pendingQuery.data?.articles || []}
+                            currentPage={pendingPage}
+                            totalPages={getTotalPages(pendingQuery.data?.total || 0)}
+                            onPageChange={handlePendingPageChange}
+                            onApprove={(id) => handleStatusChange(id, "approved")}
+                            onReject={(id) => handleStatusChange(id, "rejected")}
+                            onEdit={setEditingArticle}
+                            onDelete={setDeletingArticleId}
+                            onView={setViewingArticle}
+                            showActions
+                        />
+                    )}
                 </CardContent>
             </Card>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>승인된 기사 ({approvedArticles.length})</CardTitle>
+                    <CardTitle>승인된 기사 ({approvedQuery.data?.total || 0})</CardTitle>
                     <CardDescription>승인된 기사는 커뮤니티 페이지에 노출됩니다.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ArticleTable
-                        articles={approvedArticles}
-                        onEdit={setEditingArticle}
-                        onDelete={setDeletingArticleId}
-                        onView={setViewingArticle}
-                        showManageActions
-                        pageParamName="approvedPage"
-                    />
+                    {approvedQuery.isLoading ? (
+                        <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>
+                    ) : (
+                        <ArticleTable
+                            articles={approvedQuery.data?.articles || []}
+                            currentPage={approvedPage}
+                            totalPages={getTotalPages(approvedQuery.data?.total || 0)}
+                            onPageChange={handleApprovedPageChange}
+                            onEdit={setEditingArticle}
+                            onDelete={setDeletingArticleId}
+                            onView={setViewingArticle}
+                            showManageActions
+                        />
+                    )}
                 </CardContent>
             </Card>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>반려된 기사 ({rejectedArticles.length})</CardTitle>
+                    <CardTitle>반려된 기사 ({rejectedQuery.data?.total || 0})</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <ArticleTable
-                        articles={rejectedArticles}
-                        onEdit={setEditingArticle}
-                        onDelete={setDeletingArticleId}
-                        onView={setViewingArticle}
-                        onApprove={(id) => handleStatusChange(id, "approved")}
-                        showReapprove
-                        pageParamName="rejectedPage"
-                    />
+                    {rejectedQuery.isLoading ? (
+                        <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>
+                    ) : (
+                        <ArticleTable
+                            articles={rejectedQuery.data?.articles || []}
+                            currentPage={rejectedPage}
+                            totalPages={getTotalPages(rejectedQuery.data?.total || 0)}
+                            onPageChange={handleRejectedPageChange}
+                            onEdit={setEditingArticle}
+                            onDelete={setDeletingArticleId}
+                            onView={setViewingArticle}
+                            onApprove={(id) => handleStatusChange(id, "approved")}
+                            showReapprove
+                        />
+                    )}
                 </CardContent>
             </Card>
 
             {/* View Article Modal */}
-            <Dialog open={!!viewingArticle} onOpenChange={() => setViewingArticle(null)}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
-                    <DialogHeader>
-                        <DialogTitle>{fullViewingArticle?.title || viewingArticle?.title}</DialogTitle>
-                        <DialogDescription>
-                            {fullViewingArticle?.authorName || viewingArticle?.authorName} 기자
-                        </DialogDescription>
-                    </DialogHeader>
-                    {fullViewingArticle ? (
-                        <div className="space-y-4">
-                            {fullViewingArticle.imageUrl && (
-                                <img src={fullViewingArticle.imageUrl} alt={fullViewingArticle.title} className="w-full rounded-lg" />
-                            )}
-                            <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: fullViewingArticle.content }} />
-                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground border-t pt-4">
-                                <div className="flex items-center gap-1.5">
-                                    <Calendar className="w-4 h-4" />
-                                    작성일: {new Date(fullViewingArticle.createdAt || "").toLocaleDateString("ko-KR")}
-                                </div>
-                                {fullViewingArticle.approvedAt && (
-                                    <div className="flex items-center gap-1.5">
-                                        <CheckCircle className="w-4 h-4 text-green-500" />
-                                        승인일: {new Date(fullViewingArticle.approvedAt).toLocaleDateString("ko-KR")}
-                                    </div>
-                                )}
-                                {fullViewingArticle.updatedAt && (
-                                    <div className="flex items-center gap-1.5">
-                                        <Clock className="w-4 h-4 text-blue-500" />
-                                        수정일: {new Date(fullViewingArticle.updatedAt).toLocaleDateString("ko-KR")}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
-                    )}
-                </DialogContent>
-            </Dialog>
+            <ViewArticleDialog
+                article={viewingArticle}
+                onClose={() => setViewingArticle(null)}
+            />
 
             {/* Edit Article Modal */}
             <EditArticleDialog
@@ -273,6 +294,9 @@ export function ReporterSection() {
 
 function ArticleTable({
     articles,
+    currentPage,
+    totalPages,
+    onPageChange,
     onApprove,
     onReject,
     onEdit,
@@ -281,9 +305,11 @@ function ArticleTable({
     showActions,
     showManageActions,
     showReapprove,
-    pageParamName
 }: {
     articles: ResidentReporter[];
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
     onApprove?: (id: string) => void;
     onReject?: (id: string) => void;
     onEdit?: (article: ResidentReporter) => void;
@@ -292,28 +318,7 @@ function ArticleTable({
     showActions?: boolean;
     showManageActions?: boolean;
     showReapprove?: boolean;
-    pageParamName: string;
 }) {
-    const [currentPage, setCurrentPage] = useState(() => getPageFromUrl(pageParamName));
-
-    useEffect(() => {
-        const handlePopState = () => setCurrentPage(getPageFromUrl(pageParamName));
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, [pageParamName]);
-
-    const totalPages = Math.ceil((articles?.length || 0) / ITEMS_PER_PAGE);
-    const paginatedArticles = articles?.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
-
-    const handlePageChange = (page: number) => {
-        const url = new URL(window.location.href);
-        url.searchParams.set(pageParamName, page.toString());
-        window.history.pushState({}, '', url.toString());
-        setCurrentPage(page);
-    };
 
     const renderPagination = () => {
         if (totalPages <= 1) return null;
@@ -338,7 +343,7 @@ function ArticleTable({
                 <PaginationContent>
                     <PaginationItem>
                         <PaginationPrevious
-                            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                            onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
                             className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                     </PaginationItem>
@@ -347,13 +352,13 @@ function ArticleTable({
                             <PaginationItem key={`ellipsis-${idx}`}><PaginationEllipsis /></PaginationItem>
                         ) : (
                             <PaginationItem key={page}>
-                                <PaginationLink onClick={() => handlePageChange(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
+                                <PaginationLink onClick={() => onPageChange(page as number)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
                             </PaginationItem>
                         )
                     )}
                     <PaginationItem>
                         <PaginationNext
-                            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                            onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
                             className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                     </PaginationItem>
@@ -378,7 +383,7 @@ function ArticleTable({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {paginatedArticles.map((article) => (
+                    {articles.map((article) => (
                         <TableRow key={article.id}>
                             <TableCell>
                                 <div className="font-medium">{article.title}</div>
@@ -445,6 +450,65 @@ function ArticleTable({
     );
 }
 
+function ViewArticleDialog({ article, onClose }: { article: ResidentReporter | null; onClose: () => void }) {
+    // Fetch full viewing article
+    const { data: fullViewingArticle } = useQuery<ResidentReporter>({
+        queryKey: ["/api/resident-reporter", article?.id],
+        queryFn: async () => {
+            if (!article?.id) return null;
+            const res = await fetch(`/api/resident-reporter/${article.id}`);
+            if (!res.ok) throw new Error("Failed");
+            return res.json();
+        },
+        enabled: !!article?.id,
+    });
+
+    // Use the fetched full article if available, otherwise fallback to the list item (which might miss content)
+    // But typically list item is passed for immediate display of title etc.
+    const displayArticle = fullViewingArticle || article;
+
+    return (
+        <Dialog open={!!article} onOpenChange={() => onClose()}>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+                <DialogHeader>
+                    <DialogTitle>{displayArticle?.title}</DialogTitle>
+                    <DialogDescription>
+                        {displayArticle?.authorName} 기자
+                    </DialogDescription>
+                </DialogHeader>
+                {fullViewingArticle ? (
+                    <div className="space-y-4">
+                        {fullViewingArticle.imageUrl && (
+                            <img src={fullViewingArticle.imageUrl} alt={fullViewingArticle.title} className="w-full rounded-lg" />
+                        )}
+                        <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: fullViewingArticle.content }} />
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground border-t pt-4">
+                            <div className="flex items-center gap-1.5">
+                                <Calendar className="w-4 h-4" />
+                                작성일: {new Date(fullViewingArticle.createdAt || "").toLocaleDateString("ko-KR")}
+                            </div>
+                            {fullViewingArticle.approvedAt && (
+                                <div className="flex items-center gap-1.5">
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                    승인일: {new Date(fullViewingArticle.approvedAt).toLocaleDateString("ko-KR")}
+                                </div>
+                            )}
+                            {fullViewingArticle.updatedAt && (
+                                <div className="flex items-center gap-1.5">
+                                    <Clock className="w-4 h-4 text-blue-500" />
+                                    수정일: {new Date(fullViewingArticle.updatedAt).toLocaleDateString("ko-KR")}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function EditArticleDialog({
     article,
     onClose,
@@ -462,23 +526,26 @@ function EditArticleDialog({
     const [imageUrl, setImageUrl] = useState("");
 
     // Fetch full article for editing
-    useQuery({
-        queryKey: ["/api/resident-reporter", article?.id],
+    const { data: fullData } = useQuery({
+        queryKey: ["/api/resident-reporter", article?.id, "edit"],
         queryFn: async () => {
             if (!article?.id) return null;
             const res = await fetch(`/api/resident-reporter/${article.id}`);
             if (!res.ok) throw new Error("Failed");
-            const fullData = await res.json();
+            return res.json();
+        },
+        enabled: !!article?.id,
+    });
 
-            // Populate form
+    // Populate form when data is loaded
+    useEffect(() => {
+        if (fullData) {
             setTitle(fullData.title);
             setContent(fullData.content || "");
             setAuthorName(fullData.authorName);
             setImageUrl(fullData.imageUrl || "");
-            return fullData;
-        },
-        enabled: !!article?.id,
-    });
+        }
+    }, [fullData]);
 
     const handleClose = () => {
         setTitle("");
@@ -497,7 +564,6 @@ function EditArticleDialog({
             authorName,
             imageUrl,
         });
-        // Close is handled by parent, but we can clear specific fields if needed
     };
 
     return (
