@@ -265,7 +265,7 @@ export default function Insight() {
           <>
             {/* Library View */}
             {isLibrary && (
-              <section className="py-12 bg-background" data-testid="section-library">
+              <section className="py-12 bg-muted/60" data-testid="section-library">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <h2 className="text-2xl font-bold text-foreground mb-8">자료실</h2>
                   {articles.length === 0 ? (
@@ -278,7 +278,7 @@ export default function Insight() {
                         {articles.map((article) => (
                           <Card
                             key={article.id}
-                            className="overflow-hidden hover-elevate h-full flex flex-col"
+                            className="overflow-hidden h-full flex flex-col border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card"
                             data-testid={`library-item-${article.id}`}
                           >
                             <Link
@@ -345,7 +345,7 @@ export default function Insight() {
 
             {/* Standard Article View */}
             {!isLibrary && (
-              <section className="py-12 bg-background" data-testid="section-articles">
+              <section className="py-12 bg-muted/60" data-testid="section-articles">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   {activeCategory === "all" && <h2 className="text-2xl font-bold text-foreground mb-8">모든 글</h2>}
                   {articles.length === 0 ? (
@@ -366,7 +366,7 @@ export default function Insight() {
                               className="block h-full"
                             >
                               <Card
-                                className="overflow-hidden hover-card-strong cursor-pointer h-full transition-all duration-300"
+                                className="overflow-hidden cursor-pointer h-full transition-all duration-300 border-2 border-border shadow-lg hover:shadow-xl bg-card"
                                 data-testid={`article-${article.id}`}
                               >
                                 <div className="aspect-[16/9] overflow-hidden relative group">

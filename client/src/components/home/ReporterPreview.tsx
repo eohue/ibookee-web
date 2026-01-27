@@ -27,7 +27,7 @@ export default function ReporterPreview({ articles = [], isLoading }: ReporterPr
     const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
 
     return (
-        <section className="py-20 bg-muted/30" data-testid="section-reporter-preview">
+        <section className="py-20 bg-muted/60" data-testid="section-reporter-preview">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                     <div>
@@ -71,7 +71,7 @@ export default function ReporterPreview({ articles = [], isLoading }: ReporterPr
                                     <div key={article.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4">
                                         <Link href="/community">
                                             <Card
-                                                className="overflow-hidden hover-card-strong cursor-pointer h-full transition-all duration-300 border-border/60 shadow-sm"
+                                                className="overflow-hidden cursor-pointer h-full transition-all duration-300 border-2 border-border shadow-lg hover:shadow-xl bg-card"
                                                 data-testid={`article-${article.id}`}
                                             >
                                                 <div className="aspect-[16/9] overflow-hidden relative group">

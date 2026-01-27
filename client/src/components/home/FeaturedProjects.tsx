@@ -89,7 +89,7 @@ export default function FeaturedProjects({ projects = [], isLoading }: FeaturedP
                   <div key={project.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-6">
                     <Link href={`/space/${project.id}`}>
                       <div
-                        className="group rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden hover-card-strong cursor-pointer h-full flex flex-col"
+                        className="group rounded-2xl border-2 border-border bg-card shadow-lg overflow-hidden hover:shadow-xl cursor-pointer h-full flex flex-col transition-all"
                         data-testid={`card-project-${project.id}`}
                       >
                         <div className="relative aspect-[4/3] overflow-hidden">
