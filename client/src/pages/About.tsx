@@ -3,7 +3,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Building2, Users, Award, Target, ChevronRight } from "lucide-react";
 import { useCompanyStats, usePageImages } from "@/hooks/use-site-settings";
-import type { HistoryMilestone, Partner } from "@shared/schema";
+import type { HistoryMilestone, Project } from "@shared/schema";
 
 const defaultHistoryMilestones = [
   { year: 2012, title: "아이부키 설립", description: "사회주택 전문기업으로 첫 발을 내딛다" },
@@ -16,17 +16,6 @@ const defaultHistoryMilestones = [
   { year: 2024, title: "2,500세대 달성", description: "누적 입주 세대 2,500가구 돌파" },
 ];
 
-const defaultPartners = [
-  { name: "국토교통부", category: "정부" },
-  { name: "LH 한국토지주택공사", category: "공공기관" },
-  { name: "HUG 주택도시보증공사", category: "공공기관" },
-  { name: "서울시", category: "지자체" },
-  { name: "경기도", category: "지자체" },
-  { name: "KB국민은행", category: "금융" },
-  { name: "신한은행", category: "금융" },
-  { name: "우리은행", category: "금융" },
-];
-
 export default function About() {
   const { stats } = useCompanyStats();
   const { getImageUrl } = usePageImages();
@@ -36,17 +25,20 @@ export default function About() {
     staleTime: 60000,
   });
 
-  const { data: partnersData } = useQuery<Partner[]>({
-    queryKey: ["/api/partners"],
+  const { data: projects } = useQuery<Project[]>({
+    queryKey: ["/api/projects"],
     staleTime: 60000,
   });
 
-  // Data handling moved to render logic
-
-
-  const partners = partnersData && partnersData.length > 0
-    ? partnersData.map(p => ({ name: p.name, category: p.category }))
-    : defaultPartners;
+  // Extract unique partner logos from projects
+  const projectPartnerLogos = Array.from(new Set(
+    projects?.flatMap(p => {
+      if (Array.isArray(p.partnerLogos)) {
+        return p.partnerLogos;
+      }
+      return [];
+    }) || []
+  )).filter(logo => typeof logo === 'string' && logo.length > 0) as string[];
 
   const statsDisplay = [
     { icon: Building2, label: `${stats.projectCount.value} ${stats.projectCount.label}`, desc: "완공" },
@@ -215,33 +207,35 @@ export default function About() {
           </div>
         </section>
 
-        <section className="py-20 bg-card" data-testid="section-partners">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
-                Partners
-              </p>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                신뢰할 수 있는 파트너
-              </h2>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {partners.map((partner, index) => (
-                <div
-                  key={partner.name}
-                  className="bg-background rounded-lg p-6 text-center border-2 border-border shadow-lg"
-                  data-testid={`partner-${index}`}
-                >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                    <Building2 className="w-8 h-8 text-muted-foreground" />
+        {projectPartnerLogos.length > 0 && (
+          <section className="py-20 bg-card" data-testid="section-partners">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
+                  Partners
+                </p>
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+                  신뢰할 수 있는 파트너
+                </h2>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 items-center justify-items-center">
+                {projectPartnerLogos.map((logoUrl, index) => (
+                  <div
+                    key={index}
+                    className="w-full max-w-[150px] aspect-[3/2] flex items-center justify-center p-4 grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
+                    data-testid={`partner-logo-${index}`}
+                  >
+                    <img
+                      src={logoUrl}
+                      alt={`Partner ${index + 1}`}
+                      className="max-w-full max-h-full object-contain"
+                    />
                   </div>
-                  <h3 className="font-medium text-foreground text-sm">{partner.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{partner.category}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
       <Footer />
     </div >
