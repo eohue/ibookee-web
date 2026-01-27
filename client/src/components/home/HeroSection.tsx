@@ -83,7 +83,7 @@ export default function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.0, duration: 0.8 }}
-            className="text-xl md:text-3xl text-white/90 leading-relaxed mb-10 md:mb-14 max-w-2xl mx-auto font-light"
+            className="text-lg md:text-2xl text-white/90 leading-relaxed mb-10 md:mb-14 max-w-2xl mx-auto font-light"
           >
             아이부키는 단순한 주거 공간을 넘어,<br className="hidden sm:block" />
             사람들이 연결되고 성장하는 <b className="font-semibold">커뮤니티</b>를 디자인합니다.
