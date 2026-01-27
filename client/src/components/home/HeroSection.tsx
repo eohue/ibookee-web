@@ -73,7 +73,7 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.8 }}
           >
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.1] mb-8 md:mb-10 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-8 md:mb-10 tracking-tight">
               공간을 짓고,<br />
               <span className="text-primary/90">삶</span>을 잇다
             </h1>
@@ -83,7 +83,7 @@ export default function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.0, duration: 0.8 }}
-            className="text-lg md:text-2xl text-white/90 leading-relaxed mb-10 md:mb-14 max-w-2xl mx-auto font-light"
+            className="text-xl md:text-3xl text-white/90 leading-relaxed mb-10 md:mb-14 max-w-2xl mx-auto font-light"
           >
             아이부키는 단순한 주거 공간을 넘어,<br className="hidden sm:block" />
             사람들이 연결되고 성장하는 <b className="font-semibold">커뮤니티</b>를 디자인합니다.
@@ -98,7 +98,7 @@ export default function HeroSection() {
             <Link href="/space" className="w-full sm:w-auto">
               <Button
                 size="lg"
-                className="w-full sm:w-auto px-10 py-7 text-lg font-semibold rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all shadow-xl shadow-primary/20"
+                className="w-full sm:w-auto px-8 py-6 text-base font-semibold rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all shadow-xl shadow-primary/20"
                 data-testid="button-explore-projects"
               >
                 프로젝트 둘러보기
@@ -109,7 +109,7 @@ export default function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto px-10 py-7 text-lg font-semibold rounded-full border-white/30 text-white bg-white/5 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all"
+                className="w-full sm:w-auto px-8 py-6 text-base font-semibold rounded-full border-white/30 text-white bg-white/5 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all"
                 data-testid="button-about-us"
               >
                 <Play className="w-5 h-5 mr-2" />

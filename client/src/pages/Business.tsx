@@ -184,8 +184,8 @@ export default function Business() {
                   <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                     <TrendingUp className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="font-bold text-primary mb-2">Social Housing</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="text-xl font-bold text-primary mb-2">Social Housing</h3>
+                  <p className="text-lg text-muted-foreground">
                     공공성 + 수익성의 균형점
                   </p>
                 </Card>
