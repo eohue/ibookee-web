@@ -474,7 +474,7 @@ export default function Community() {
         </section>
 
         {/* Resident Reporter Section */}
-        <section className="py-20 bg-background" data-testid="section-resident-reporter">
+        <section className="py-20 bg-muted/40" data-testid="section-resident-reporter">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div>
@@ -508,7 +508,7 @@ export default function Community() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {reporterArticles.map(article => (
-                  <Card key={article.id} className="overflow-hidden glass-interactive cursor-pointer border-2 border-border/60 shadow-sm hover:shadow-md transition-all" onClick={() => setSelectedArticle(article)}>
+                  <Card key={article.id} className="overflow-hidden glass-interactive cursor-pointer border-2 border-border/80 shadow-md hover:shadow-lg transition-all bg-card" onClick={() => setSelectedArticle(article)}>
                     {article.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden relative">
                         <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
@@ -588,7 +588,7 @@ export default function Community() {
                   return (
                     <Card
                       key={program.id}
-                      className="p-6 md:p-8 glass-interactive border-2 border-border/60 shadow-sm hover:shadow-md bg-background"
+                      className="p-6 md:p-8 glass-interactive border-2 border-border/80 shadow-md hover:shadow-lg bg-background"
                       data-testid={`program-${program.id}`}
                     >
                       <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-6">
@@ -624,7 +624,7 @@ export default function Community() {
           </div>
         </section>
 
-        <section className="py-20 bg-background" data-testid="section-events">
+        <section className="py-20 bg-muted/40" data-testid="section-events">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div>
@@ -678,7 +678,7 @@ export default function Community() {
                     className="block"
                   >
                     <Card
-                      className="overflow-hidden glass-interactive cursor-pointer h-full border-2 border-border/60 shadow-sm hover:shadow-md transition-all"
+                      className="overflow-hidden glass-interactive cursor-pointer h-full border-2 border-border/80 shadow-md hover:shadow-lg transition-all bg-card"
                       data-testid={`event-${event.id}`}
                     >
                       {event.imageUrl && (
