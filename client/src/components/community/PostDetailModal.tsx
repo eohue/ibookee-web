@@ -27,6 +27,7 @@ import { ko } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Trash2 } from "lucide-react";
+import DOMPurify from "dompurify";
 
 interface PostDetailModalProps {
     post: CommunityPost | null;
@@ -116,7 +117,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                     {post.embedCode ? (
                         <div
                             className="w-full h-full flex items-center justify-center overflow-hidden [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:aspect-video"
-                            dangerouslySetInnerHTML={{ __html: post.embedCode }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.embedCode, { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] }) }}
                         />
                     ) : (post.images && post.images.length > 1) ? (
                         <Carousel className="w-full h-full">

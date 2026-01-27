@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import DOMPurify from "dompurify";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -481,7 +482,7 @@ function ViewArticleDialog({ article, onClose }: { article: ResidentReporter | n
                         {fullViewingArticle.imageUrl && (
                             <img src={fullViewingArticle.imageUrl} alt={fullViewingArticle.title} className="w-full rounded-lg" />
                         )}
-                        <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: fullViewingArticle.content }} />
+                        <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(fullViewingArticle.content) }} />
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground border-t pt-4">
                             <div className="flex items-center gap-1.5">
                                 <Calendar className="w-4 h-4" />

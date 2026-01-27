@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { storage } from "../storage";
 import { insertArticleSchema } from "@shared/schema";
 import { sanitizeObject } from "@shared/utils";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAuthenticated, isAdmin } from "../replit_integrations/auth";
 
 export function registerArticleRoutes(app: Express) {
     // Public Articles API
@@ -49,7 +49,7 @@ export function registerArticleRoutes(app: Express) {
     });
 
     // Admin Articles CRUD
-    app.get("/api/admin/articles", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/articles", isAdmin, async (req, res) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 20;
@@ -61,7 +61,7 @@ export function registerArticleRoutes(app: Express) {
         }
     });
 
-    app.post("/api/admin/articles", isAuthenticated, async (req, res) => {
+    app.post("/api/admin/articles", isAdmin, async (req, res) => {
         try {
             // Sanitize all string fields to remove null bytes (0x00)
             const data = sanitizeObject({ ...req.body });
@@ -86,7 +86,7 @@ export function registerArticleRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/articles/:id", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/articles/:id", isAdmin, async (req, res) => {
         try {
             console.log(`[API] Updating article ${req.params.id}. Body keys: ${Object.keys(req.body).join(', ')}`);
             if (req.body.imageUrl) console.log(`[API] Image URL provided: ${req.body.imageUrl}`);
@@ -114,7 +114,7 @@ export function registerArticleRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/articles/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/articles/:id", isAdmin, async (req, res) => {
         try {
             await storage.deleteArticle(req.params.id);
             res.status(204).send();

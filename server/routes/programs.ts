@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertResidentProgramSchema, insertProgramApplicationSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAuthenticated, isAdmin } from "../replit_integrations/auth";
 
 export function registerProgramRoutes(app: Express) {
     // Public Programs API
@@ -43,7 +43,7 @@ export function registerProgramRoutes(app: Express) {
     });
 
     // Admin Resident Programs CRUD
-    app.get("/api/admin/programs", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/programs", isAdmin, async (req, res) => {
         try {
             const type = req.query.type as string | undefined;
             const programs = type
@@ -55,7 +55,7 @@ export function registerProgramRoutes(app: Express) {
         }
     });
 
-    app.post("/api/admin/programs", isAuthenticated, async (req, res) => {
+    app.post("/api/admin/programs", isAdmin, async (req, res) => {
         try {
             const parsed = insertResidentProgramSchema.safeParse(req.body);
             if (!parsed.success) {
@@ -68,7 +68,7 @@ export function registerProgramRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/programs/:id", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/programs/:id", isAdmin, async (req, res) => {
         try {
             const parsed = insertResidentProgramSchema.partial().safeParse(req.body);
             if (!parsed.success) {
@@ -85,7 +85,7 @@ export function registerProgramRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/programs/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/programs/:id", isAdmin, async (req, res) => {
         try {
             await storage.deleteResidentProgram(req.params.id);
             res.status(204).send();
@@ -95,7 +95,7 @@ export function registerProgramRoutes(app: Express) {
     });
 
     // Admin Program Applications
-    app.get("/api/admin/applications", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/applications", isAdmin, async (req, res) => {
         try {
             const programId = req.query.programId as string | undefined;
             const applications = programId
@@ -107,7 +107,7 @@ export function registerProgramRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/applications/:id/status", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/applications/:id/status", isAdmin, async (req, res) => {
         try {
             const { status } = req.body;
             const application = await storage.updateProgramApplicationStatus(req.params.id, status);
@@ -120,7 +120,7 @@ export function registerProgramRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/applications/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/applications/:id", isAdmin, async (req, res) => {
         try {
             await storage.deleteProgramApplication(req.params.id);
             res.status(204).send();

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertCommunityPostSchema, insertCommunityPostCommentSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAuthenticated, isAdmin } from "../replit_integrations/auth";
 
 export function registerCommunityRoutes(app: Express) {
     // Unified Community Feed
@@ -110,7 +110,7 @@ export function registerCommunityRoutes(app: Express) {
     });
 
     // Admin Community Posts CRUD
-    app.get("/api/admin/community-posts", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/community-posts", isAdmin, async (req, res) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 20;
@@ -122,7 +122,7 @@ export function registerCommunityRoutes(app: Express) {
         }
     });
 
-    app.post("/api/admin/community-posts", isAuthenticated, async (req, res) => {
+    app.post("/api/admin/community-posts", isAdmin, async (req, res) => {
         try {
             const parsed = insertCommunityPostSchema.safeParse(req.body);
             if (!parsed.success) {
@@ -135,7 +135,7 @@ export function registerCommunityRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/community-posts/:id", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/community-posts/:id", isAdmin, async (req, res) => {
         try {
             const parsed = insertCommunityPostSchema.partial().safeParse(req.body);
             if (!parsed.success) {
@@ -152,7 +152,7 @@ export function registerCommunityRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/community-posts/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/community-posts/:id", isAdmin, async (req, res) => {
         try {
             await storage.deleteCommunityPost(req.params.id);
             res.status(204).send();

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, ArrowRight, MapPin, Calendar, Home, Users, AlertCircle, RefreshCw, Building2, Newspaper } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import DOMPurify from "dompurify";
 
 import { CATEGORY_LABELS } from "@/lib/constants";
 
@@ -187,7 +188,7 @@ export default function SpaceDetail() {
             <div
               className="text-muted-foreground leading-relaxed mb-16"
               data-testid="text-project-description"
-              dangerouslySetInnerHTML={{ __html: project.description }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.description) }}
             />
 
             {(() => {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -392,7 +393,7 @@ export function CommunitySection() {
                                         {post.embedCode ? (
                                             <div
                                                 className="w-full aspect-square overflow-hidden [&>iframe]:w-full [&>iframe]:h-full [&>blockquote]:w-full"
-                                                dangerouslySetInnerHTML={{ __html: post.embedCode }}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.embedCode, { ADD_TAGS: ['iframe', 'blockquote'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] }) }}
                                             />
                                         ) : post.imageUrl ? (
                                             <img

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, User, AlertCircle, RefreshCw, FileText, Download, ExternalLink } from "lucide-react";
+import DOMPurify from "dompurify";
 
 const categoryLabels: Record<string, string> = {
   column: "칼럼",
@@ -176,7 +177,7 @@ export default function InsightDetail() {
               <div
                 className="text-foreground leading-relaxed"
                 data-testid="text-article-content"
-                dangerouslySetInnerHTML={{ __html: article.content }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
               />
             </div>
           </article>

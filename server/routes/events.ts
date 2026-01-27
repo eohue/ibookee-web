@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertEventSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAuthenticated, isAdmin } from "../replit_integrations/auth";
 
 export function registerEventRoutes(app: Express) {
     // Public Events API
@@ -27,7 +27,7 @@ export function registerEventRoutes(app: Express) {
     });
 
     // Admin Events CRUD
-    app.get("/api/admin/events", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/events", isAdmin, async (_req, res) => {
         try {
             const events = await storage.getEvents();
             res.json(events);
@@ -36,7 +36,7 @@ export function registerEventRoutes(app: Express) {
         }
     });
 
-    app.post("/api/admin/events", isAuthenticated, async (req, res) => {
+    app.post("/api/admin/events", isAdmin, async (req, res) => {
         try {
             const parsed = insertEventSchema.safeParse(req.body);
             if (!parsed.success) {
@@ -49,7 +49,7 @@ export function registerEventRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/events/:id", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/events/:id", isAdmin, async (req, res) => {
         try {
             const event = await storage.updateEvent(req.params.id, req.body);
             if (!event) {
@@ -61,7 +61,7 @@ export function registerEventRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/events/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/events/:id", isAdmin, async (req, res) => {
         try {
             await storage.deleteEvent(req.params.id);
             res.status(204).send();

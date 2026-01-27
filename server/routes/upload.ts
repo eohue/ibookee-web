@@ -3,7 +3,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAuthenticated, isAdmin } from "../replit_integrations/auth";
 import { uploadToStorage, isStorageConfigured } from "../storage_provider";
 
 // Configure upload directory

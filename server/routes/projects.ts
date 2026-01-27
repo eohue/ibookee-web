@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertProjectSchema, insertSubprojectSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAuthenticated, isAdmin } from "../replit_integrations/auth";
 
 export function registerProjectRoutes(app: Express) {
   // Public Projects API
@@ -50,7 +50,7 @@ export function registerProjectRoutes(app: Express) {
   });
 
   // Admin Projects CRUD
-  app.get("/api/admin/projects", isAuthenticated, async (_req, res) => {
+  app.get("/api/admin/projects", isAdmin, async (_req, res) => {
     try {
       const result = await storage.getProjects();
       res.json(result.projects);
@@ -59,7 +59,7 @@ export function registerProjectRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/projects", isAuthenticated, async (req, res) => {
+  app.post("/api/admin/projects", isAdmin, async (req, res) => {
     try {
       const parsed = insertProjectSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -75,7 +75,7 @@ export function registerProjectRoutes(app: Express) {
     }
   });
 
-  app.put("/api/admin/projects/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/admin/projects/:id", isAdmin, async (req, res) => {
     try {
       const project = await storage.updateProject(req.params.id, req.body);
       if (!project) {
@@ -87,7 +87,7 @@ export function registerProjectRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/admin/projects/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/admin/projects/:id", isAdmin, async (req, res) => {
     try {
       await storage.deleteProject(req.params.id);
       res.status(204).send();
@@ -97,7 +97,7 @@ export function registerProjectRoutes(app: Express) {
   });
 
   // Admin Subprojects CRUD
-  app.get("/api/admin/projects/:id/subprojects", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/projects/:id/subprojects", isAdmin, async (req, res) => {
     try {
       const subprojects = await storage.getSubprojects(req.params.id);
       res.json(subprojects);
@@ -106,7 +106,7 @@ export function registerProjectRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/projects/:id/subprojects", isAuthenticated, async (req, res) => {
+  app.post("/api/admin/projects/:id/subprojects", isAdmin, async (req, res) => {
     try {
       const data = { ...req.body, parentProjectId: req.params.id };
       const parsed = insertSubprojectSchema.safeParse(data);
@@ -122,7 +122,7 @@ export function registerProjectRoutes(app: Express) {
     }
   });
 
-  app.put("/api/admin/subprojects/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/admin/subprojects/:id", isAdmin, async (req, res) => {
     try {
       const subproject = await storage.updateSubproject(req.params.id, req.body);
       if (!subproject) {
@@ -134,7 +134,7 @@ export function registerProjectRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/admin/subprojects/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/admin/subprojects/:id", isAdmin, async (req, res) => {
     try {
       await storage.deleteSubproject(req.params.id);
       res.status(204).send();

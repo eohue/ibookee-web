@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { useEffect } from "react";
 
 interface ReporterArticleModalProps {
@@ -184,7 +185,7 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
 
                         <div
                             className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-xl"
-                            dangerouslySetInnerHTML={{ __html: htmlContent }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
                         />
 
                         <div className="mt-12 pt-8 border-t flex items-center justify-center">
