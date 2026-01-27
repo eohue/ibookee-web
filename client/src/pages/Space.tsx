@@ -105,7 +105,7 @@ export default function Space() {
           </div>
         </section>
 
-        <section className="py-12 bg-background" data-testid="section-projects">
+        <section className="py-12 bg-muted/60" data-testid="section-projects">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {isError ? (
               <div className="text-center py-16">
@@ -138,7 +138,7 @@ export default function Space() {
                     href={`/space/${project.id}`}
                   >
                     <div
-                      className="group rounded-2xl border border-border/50 bg-card overflow-hidden hover-card-strong cursor-pointer h-full flex flex-col"
+                      className="group rounded-2xl border-2 border-border bg-card overflow-hidden shadow-lg hover:shadow-xl cursor-pointer h-full flex flex-col transition-all"
                       data-testid={`card-project-${project.id}`}
                     >
                       <div className="relative aspect-[4/3] overflow-hidden">

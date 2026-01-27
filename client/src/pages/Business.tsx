@@ -171,7 +171,7 @@ export default function Business() {
 
             <div className="relative max-w-4xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <Card className="p-6 text-center">
+                <Card className="p-6 text-center border-2 border-border shadow-lg">
                   <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                     <Building2 className="w-7 h-7 text-primary" />
                   </div>
@@ -180,7 +180,7 @@ export default function Business() {
                     공공의 지원과 정책적 안정성
                   </p>
                 </Card>
-                <Card className="p-6 text-center border-primary border-2">
+                <Card className="p-6 text-center border-primary border-2 shadow-lg">
                   <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                     <TrendingUp className="w-7 h-7 text-primary" />
                   </div>
@@ -189,7 +189,7 @@ export default function Business() {
                     공공성 + 수익성의 균형점
                   </p>
                 </Card>
-                <Card className="p-6 text-center">
+                <Card className="p-6 text-center border-2 border-border shadow-lg">
                   <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                     <TrendingUp className="w-7 h-7 text-green-600 dark:text-green-400" />
                   </div>
@@ -262,7 +262,7 @@ export default function Business() {
                         ))}
                       </ul>
                       <Link href={caseUrl} className={project ? "cursor-pointer" : "cursor-default"}>
-                        <Card className="p-4 bg-background hover:border-primary transition-colors">
+                        <Card className="p-4 bg-background hover:border-primary transition-colors border-2 border-border shadow-md">
                           <div className="flex items-center gap-4">
                             <img
                               src={caseImage}
@@ -299,7 +299,7 @@ export default function Business() {
           </div>
         </section>
 
-        <section className="py-20 bg-background" data-testid="section-esg">
+        <section className="py-20 bg-muted/60" data-testid="section-esg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
@@ -317,7 +317,7 @@ export default function Business() {
               {esgMetrics.map((category) => (
                 <Card
                   key={category.category}
-                  className="p-6"
+                  className="p-6 border-2 border-border shadow-lg bg-card"
                   data-testid={`esg-${category.category.toLowerCase()}`}
                 >
                   <div className={`w-12 h-12 rounded-full ${category.bgColor} flex items-center justify-center mb-4`}>

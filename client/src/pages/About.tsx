@@ -160,7 +160,7 @@ export default function About() {
           </div>
         </section>
 
-        <section className="py-20 bg-background" data-testid="section-history">
+        <section className="py-20 bg-muted/60" data-testid="section-history">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row gap-12 lg:gap-24">
               <div className="md:w-1/4 flex-shrink-0">
@@ -229,7 +229,7 @@ export default function About() {
               {partners.map((partner, index) => (
                 <div
                   key={partner.name}
-                  className="bg-background rounded-lg p-6 text-center border border-border"
+                  className="bg-background rounded-lg p-6 text-center border-2 border-border shadow-lg"
                   data-testid={`partner-${index}`}
                 >
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
