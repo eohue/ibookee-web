@@ -387,27 +387,27 @@ export function CommunitySection() {
                         {posts?.map((post) => {
                             const account = post.accountId ? accounts?.find(a => a.id === post.accountId) : null;
                             return (
-                                <Card key={post.id} data-testid={`card-community-post-${post.id}`} className="overflow-hidden">
+                                <Card key={post.id} data-testid={`card-community-post-${post.id}`} className="overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-muted-foreground/20">
                                     <CardContent className="p-0">
                                         {post.embedCode ? (
                                             <div
-                                                className="w-full h-24 overflow-hidden [&>iframe]:w-full [&>iframe]:h-full [&>blockquote]:w-full"
+                                                className="w-full aspect-square overflow-hidden [&>iframe]:w-full [&>iframe]:h-full [&>blockquote]:w-full"
                                                 dangerouslySetInnerHTML={{ __html: post.embedCode }}
                                             />
                                         ) : post.imageUrl ? (
                                             <img
                                                 src={post.imageUrl}
                                                 alt={post.caption || "커뮤니티 포스트"}
-                                                className="w-full h-24 object-cover"
+                                                className="w-full aspect-square object-cover"
                                                 loading="lazy"
                                                 decoding="async"
                                             />
                                         ) : (
-                                            <div className="w-full h-24 bg-muted flex items-center justify-center">
+                                            <div className="w-full aspect-square bg-muted flex items-center justify-center">
                                                 <span className="text-xs text-muted-foreground">이미지 없음</span>
                                             </div>
                                         )}
-                                        <div className="p-2 space-y-1">
+                                        <div className="p-4 space-y-3">
                                             {account && (
                                                 <div className="flex items-center gap-1 text-xs">
                                                     {account.platform === 'instagram' && <SiInstagram className="w-3 h-3" />}
@@ -415,7 +415,7 @@ export function CommunitySection() {
                                                 </div>
                                             )}
                                             {post.caption && (
-                                                <p className="text-xs line-clamp-1">{post.caption}</p>
+                                                <p className="text-xs line-clamp-3 text-foreground/90">{post.caption}</p>
                                             )}
                                             {post.hashtags && post.hashtags.length > 0 && (
                                                 <div className="flex flex-wrap gap-0.5">
