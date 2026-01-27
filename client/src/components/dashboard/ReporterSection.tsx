@@ -54,9 +54,11 @@ export function ReporterSection() {
     const [viewingArticle, setViewingArticle] = useState<ResidentReporter | null>(null);
     const [deletingArticleId, setDeletingArticleId] = useState<string | null>(null);
 
-    const { data: articles = [], isLoading } = useQuery<ResidentReporter[]>({
+    const { data: response, isLoading } = useQuery<{ articles: ResidentReporter[], total: number }>({
         queryKey: ["/api/admin/resident-reporter"],
     });
+
+    const articles = response?.articles || [];
 
     const statusMutation = useMutation({
         mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -125,6 +127,17 @@ export function ReporterSection() {
         );
     }
 
+    // Fetch full viewing article
+    const { data: fullViewingArticle } = useQuery<ResidentReporter>({
+        queryKey: ["/api/resident-reporter", viewingArticle?.id],
+        queryFn: async () => {
+            const res = await fetch(`/api/resident-reporter/${viewingArticle?.id}`);
+            if (!res.ok) throw new Error("Failed");
+            return res.json();
+        },
+        enabled: !!viewingArticle?.id,
+    });
+
     return (
         <div className="space-y-8">
             <div>
@@ -190,36 +203,38 @@ export function ReporterSection() {
             <Dialog open={!!viewingArticle} onOpenChange={() => setViewingArticle(null)}>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
                     <DialogHeader>
-                        <DialogTitle>{viewingArticle?.title}</DialogTitle>
+                        <DialogTitle>{fullViewingArticle?.title || viewingArticle?.title}</DialogTitle>
                         <DialogDescription>
-                            {viewingArticle?.authorName} 기자
+                            {fullViewingArticle?.authorName || viewingArticle?.authorName} 기자
                         </DialogDescription>
                     </DialogHeader>
-                    {viewingArticle && (
+                    {fullViewingArticle ? (
                         <div className="space-y-4">
-                            {viewingArticle.imageUrl && (
-                                <img src={viewingArticle.imageUrl} alt={viewingArticle.title} className="w-full rounded-lg" />
+                            {fullViewingArticle.imageUrl && (
+                                <img src={fullViewingArticle.imageUrl} alt={fullViewingArticle.title} className="w-full rounded-lg" />
                             )}
-                            <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: viewingArticle.content }} />
+                            <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: fullViewingArticle.content }} />
                             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground border-t pt-4">
                                 <div className="flex items-center gap-1.5">
                                     <Calendar className="w-4 h-4" />
-                                    작성일: {new Date(viewingArticle.createdAt || "").toLocaleDateString("ko-KR")}
+                                    작성일: {new Date(fullViewingArticle.createdAt || "").toLocaleDateString("ko-KR")}
                                 </div>
-                                {viewingArticle.approvedAt && (
+                                {fullViewingArticle.approvedAt && (
                                     <div className="flex items-center gap-1.5">
                                         <CheckCircle className="w-4 h-4 text-green-500" />
-                                        승인일: {new Date(viewingArticle.approvedAt).toLocaleDateString("ko-KR")}
+                                        승인일: {new Date(fullViewingArticle.approvedAt).toLocaleDateString("ko-KR")}
                                     </div>
                                 )}
-                                {viewingArticle.updatedAt && (
+                                {fullViewingArticle.updatedAt && (
                                     <div className="flex items-center gap-1.5">
                                         <Clock className="w-4 h-4 text-blue-500" />
-                                        수정일: {new Date(viewingArticle.updatedAt).toLocaleDateString("ko-KR")}
+                                        수정일: {new Date(fullViewingArticle.updatedAt).toLocaleDateString("ko-KR")}
                                     </div>
                                 )}
                             </div>
                         </div>
+                    ) : (
+                        <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
                     )}
                 </DialogContent>
             </Dialog>
@@ -367,9 +382,6 @@ function ArticleTable({
                         <TableRow key={article.id}>
                             <TableCell>
                                 <div className="font-medium">{article.title}</div>
-                                <div className="text-xs text-muted-foreground truncate max-w-[200px]">
-                                    {article.content?.replace(/<[^>]*>/g, '').substring(0, 50)}...
-                                </div>
                             </TableCell>
                             <TableCell>{article.authorName}</TableCell>
                             <TableCell>
@@ -449,13 +461,24 @@ function EditArticleDialog({
     const [authorName, setAuthorName] = useState("");
     const [imageUrl, setImageUrl] = useState("");
 
-    // Reset form when article changes
-    if (article && title === "" && content === "") {
-        setTitle(article.title);
-        setContent(article.content);
-        setAuthorName(article.authorName);
-        setImageUrl(article.imageUrl || "");
-    }
+    // Fetch full article for editing
+    useQuery({
+        queryKey: ["/api/resident-reporter", article?.id],
+        queryFn: async () => {
+            if (!article?.id) return null;
+            const res = await fetch(`/api/resident-reporter/${article.id}`);
+            if (!res.ok) throw new Error("Failed");
+            const fullData = await res.json();
+
+            // Populate form
+            setTitle(fullData.title);
+            setContent(fullData.content || "");
+            setAuthorName(fullData.authorName);
+            setImageUrl(fullData.imageUrl || "");
+            return fullData;
+        },
+        enabled: !!article?.id,
+    });
 
     const handleClose = () => {
         setTitle("");
@@ -474,10 +497,7 @@ function EditArticleDialog({
             authorName,
             imageUrl,
         });
-        setTitle("");
-        setContent("");
-        setAuthorName("");
-        setImageUrl("");
+        // Close is handled by parent, but we can clear specific fields if needed
     };
 
     return (

@@ -112,11 +112,28 @@ export function registerReporterRoutes(app: Express) {
         }
     });
 
+    // Get single article (public)
+    app.get("/api/resident-reporter/:id", async (req, res) => {
+        try {
+            const article = await storage.getReporterArticle(req.params.id);
+            if (!article) {
+                return res.status(404).json({ error: "Article not found" });
+            }
+            res.json(article);
+        } catch (error) {
+            console.error("Failed to fetch reporter article:", error);
+            res.status(500).json({ error: "Failed to fetch article" });
+        }
+    });
+
     // Get public approved articles (optionally include user's own pending articles)
     app.get("/api/resident-reporter", async (req, res) => {
         try {
-            const articles = await storage.getReporterArticles("approved");
-            res.json(articles);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 20;
+
+            const result = await storage.getReporterArticles("approved", page, limit);
+            res.json(result);
         } catch (error) {
             console.error("Failed to fetch reporter articles:", error);
             res.status(500).json({ error: "Failed to fetch articles" });
@@ -129,8 +146,11 @@ export function registerReporterRoutes(app: Express) {
             return res.status(403).json({ error: "Unauthorized" });
         }
         try {
-            const articles = await storage.getReporterArticles(); // Fetch all
-            res.json(articles);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 20;
+
+            const result = await storage.getReporterArticles(undefined, page, limit); // Fetch all
+            res.json(result);
         } catch (error) {
             console.error("Failed to fetch admin reporter articles:", error);
             res.status(500).json({ error: "Failed to fetch articles" });

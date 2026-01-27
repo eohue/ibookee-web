@@ -20,7 +20,7 @@ import { marked } from "marked";
 import { useEffect } from "react";
 
 interface ReporterArticleModalProps {
-    article: ResidentReporter | null;
+    article: (ResidentReporter | (Omit<ResidentReporter, "content"> & { content?: string })) | null;
     isOpen: boolean;
     onClose: () => void;
 }

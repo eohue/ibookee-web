@@ -93,7 +93,7 @@ export default function ReporterPreview({ articles = [], isLoading }: ReporterPr
                                                         {article.title}
                                                     </h3>
                                                     <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
-                                                        {article.content.replace(/<[^>]*>?/gm, "").substring(0, 100)}...
+                                                        내용을 확인하려면 클릭하세요.
                                                     </p>
                                                     <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/50">
                                                         <span>{article.authorName} 기자</span>

@@ -67,7 +67,7 @@ export default function Community() {
   const [activeHashtag, setActiveHashtag] = useState("all");
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [isReporterModalOpen, setIsReporterModalOpen] = useState(false);
-  const [selectedArticle, setSelectedArticle] = useState<ResidentReporter | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<Omit<ResidentReporter, "content"> | ResidentReporter | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<ResidentProgram | null>(null);
   const observerRef = useRef<HTMLDivElement>(null);
 
@@ -179,8 +179,22 @@ export default function Community() {
     program.published && program.status === "open"
   );
 
-  const { data: reporterArticles = [] } = useQuery<ResidentReporter[]>({
+  const { data: reporterData } = useQuery<{ articles: Omit<ResidentReporter, "content">[], total: number }>({
     queryKey: ["/api/resident-reporter"],
+  });
+
+  const reporterArticles = reporterData?.articles || [];
+
+  // Fetch full article details when selected
+  const { data: fullArticle } = useQuery<ResidentReporter>({
+    queryKey: ["/api/resident-reporter", selectedArticle?.id],
+    queryFn: async () => {
+      if (!selectedArticle?.id) throw new Error("No article selected");
+      const res = await fetch(`/api/resident-reporter/${selectedArticle.id}`);
+      if (!res.ok) throw new Error("Failed to fetch article");
+      return res.json();
+    },
+    enabled: !!selectedArticle?.id,
   });
 
   return (
@@ -499,7 +513,9 @@ export default function Community() {
                         <span className="text-xs text-muted-foreground">{new Date(article.createdAt || "").toLocaleDateString()}</span>
                       </div>
                       <h3 className="text-xl font-bold mb-3 line-clamp-1">{article.title}</h3>
-                      <p className="text-muted-foreground line-clamp-3 text-sm">{article.content?.replace(/<[^>]*>/g, '')}</p>
+                      <p className="text-muted-foreground line-clamp-3 text-sm">
+                        {"내용을 보려면 클릭하세요."}
+                      </p>
                     </div>
                   </Card>
                 ))}
@@ -700,7 +716,7 @@ export default function Community() {
         onClose={() => setIsReporterModalOpen(false)}
       />
       <ReporterArticleModal
-        article={selectedArticle}
+        article={fullArticle || selectedArticle}
         isOpen={!!selectedArticle}
         onClose={() => setSelectedArticle(null)}
       />

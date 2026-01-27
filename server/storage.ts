@@ -172,7 +172,8 @@ export interface IStorage {
 
   // Resident Reporter
   createReporterArticle(userId: string, data: InsertResidentReporter): Promise<ResidentReporter>;
-  getReporterArticles(status?: string): Promise<ResidentReporter[]>;
+  getReporterArticles(status?: string, page?: number, limit?: number): Promise<{ articles: Omit<ResidentReporter, "content">[], total: number }>;
+  getReporterArticle(id: string): Promise<ResidentReporter | undefined>;
   getReporterArticlesByUser(userId: string): Promise<ResidentReporter[]>;
   updateReporterArticle(id: string, userId: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined>;
   updateReporterArticleStatus(id: string, status: string): Promise<ResidentReporter | undefined>;
@@ -613,12 +614,16 @@ export class DatabaseStorage implements IStorage {
     return this.reporterRepo.createReporterArticle(userId, data);
   }
 
-  async getReporterArticles(status?: string): Promise<ResidentReporter[]> {
-    return this.reporterRepo.getReporterArticles(status);
+  async getReporterArticles(status?: string, page: number = 1, limit: number = 20): Promise<{ articles: Omit<ResidentReporter, "content">[], total: number }> {
+    return this.reporterRepo.getReporterArticles(status, page, limit);
   }
 
   async getReporterArticlesByUser(userId: string): Promise<ResidentReporter[]> {
     return this.reporterRepo.getReporterArticlesByUser(userId);
+  }
+
+  async getReporterArticle(id: string): Promise<ResidentReporter | undefined> {
+    return this.reporterRepo.getReporterArticle(id);
   }
 
   async updateReporterArticle(id: string, userId: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {

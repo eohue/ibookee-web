@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc, count } from "drizzle-orm";
 import { db } from "../db";
 import {
     residentReporters,
@@ -24,12 +24,43 @@ export class ReporterRepository {
         return article;
     }
 
-    async getReporterArticles(status?: string): Promise<ResidentReporter[]> {
-        let query = db.select().from(residentReporters);
+    async getReporterArticles(status?: string, page: number = 1, limit: number = 20): Promise<{ articles: Omit<ResidentReporter, "content">[], total: number }> {
+        const offset = (page - 1) * limit;
+
+        const baseQuery = db.select({
+            id: residentReporters.id,
+            userId: residentReporters.userId,
+            authorName: residentReporters.authorName,
+            title: residentReporters.title,
+            imageUrl: residentReporters.imageUrl,
+            status: residentReporters.status,
+            createdAt: residentReporters.createdAt,
+            approvedAt: residentReporters.approvedAt,
+            updatedAt: residentReporters.updatedAt,
+            likes: residentReporters.likes,
+            commentCount: residentReporters.commentCount,
+        }).from(residentReporters);
+
+        let conditions = undefined;
         if (status) {
-            query = query.where(eq(residentReporters.status, status)) as any;
+            conditions = eq(residentReporters.status, status);
         }
-        return query.orderBy(sql`${residentReporters.createdAt} DESC`);
+
+        const [articlesResult, countResult] = await Promise.all([
+            (conditions ? baseQuery.where(conditions) : baseQuery)
+                .orderBy(desc(residentReporters.createdAt))
+                .limit(limit)
+                .offset(offset),
+
+            db.select({ count: count() })
+                .from(residentReporters)
+                .where(conditions || undefined)
+        ]);
+
+        return {
+            articles: articlesResult,
+            total: countResult[0]?.count || 0
+        };
     }
 
     async getReporterArticlesByUser(userId: string): Promise<ResidentReporter[]> {
@@ -37,6 +68,11 @@ export class ReporterRepository {
             .from(residentReporters)
             .where(eq(residentReporters.userId, userId))
             .orderBy(sql`${residentReporters.createdAt} DESC`);
+    }
+
+    async getReporterArticle(id: string): Promise<ResidentReporter | undefined> {
+        const result = await db.select().from(residentReporters).where(eq(residentReporters.id, id));
+        return result[0];
     }
 
     async updateReporterArticle(id: string, userId: string, data: Partial<InsertResidentReporter>): Promise<ResidentReporter | undefined> {
