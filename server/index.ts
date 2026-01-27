@@ -56,15 +56,8 @@ app.use((req, res, next) => {
 let initPromise: Promise<void> | null = null;
 
 async function initialize() {
-  if (process.env.DATABASE_URL) {
-    try {
-      console.log("Running migration to add 'role' column...");
-      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role text DEFAULT 'user' NOT NULL`);
-      console.log("Migration successful.");
-    } catch (err) {
-      console.error("Migration error:", err);
-    }
-  }
+  // Migration removed to improve startup performance
+  // Use 'npm run db:push' for schema changes
 
   await registerRoutes(httpServer, app);
 

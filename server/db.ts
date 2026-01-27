@@ -32,6 +32,7 @@ const poolConfig = {
   max: isServerless ? 5 : 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: isServerless ? 10000 : 30000,
+  keepAlive: true,
 };
 
 // Singleton pattern for handling connection pool in serverless environment
@@ -45,7 +46,8 @@ pool = global.dbPool;
 // Add error handler to prevent crashing
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+  // Don't exit process on idle client error - just log it
+  // This helps prevent restart loops on transient connection issues
 });
 
 export { pool };
