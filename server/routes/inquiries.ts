@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertInquirySchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAdmin } from "../replit_integrations/auth";
 
 export function registerInquiryRoutes(app: Express) {
     // Public Inquiries API
@@ -28,7 +28,7 @@ export function registerInquiryRoutes(app: Express) {
     });
 
     // Admin Inquiries API
-    app.get("/api/admin/inquiries", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/inquiries", isAdmin, async (_req, res) => {
         try {
             const inquiries = await storage.getInquiries();
             res.json(inquiries);
@@ -37,7 +37,7 @@ export function registerInquiryRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/inquiries/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/inquiries/:id", isAdmin, async (req, res) => {
         try {
             await storage.deleteInquiry(req.params.id);
             res.status(204).send();

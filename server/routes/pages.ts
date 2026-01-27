@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertEditablePageSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAdmin } from "../replit_integrations/auth";
 
 export function registerPageRoutes(app: Express) {
     // Public page endpoint
@@ -37,7 +37,7 @@ export function registerPageRoutes(app: Express) {
     });
 
     // Admin Editable Pages CRUD
-    app.get("/api/admin/pages", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/pages", isAdmin, async (_req, res) => {
         try {
             const pages = await storage.getEditablePages();
             res.json(pages);
@@ -46,7 +46,7 @@ export function registerPageRoutes(app: Express) {
         }
     });
 
-    app.get("/api/admin/pages/:slug", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/pages/:slug", isAdmin, async (req, res) => {
         try {
             const page = await storage.getEditablePage(req.params.slug);
             if (!page) {
@@ -58,7 +58,7 @@ export function registerPageRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/pages/:slug", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/pages/:slug", isAdmin, async (req, res) => {
         try {
             const parsed = insertEditablePageSchema.safeParse({ ...req.body, slug: req.params.slug });
             if (!parsed.success) {
@@ -72,7 +72,7 @@ export function registerPageRoutes(app: Express) {
     });
 
     // Admin Page Images CRUD
-    app.get("/api/admin/page-images", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/page-images", isAdmin, async (_req, res) => {
         try {
             const images = await storage.getPageImages();
             res.json(images);
@@ -81,7 +81,7 @@ export function registerPageRoutes(app: Express) {
         }
     });
 
-    app.get("/api/admin/page-images/:pageKey", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/page-images/:pageKey", isAdmin, async (req, res) => {
         try {
             const images = await storage.getPageImagesByPage(req.params.pageKey);
             res.json(images);
@@ -90,7 +90,7 @@ export function registerPageRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/page-images", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/page-images", isAdmin, async (req, res) => {
         try {
             const image = await storage.upsertPageImage(req.body);
             res.json(image);
@@ -99,7 +99,7 @@ export function registerPageRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/page-images-list", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/page-images-list", isAdmin, async (req, res) => {
         try {
             const { pageKey, imageKey, images } = req.body;
             if (!pageKey || !imageKey || !Array.isArray(images)) {
@@ -123,7 +123,7 @@ export function registerPageRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/page-images/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/page-images/:id", isAdmin, async (req, res) => {
         try {
             await storage.deletePageImage(req.params.id);
             res.status(204).send();

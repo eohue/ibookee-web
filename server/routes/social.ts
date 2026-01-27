@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertSocialAccountSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAdmin } from "../replit_integrations/auth";
 
 export function registerSocialRoutes(app: Express) {
     // Public Social Accounts API
@@ -15,7 +15,7 @@ export function registerSocialRoutes(app: Express) {
     });
 
     // Admin Social Accounts CRUD
-    app.get("/api/admin/social-accounts", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/social-accounts", isAdmin, async (_req, res) => {
         try {
             const accounts = await storage.getSocialAccounts();
             res.json(accounts);
@@ -24,7 +24,7 @@ export function registerSocialRoutes(app: Express) {
         }
     });
 
-    app.post("/api/admin/social-accounts", isAuthenticated, async (req, res) => {
+    app.post("/api/admin/social-accounts", isAdmin, async (req, res) => {
         try {
             const parsed = insertSocialAccountSchema.safeParse(req.body);
             if (!parsed.success) {
@@ -37,7 +37,7 @@ export function registerSocialRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/social-accounts/:id", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/social-accounts/:id", isAdmin, async (req, res) => {
         try {
             const account = await storage.updateSocialAccount(req.params.id, req.body);
             if (!account) {
@@ -49,7 +49,7 @@ export function registerSocialRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/social-accounts/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/social-accounts/:id", isAdmin, async (req, res) => {
         try {
             await storage.deleteSocialAccount(req.params.id);
             res.status(204).send();

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertPartnerSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAdmin } from "../replit_integrations/auth";
 
 export function registerPartnerRoutes(app: Express) {
     // Public Partners API
@@ -15,7 +15,7 @@ export function registerPartnerRoutes(app: Express) {
     });
 
     // Admin Partners CRUD
-    app.get("/api/admin/partners", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/partners", isAdmin, async (_req, res) => {
         try {
             const partners = await storage.getPartners();
             res.json(partners);
@@ -24,7 +24,7 @@ export function registerPartnerRoutes(app: Express) {
         }
     });
 
-    app.post("/api/admin/partners", isAuthenticated, async (req, res) => {
+    app.post("/api/admin/partners", isAdmin, async (req, res) => {
         try {
             const parsed = insertPartnerSchema.safeParse(req.body);
             if (!parsed.success) {
@@ -37,7 +37,7 @@ export function registerPartnerRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/partners/:id", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/partners/:id", isAdmin, async (req, res) => {
         try {
             const partner = await storage.updatePartner(req.params.id, req.body);
             if (!partner) {
@@ -49,7 +49,7 @@ export function registerPartnerRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/partners/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/partners/:id", isAdmin, async (req, res) => {
         try {
             await storage.deletePartner(req.params.id);
             res.status(204).send();

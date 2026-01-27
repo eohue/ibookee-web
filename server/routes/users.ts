@@ -1,20 +1,13 @@
 import type { Express } from "express";
 import { storage } from "../storage";
-import { isAuthenticated, hashPassword } from "../replit_integrations/auth/replitAuth";
+import { isAdmin, isAuthenticated, hashPassword } from "../replit_integrations/auth/replitAuth";
 import { db } from "../db";
 import { sql } from "drizzle-orm";
 
 export function registerUserRoutes(app: Express) {
     // List all users (Admin only)
-    app.get("/api/admin/users", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/users", isAdmin, async (req, res) => {
         try {
-            const userId = (req.user as any).id;
-            const user = await storage.getUser(userId);
-
-            if (!user || user.role !== "admin") {
-                return res.status(403).json({ message: "Forbidden" });
-            }
-
             const users = await storage.getUsers();
             res.json(users);
         } catch (error) {
@@ -24,15 +17,8 @@ export function registerUserRoutes(app: Express) {
     });
 
     // Get single user (Admin only)
-    app.get("/api/admin/users/:id", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/users/:id", isAdmin, async (req, res) => {
         try {
-            const adminId = (req.user as any).id;
-            const admin = await storage.getUser(adminId);
-
-            if (!admin || admin.role !== "admin") {
-                return res.status(403).json({ message: "Forbidden" });
-            }
-
             const { id } = req.params;
             const user = await storage.getUser(id);
 
@@ -50,15 +36,8 @@ export function registerUserRoutes(app: Express) {
     });
 
     // Update user role (Admin only)
-    app.patch("/api/admin/users/:id/role", isAuthenticated, async (req, res) => {
+    app.patch("/api/admin/users/:id/role", isAdmin, async (req, res) => {
         try {
-            const adminId = (req.user as any).id;
-            const admin = await storage.getUser(adminId);
-
-            if (!admin || admin.role !== "admin") {
-                return res.status(403).json({ message: "Forbidden" });
-            }
-
             const { id } = req.params;
             const { role } = req.body;
 
@@ -75,15 +54,8 @@ export function registerUserRoutes(app: Express) {
     });
 
     // Update user password (Admin only)
-    app.patch("/api/admin/users/:id/password", isAuthenticated, async (req, res) => {
+    app.patch("/api/admin/users/:id/password", isAdmin, async (req, res) => {
         try {
-            const adminId = (req.user as any).id;
-            const admin = await storage.getUser(adminId);
-
-            if (!admin || admin.role !== "admin") {
-                return res.status(403).json({ message: "Forbidden" });
-            }
-
             const { id } = req.params;
             const { password } = req.body;
 
@@ -106,15 +78,9 @@ export function registerUserRoutes(app: Express) {
     });
 
     // Delete user (Admin only)
-    app.delete("/api/admin/users/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/users/:id", isAdmin, async (req, res) => {
         try {
             const adminId = (req.user as any).id;
-            const admin = await storage.getUser(adminId);
-
-            if (!admin || admin.role !== "admin") {
-                return res.status(403).json({ message: "Forbidden" });
-            }
-
             const { id } = req.params;
 
             // Prevent admin from deleting themselves

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertResidentReporterSchema, insertResidentReporterCommentSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAuthenticated, isAdmin } from "../replit_integrations/auth";
 
 export function registerReporterRoutes(app: Express) {
     // Submit a new article (Resident only, but checks auth)
@@ -141,10 +141,7 @@ export function registerReporterRoutes(app: Express) {
     });
 
     // Admin: Get all articles
-    app.get("/api/admin/resident-reporter", isAuthenticated, async (req, res) => {
-        if ((req.user as any).role !== "admin") {
-            return res.status(403).json({ error: "Unauthorized" });
-        }
+    app.get("/api/admin/resident-reporter", isAdmin, async (req, res) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 20;
@@ -159,10 +156,7 @@ export function registerReporterRoutes(app: Express) {
     });
 
     // Admin: Update status
-    app.patch("/api/admin/resident-reporter/:id/status", isAuthenticated, async (req, res) => {
-        if ((req.user as any).role !== "admin") {
-            return res.status(403).json({ error: "Unauthorized" });
-        }
+    app.patch("/api/admin/resident-reporter/:id/status", isAdmin, async (req, res) => {
         try {
             const { status } = req.body;
             if (!["pending", "approved", "rejected"].includes(status)) {
@@ -181,10 +175,7 @@ export function registerReporterRoutes(app: Express) {
     });
 
     // Admin: Update article (edit content)
-    app.put("/api/admin/resident-reporter/:id", isAuthenticated, async (req, res) => {
-        if ((req.user as any).role !== "admin") {
-            return res.status(403).json({ error: "Unauthorized" });
-        }
+    app.put("/api/admin/resident-reporter/:id", isAdmin, async (req, res) => {
         try {
             const { title, content, authorName, imageUrl } = req.body;
             const article = await storage.adminUpdateReporterArticle(req.params.id, {
@@ -204,10 +195,7 @@ export function registerReporterRoutes(app: Express) {
     });
 
     // Admin: Delete article
-    app.delete("/api/admin/resident-reporter/:id", isAuthenticated, async (req, res) => {
-        if ((req.user as any).role !== "admin") {
-            return res.status(403).json({ error: "Unauthorized" });
-        }
+    app.delete("/api/admin/resident-reporter/:id", isAdmin, async (req, res) => {
         try {
             const success = await storage.deleteReporterArticle(req.params.id);
             if (!success) {

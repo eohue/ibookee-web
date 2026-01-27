@@ -1,10 +1,10 @@
 import type { Express } from "express";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAdmin } from "../replit_integrations/auth";
 import https from "https";
 import http from "http";
 
 export function registerMetadataRoutes(app: Express) {
-    app.post("/api/admin/extract-metadata", isAuthenticated, async (req, res) => {
+    app.post("/api/admin/extract-metadata", isAdmin, async (req, res) => {
         try {
             const { url } = req.body;
             if (!url) {

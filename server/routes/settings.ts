@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertSiteSettingSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAdmin } from "../replit_integrations/auth";
 
 export function registerSettingsRoutes(app: Express) {
     // Public site settings endpoint (specific keys only)
@@ -18,7 +18,7 @@ export function registerSettingsRoutes(app: Express) {
     });
 
     // Admin Site Settings CRUD
-    app.get("/api/admin/settings", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/settings", isAdmin, async (_req, res) => {
         try {
             const settings = await storage.getSiteSettings();
             res.json(settings);
@@ -27,7 +27,7 @@ export function registerSettingsRoutes(app: Express) {
         }
     });
 
-    app.get("/api/admin/settings/:key", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/settings/:key", isAdmin, async (req, res) => {
         try {
             const setting = await storage.getSiteSetting(req.params.key);
             if (!setting) {
@@ -39,7 +39,7 @@ export function registerSettingsRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/settings/:key", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/settings/:key", isAdmin, async (req, res) => {
         try {
             const setting = await storage.upsertSiteSetting({
                 key: req.params.key,

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertHousingRecruitmentSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAdmin } from "../replit_integrations/auth";
 
 export function registerRecruitmentRoutes(app: Express) {
     // Public API - Get published recruitments
@@ -15,7 +15,7 @@ export function registerRecruitmentRoutes(app: Express) {
     });
 
     // Admin API - Get all recruitments
-    app.get("/api/admin/recruitments", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/recruitments", isAdmin, async (req, res) => {
         try {
             const recruitments = await storage.getHousingRecruitments();
             res.json(recruitments);
@@ -25,7 +25,7 @@ export function registerRecruitmentRoutes(app: Express) {
     });
 
     // Admin API - Get single recruitment
-    app.get("/api/admin/recruitments/:id", isAuthenticated, async (req, res) => {
+    app.get("/api/admin/recruitments/:id", isAdmin, async (req, res) => {
         try {
             const recruitment = await storage.getHousingRecruitment(req.params.id);
             if (!recruitment) {
@@ -38,7 +38,7 @@ export function registerRecruitmentRoutes(app: Express) {
     });
 
     // Admin API - Create recruitment
-    app.post("/api/admin/recruitments", isAuthenticated, async (req, res) => {
+    app.post("/api/admin/recruitments", isAdmin, async (req, res) => {
         try {
             const parsed = insertHousingRecruitmentSchema.safeParse(req.body);
             if (!parsed.success) {
@@ -52,7 +52,7 @@ export function registerRecruitmentRoutes(app: Express) {
     });
 
     // Admin API - Update recruitment
-    app.put("/api/admin/recruitments/:id", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/recruitments/:id", isAdmin, async (req, res) => {
         try {
             const parsed = insertHousingRecruitmentSchema.partial().safeParse(req.body);
             if (!parsed.success) {
@@ -69,7 +69,7 @@ export function registerRecruitmentRoutes(app: Express) {
     });
 
     // Admin API - Delete recruitment
-    app.delete("/api/admin/recruitments/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/recruitments/:id", isAdmin, async (req, res) => {
         try {
             await storage.deleteHousingRecruitment(req.params.id);
             res.status(204).send();

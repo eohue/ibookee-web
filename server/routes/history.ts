@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import { insertHistoryMilestoneSchema } from "@shared/schema";
-import { isAuthenticated } from "../replit_integrations/auth";
+import { isAdmin } from "../replit_integrations/auth";
 
 export function registerHistoryRoutes(app: Express) {
     // Public History API
@@ -15,7 +15,7 @@ export function registerHistoryRoutes(app: Express) {
     });
 
     // Admin History Milestones CRUD
-    app.get("/api/admin/history", isAuthenticated, async (_req, res) => {
+    app.get("/api/admin/history", isAdmin, async (_req, res) => {
         try {
             const milestones = await storage.getHistoryMilestones();
             res.json(milestones);
@@ -24,7 +24,7 @@ export function registerHistoryRoutes(app: Express) {
         }
     });
 
-    app.post("/api/admin/history", isAuthenticated, async (req, res) => {
+    app.post("/api/admin/history", isAdmin, async (req, res) => {
         try {
             const parsed = insertHistoryMilestoneSchema.safeParse(req.body);
             if (!parsed.success) {
@@ -37,7 +37,7 @@ export function registerHistoryRoutes(app: Express) {
         }
     });
 
-    app.put("/api/admin/history/:id", isAuthenticated, async (req, res) => {
+    app.put("/api/admin/history/:id", isAdmin, async (req, res) => {
         try {
             const milestone = await storage.updateHistoryMilestone(req.params.id, req.body);
             if (!milestone) {
@@ -49,7 +49,7 @@ export function registerHistoryRoutes(app: Express) {
         }
     });
 
-    app.delete("/api/admin/history/:id", isAuthenticated, async (req, res) => {
+    app.delete("/api/admin/history/:id", isAdmin, async (req, res) => {
         try {
             await storage.deleteHistoryMilestone(req.params.id);
             res.status(204).send();
