@@ -170,9 +170,7 @@ export function PostDetailModal({ post, isOpen, onClose, account }: PostDetailMo
                                 )}
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground/80">
-                            <MoreHorizontal className="w-5 h-5" />
-                        </Button>
+                        {/* MoreHorizontal button removed - no functionality */}
                     </div>
 
                     {/* Scrollable Area: Caption & Comments */}

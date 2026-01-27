@@ -108,21 +108,28 @@ export default function ReporterPreview({ articles = [], isLoading }: ReporterPr
                                 ))}
                             </div>
                         </div>
-                        {/* Navigation Arrows - Glassmorphism style - Always visible for loop */}
-                        <button
-                            className="absolute top-1/2 left-2 md:left-4 -translate-y-1/2 z-10 h-12 w-12 rounded-full backdrop-blur-md bg-black/20 hover:bg-black/40 border border-white/30 text-white shadow-lg transition-all duration-200 flex items-center justify-center opacity-100"
-                            onClick={scrollPrev}
-                            data-testid="button-reporter-prev"
-                        >
-                            <ChevronLeft className="w-6 h-6" />
-                        </button>
-                        <button
-                            className="absolute top-1/2 right-2 md:right-4 -translate-y-1/2 z-10 h-12 w-12 rounded-full backdrop-blur-md bg-black/20 hover:bg-black/40 border border-white/30 text-white shadow-lg transition-all duration-200 flex items-center justify-center opacity-100"
-                            onClick={scrollNext}
-                            data-testid="button-reporter-next"
-                        >
-                            <ChevronRight className="w-6 h-6" />
-                        </button>
+                        {/* Custom Navigation - Button style consistent with FeaturedProjects, always visible */}
+                        <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full flex justify-between pointer-events-none px-2 lg:px-0">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-12 w-12 rounded-full pointer-events-auto bg-background/80 backdrop-blur-sm border-border shadow-lg hover:bg-primary hover:text-white hover:border-primary transition-all opacity-100 -translate-x-1/2"
+                                onClick={scrollPrev}
+                                data-testid="button-reporter-prev"
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-12 w-12 rounded-full pointer-events-auto bg-background/80 backdrop-blur-sm border-border shadow-lg hover:bg-primary hover:text-white hover:border-primary transition-all opacity-100 translate-x-1/2"
+                                onClick={scrollNext}
+                                data-testid="button-reporter-next"
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </Button>
+                        </div>
                     </div>
                 ) : (
                     <div className="text-center py-20 bg-muted/20 rounded-xl">

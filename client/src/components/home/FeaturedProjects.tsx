@@ -139,12 +139,12 @@ export default function FeaturedProjects({ projects = [], isLoading }: FeaturedP
               </div>
             </div>
 
-            {/* Custom Navigation - Bottom left aligned or absolute centered? Let's go with absolute centered */}
+            {/* Custom Navigation - Button style update: removed opacity-0 group-hover:opacity-100 to make them always visible */}
             <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full flex justify-between pointer-events-none px-2 lg:px-0">
               <Button
                 variant="outline"
                 size="icon"
-                className="h-12 w-12 rounded-full pointer-events-auto bg-background/80 backdrop-blur-sm border-border shadow-lg hover:bg-primary hover:text-white hover:border-primary transition-all opacity-0 group-hover:opacity-100 -translate-x-1/2"
+                className="h-12 w-12 rounded-full pointer-events-auto bg-background/80 backdrop-blur-sm border-border shadow-lg hover:bg-primary hover:text-white hover:border-primary transition-all opacity-100 -translate-x-1/2"
                 onClick={scrollPrev}
                 data-testid="button-featured-prev"
               >
@@ -154,7 +154,7 @@ export default function FeaturedProjects({ projects = [], isLoading }: FeaturedP
               <Button
                 variant="outline"
                 size="icon"
-                className="h-12 w-12 rounded-full pointer-events-auto bg-background/80 backdrop-blur-sm border-border shadow-lg hover:bg-primary hover:text-white hover:border-primary transition-all opacity-0 group-hover:opacity-100 translate-x-1/2"
+                className="h-12 w-12 rounded-full pointer-events-auto bg-background/80 backdrop-blur-sm border-border shadow-lg hover:bg-primary hover:text-white hover:border-primary transition-all opacity-100 translate-x-1/2"
                 onClick={scrollNext}
                 data-testid="button-featured-next"
               >
