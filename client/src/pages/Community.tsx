@@ -238,14 +238,14 @@ export default function Community() {
             {recruitmentsLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-background rounded-lg p-4 border border-border animate-pulse">
+                  <div key={i} className="bg-background rounded-lg p-4 border-2 border-border/80 animate-pulse">
                     <div className="h-5 bg-muted rounded w-2/3 mb-2" />
                     <div className="h-4 bg-muted rounded w-1/4" />
                   </div>
                 ))}
               </div>
             ) : recruitments.length === 0 ? (
-              <div className="bg-background rounded-lg p-8 border border-border text-center">
+              <div className="bg-background rounded-lg p-8 border-2 border-border/80 text-center">
                 <p className="text-muted-foreground">현재 모집 중인 공고가 없습니다.</p>
                 <Link href="/space">
                   <Button variant="outline" className="mt-4">
@@ -258,7 +258,7 @@ export default function Community() {
                 {recruitments.map((recruitment) => (
                   <div
                     key={recruitment.id}
-                    className="bg-background rounded-lg p-4 border border-border hover:border-primary/50 hover:shadow-md transition-all"
+                    className="bg-background rounded-lg p-4 border-2 border-border/80 hover:border-primary/50 hover:shadow-md transition-all"
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
@@ -343,7 +343,7 @@ export default function Community() {
                     return (
                       <div
                         key={post.id}
-                        className="group relative aspect-square overflow-hidden rounded-lg glass-interactive cursor-pointer"
+                        className="group relative aspect-square overflow-hidden rounded-lg glass-interactive cursor-pointer border-2 border-border/60"
                         data-testid={`post-${post.id}`}
                         onClick={() => setSelectedPost(post)}
                       >
@@ -496,7 +496,7 @@ export default function Community() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {reporterArticles.map(article => (
-                  <Card key={article.id} className="overflow-hidden glass-interactive cursor-pointer border-border/60 shadow-sm hover:shadow-md transition-all" onClick={() => setSelectedArticle(article)}>
+                  <Card key={article.id} className="overflow-hidden glass-interactive cursor-pointer border-2 border-border/60 shadow-sm hover:shadow-md transition-all" onClick={() => setSelectedArticle(article)}>
                     {article.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden relative">
                         <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
@@ -576,7 +576,7 @@ export default function Community() {
                   return (
                     <Card
                       key={program.id}
-                      className="p-6 md:p-8 glass-interactive border-border/60 shadow-sm hover:shadow-md bg-background"
+                      className="p-6 md:p-8 glass-interactive border-2 border-border/60 shadow-sm hover:shadow-md bg-background"
                       data-testid={`program-${program.id}`}
                     >
                       <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-6">
@@ -666,7 +666,7 @@ export default function Community() {
                     className="block"
                   >
                     <Card
-                      className="overflow-hidden glass-interactive cursor-pointer h-full border-border/60 shadow-sm hover:shadow-md transition-all"
+                      className="overflow-hidden glass-interactive cursor-pointer h-full border-2 border-border/60 shadow-sm hover:shadow-md transition-all"
                       data-testid={`event-${event.id}`}
                     >
                       {event.imageUrl && (
