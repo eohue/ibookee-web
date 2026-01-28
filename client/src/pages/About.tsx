@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Building2, Users, Award, Target, ChevronRight } from "lucide-react";
-import { useCompanyStats, usePageImages } from "@/hooks/use-site-settings";
+import { useCompanyStats, usePageImages, useCeoMessage } from "@/hooks/use-site-settings";
 import type { HistoryMilestone, Project } from "@shared/schema";
 
 const defaultHistoryMilestones = [
@@ -19,6 +19,7 @@ const defaultHistoryMilestones = [
 export default function About() {
   const { stats } = useCompanyStats();
   const { getImageUrl } = usePageImages();
+  const { ceoMessage } = useCeoMessage();
 
   const { data: historyData } = useQuery<HistoryMilestone[]>({
     queryKey: ["/api/history"],
@@ -120,7 +121,7 @@ export default function About() {
                   className="rounded-lg w-full max-w-md aspect-[3/4] object-cover"
                 />
                 <div className="mt-4">
-                  <h3 className="text-xl font-semibold text-foreground">김아이</h3>
+                  <h3 className="text-xl font-semibold text-foreground">{ceoMessage.signature}</h3>
                   <p className="text-muted-foreground">대표이사 / CEO</p>
                 </div>
               </div>

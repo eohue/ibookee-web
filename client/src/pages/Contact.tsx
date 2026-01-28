@@ -19,14 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
-interface FooterSettings {
-  companyName: string;
-  address: string;
-  phone: string;
-  email: string;
-  businessNumber: string;
-  copyright: string;
-}
+import { useFooterSettings } from "@/hooks/use-site-settings";
 
 type FormType = "move-in" | "business" | "recruit" | "resident-auth";
 
@@ -94,9 +87,7 @@ export default function Contact() {
     unitInfo: "", // Dong-Ho
   });
 
-  const { data: footerSettings } = useQuery<FooterSettings>({
-    queryKey: ["/api/settings/footer_settings"],
-  });
+  const { footer: footerSettings } = useFooterSettings();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -210,7 +201,7 @@ export default function Contact() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">주소</h3>
                 <p className="text-sm text-muted-foreground">
-                  {footerSettings?.address || "서울특별시 성동구 왕십리로 115"}
+                  {footerSettings.address}
                 </p>
               </Card>
               <Card className="p-6 text-center">
@@ -219,7 +210,7 @@ export default function Contact() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">전화</h3>
                 <p className="text-sm text-muted-foreground">
-                  {footerSettings?.phone || "02-1234-5678"}
+                  {footerSettings.phone}
                 </p>
               </Card>
               <Card className="p-6 text-center">
@@ -228,7 +219,7 @@ export default function Contact() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">이메일</h3>
                 <p className="text-sm text-muted-foreground">
-                  {footerSettings?.email || "contact@ibookee.kr"}
+                  {footerSettings.email}
                 </p>
               </Card>
             </div>
