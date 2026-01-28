@@ -9,7 +9,7 @@ export function registerArticleRoutes(app: Express) {
     app.get("/api/articles", async (req, res) => {
         try {
             const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 999; // Default high limit for backward compatibility
+            const limit = parseInt(req.query.limit as string) || 20; // Default limit reduced for performance
 
             const result = await storage.getArticles(page, limit);
 

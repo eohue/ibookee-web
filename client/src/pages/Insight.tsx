@@ -64,6 +64,7 @@ export default function Insight() {
       }
       return res.json();
     },
+    staleTime: 1000 * 60, // 1 minute
   });
 
   const articles = data?.articles || [];

@@ -8,8 +8,9 @@ export function registerProjectRoutes(app: Express) {
   app.get("/api/projects", async (req, res) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 100;
-      const result = await storage.getProjects(page, limit);
+      const limit = parseInt(req.query.limit as string) || 50;
+      const titles = req.query.titles ? (req.query.titles as string).split(',') : undefined;
+      const result = await storage.getProjects(page, limit, titles);
       // Return projects array for backward compatibility
       res.json(result.projects);
     } catch (error) {

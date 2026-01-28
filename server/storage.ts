@@ -47,7 +47,7 @@ import { ArticleRepository } from "./repositories/articleRepository";
 
 export interface IStorage {
   // Projects
-  getProjects(page?: number, limit?: number): Promise<{ projects: Project[], total: number }>;
+  getProjects(page?: number, limit?: number, titles?: string[]): Promise<{ projects: Project[], total: number }>;
   getProject(id: string): Promise<Project | undefined>;
   getProjectsByCategory(category: string): Promise<Project[]>;
   createProject(project: InsertProject): Promise<Project>;
@@ -224,8 +224,8 @@ export class DatabaseStorage implements IStorage {
   private reporterRepo = new ReporterRepository();
 
   // Projects
-  async getProjects(page: number = 1, limit: number = 100): Promise<{ projects: Project[], total: number }> {
-    return this.projectRepo.getProjects(page, limit);
+  async getProjects(page: number = 1, limit: number = 100, titles?: string[]): Promise<{ projects: Project[], total: number }> {
+    return this.projectRepo.getProjects(page, limit, titles);
   }
 
   async getProject(id: string): Promise<Project | undefined> {

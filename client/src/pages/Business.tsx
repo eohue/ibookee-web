@@ -122,7 +122,14 @@ export default function Business() {
   const { getImageUrl } = usePageImages();
 
   const { data: projects = [] } = useQuery<any[]>({
-    queryKey: ["/api/projects"],
+    queryKey: ["/api/projects", "business-solutions"],
+    queryFn: async () => {
+      const titles = ["다다름하우스", "홍시주택", "장안생활", "길동생활"].join(",");
+      const res = await fetch(`/api/projects?titles=${encodeURIComponent(titles)}`);
+      if (!res.ok) throw new Error("Failed to fetch projects");
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const solutions = solutionsData.map(s => ({
