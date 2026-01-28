@@ -31,14 +31,32 @@ export default function About() {
   });
 
   // Extract unique partner logos from projects
-  const projectPartnerLogos = Array.from(new Set(
-    projects?.flatMap(p => {
+  // Extract unique partner logos from projects, filtering by filename
+  const projectPartnerLogos = (() => {
+    if (!projects) return [];
+
+    const seenFilenames = new Set<string>();
+    const uniqueLogos: string[] = [];
+
+    const allLogos = projects.flatMap(p => {
       if (Array.isArray(p.partnerLogos)) {
         return p.partnerLogos;
       }
       return [];
-    }) || []
-  )).filter(logo => typeof logo === 'string' && logo.length > 0) as string[];
+    }).filter(logo => typeof logo === 'string' && logo.length > 0) as string[];
+
+    for (const logo of allLogos) {
+      // Extract filename from URL to check for duplicates
+      const filename = logo.split('/').pop()?.split('?')[0];
+
+      if (filename && !seenFilenames.has(filename)) {
+        seenFilenames.add(filename);
+        uniqueLogos.push(logo);
+      }
+    }
+
+    return uniqueLogos;
+  })();
 
   const statsDisplay = [
     { icon: Building2, label: `${stats.projectCount.value} ${stats.projectCount.label}`, desc: "완공" },
