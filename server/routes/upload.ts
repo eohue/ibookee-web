@@ -27,7 +27,7 @@ const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
     fileFilter: (_req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png|gif|webp|pdf/;
+        const allowedTypes = /jpeg|jpg|png|gif|webp|svg|pdf/;
         const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
         const mimetype = allowedTypes.test(file.mimetype);
 
@@ -67,8 +67,8 @@ export function registerUploadRoutes(app: Express) {
 
             let buffer = req.file.buffer;
 
-            // Only optimize images if sharp is available
-            if (req.file.mimetype.startsWith('image/')) {
+            // Only optimize images if sharp is available (skip for SVG)
+            if (req.file.mimetype.startsWith('image/') && !req.file.mimetype.includes('svg')) {
                 try {
                     // Dynamic import for sharp
                     const sharpModule = await import("sharp");

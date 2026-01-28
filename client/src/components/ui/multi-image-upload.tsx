@@ -102,7 +102,7 @@ export function MultiImageUpload({ value = [], onChange, disabled }: MultiImageU
 
             <Input
                 type="file"
-                accept="image/*"
+                accept="image/*,.svg"
                 multiple
                 className="hidden"
                 ref={fileInputRef}

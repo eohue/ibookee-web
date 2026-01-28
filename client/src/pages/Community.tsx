@@ -343,7 +343,7 @@ export default function Community() {
                     return (
                       <div
                         key={post.id}
-                        className="group flex flex-col bg-card rounded-lg overflow-hidden border border-border/60 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                        className="group flex flex-col bg-card rounded-lg overflow-hidden border-2 border-border shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                         data-testid={`post-${post.id}`}
                         onClick={() => setSelectedPost(post)}
                       >

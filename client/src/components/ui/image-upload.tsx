@@ -74,7 +74,7 @@ export function ImageUpload({ value, onChange, disabled, maxFiles = 1 }: ImageUp
         <div className="flex flex-col gap-4">
             <Input
                 type="file"
-                accept="image/*"
+                accept="image/*,.svg"
                 className="hidden"
                 multiple={maxFiles > 1}
                 ref={fileInputRef}

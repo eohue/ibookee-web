@@ -180,12 +180,12 @@ export default function Business() {
                     공공의 지원과 정책적 안정성
                   </p>
                 </Card>
-                <Card className="p-6 text-center border-primary border-2 shadow-lg">
-                  <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                    <TrendingUp className="w-7 h-7 text-primary" />
+                <Card className="relative p-8 text-center border-primary border-4 shadow-2xl scale-105 z-10 bg-background">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <TrendingUp className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold text-primary mb-2">Social Housing</h3>
-                  <p className="text-lg text-muted-foreground">
+                  <h3 className="text-2xl md:text-3xl font-black text-primary mb-2">Social Housing</h3>
+                  <p className="text-lg font-medium text-muted-foreground">
                     공공성 + 수익성의 균형점
                   </p>
                 </Card>
