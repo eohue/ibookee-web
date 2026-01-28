@@ -32,31 +32,13 @@ export default function About() {
 
   // Extract unique partner logos from projects
   // Extract unique partner logos from projects, filtering by filename
-  const projectPartnerLogos = (() => {
-    if (!projects) return [];
+  // Fetch partners from the dedicated API
+  const { data: partners } = useQuery<{ logoUrl: string; name: string }[]>({
+    queryKey: ["/api/partners"],
+    staleTime: 60000,
+  });
 
-    const seenFilenames = new Set<string>();
-    const uniqueLogos: string[] = [];
-
-    const allLogos = projects.flatMap(p => {
-      if (Array.isArray(p.partnerLogos)) {
-        return p.partnerLogos;
-      }
-      return [];
-    }).filter(logo => typeof logo === 'string' && logo.length > 0) as string[];
-
-    for (const logo of allLogos) {
-      // Extract filename from URL to check for duplicates
-      const filename = logo.split('/').pop()?.split('?')[0];
-
-      if (filename && !seenFilenames.has(filename)) {
-        seenFilenames.add(filename);
-        uniqueLogos.push(logo);
-      }
-    }
-
-    return uniqueLogos;
-  })();
+  const partnerLogos = partners?.map(p => p.logoUrl).filter(Boolean) || [];
 
   const statsDisplay = [
     { icon: Building2, label: `${stats.projectCount.value} ${stats.projectCount.label}`, desc: "완공" },
@@ -225,7 +207,7 @@ export default function About() {
           </div>
         </section>
 
-        {projectPartnerLogos.length > 0 && (
+        {partnerLogos.length > 0 && (
           <section className="py-20 bg-card" data-testid="section-partners">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
@@ -237,7 +219,7 @@ export default function About() {
                 </h2>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 items-center justify-items-center">
-                {projectPartnerLogos.map((logoUrl, index) => (
+                {partnerLogos.map((logoUrl, index) => (
                   <div
                     key={index}
                     className="w-full max-w-[150px] aspect-[3/2] flex items-center justify-center p-4 grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100"
