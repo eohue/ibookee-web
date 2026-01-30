@@ -178,7 +178,7 @@ export default function SpaceDetail() {
                   <ArrowRight className="w-4 h-4 -rotate-45" />
                   <span className="text-sm">소개서</span>
                 </div>
-                <p className="font-bold text-primary">PDF 다운로드</p>
+                <p className="font-bold text-primary">PDF 보기</p>
               </a>
             )}
           </div>
