@@ -177,7 +177,12 @@ export default function InsightDetail() {
               <div
                 className="text-foreground leading-relaxed"
                 data-testid="text-article-content"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(article.content, {
+                    ADD_TAGS: ['iframe'],
+                    ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
+                  })
+                }}
               />
             </div>
           </article>

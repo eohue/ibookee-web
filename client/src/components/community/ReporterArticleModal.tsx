@@ -185,7 +185,12 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
 
                         <div
                             className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-xl"
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
+                            dangerouslySetInnerHTML={{
+                                __html: DOMPurify.sanitize(htmlContent, {
+                                    ADD_TAGS: ['iframe'],
+                                    ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling']
+                                })
+                            }}
                         />
 
                         <div className="mt-12 pt-8 border-t flex items-center justify-center">
