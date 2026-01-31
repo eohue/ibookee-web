@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -99,21 +99,35 @@ export function ResourcesSection() {
         },
     });
 
+    // Fetch full article details when editing
+    const { data: fullArticle, isLoading: isLoadingArticle } = useQuery<Article>({
+        queryKey: ["/api/articles", editingArticle?.id],
+        enabled: !!editingArticle?.id,
+    });
+
+    // Sync content state when full article data is loaded or dialog opens for new article
+    useEffect(() => {
+        if (isDialogOpen) {
+            if (editingArticle && fullArticle) {
+                // Editing existing article - use full data
+                setIsFeatured(fullArticle.featured ?? false);
+                setImageUrl(fullArticle.imageUrl ?? "");
+                setFileUrl(fullArticle.fileUrl ?? "");
+                setContent(fullArticle.content || "");
+                setPublishedAt(fullArticle.publishedAt ? new Date(fullArticle.publishedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+            } else if (!editingArticle) {
+                // Creating new article - reset form
+                setIsFeatured(false);
+                setImageUrl("");
+                setFileUrl("");
+                setContent("");
+                setPublishedAt(new Date().toISOString().split('T')[0]);
+            }
+        }
+    }, [isDialogOpen, editingArticle, fullArticle]);
+
     const openDialog = (article: Article | null) => {
         setEditingArticle(article);
-        if (article) {
-            setIsFeatured(article.featured ?? false);
-            setImageUrl(article.imageUrl ?? "");
-            setFileUrl(article.fileUrl ?? "");
-            setContent(article.content);
-            setPublishedAt(article.publishedAt ? new Date(article.publishedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
-        } else {
-            setIsFeatured(false);
-            setImageUrl("");
-            setFileUrl("");
-            setContent("");
-            setPublishedAt(new Date().toISOString().split('T')[0]);
-        }
         setIsDialogOpen(true);
     };
 
@@ -157,112 +171,119 @@ export function ResourcesSection() {
                         <DialogHeader>
                             <DialogTitle>{editingArticle ? "자료 수정" : "새 자료 등록"}</DialogTitle>
                         </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="title">제목</Label>
-                                <Input
-                                    id="title"
-                                    name="title"
-                                    defaultValue={editingArticle?.title}
-                                    required
-                                    data-testid="input-resource-title"
-                                />
+                        {isLoadingArticle && editingArticle ? (
+                            <div className="py-12 flex justify-center items-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                        ) : (
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="author">작성자</Label>
+                                    <Label htmlFor="title">제목</Label>
                                     <Input
-                                        id="author"
-                                        name="author"
-                                        defaultValue={editingArticle?.author}
+                                        id="title"
+                                        name="title"
+                                        defaultValue={editingArticle?.title}
                                         required
-                                        data-testid="input-resource-author"
+                                        data-testid="input-resource-title"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="author">작성자</Label>
+                                        <Input
+                                            id="author"
+                                            name="author"
+                                            defaultValue={editingArticle?.author}
+                                            required
+                                            data-testid="input-resource-author"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="publishedAt">등록일</Label>
+                                        <Input
+                                            id="publishedAt"
+                                            name="publishedAt"
+                                            type="date"
+                                            value={publishedAt}
+                                            onChange={(e) => setPublishedAt(e.target.value)}
+                                            required
+                                            data-testid="input-resource-publishedAt"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="excerpt">요약</Label>
+                                    <Input
+                                        id="excerpt"
+                                        name="excerpt"
+                                        defaultValue={editingArticle?.excerpt}
+                                        required
+                                        data-testid="input-resource-excerpt"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="publishedAt">등록일</Label>
+                                    <Label>내용</Label>
+                                    <RichTextEditor
+                                        key={isDialogOpen ? `open-${editingArticle?.id || 'new'}` : 'closed'}
+                                        value={content}
+                                        onChange={setContent}
+                                        className="min-h-[200px] mb-12"
+                                    />
+                                    <input type="hidden" name="content" value={content} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>대표 이미지 (선택)</Label>
                                     <Input
-                                        id="publishedAt"
-                                        name="publishedAt"
-                                        type="date"
-                                        value={publishedAt}
-                                        onChange={(e) => setPublishedAt(e.target.value)}
-                                        required
-                                        data-testid="input-resource-publishedAt"
+                                        type="hidden"
+                                        name="imageUrl"
+                                        value={imageUrl}
+                                        readOnly
+                                        data-testid="input-resource-image-hidden"
+                                    />
+                                    <ImageUpload
+                                        value={imageUrl}
+                                        onChange={(url) => setImageUrl(url as string)}
                                     />
                                 </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="excerpt">요약</Label>
-                                <Input
-                                    id="excerpt"
-                                    name="excerpt"
-                                    defaultValue={editingArticle?.excerpt}
-                                    required
-                                    data-testid="input-resource-excerpt"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>내용</Label>
-                                <RichTextEditor
-                                    value={content}
-                                    onChange={setContent}
-                                    className="min-h-[200px] mb-12"
-                                />
-                                <input type="hidden" name="content" value={content} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>대표 이미지 (선택)</Label>
-                                <Input
-                                    type="hidden"
-                                    name="imageUrl"
-                                    value={imageUrl}
-                                    readOnly
-                                    data-testid="input-resource-image-hidden"
-                                />
-                                <ImageUpload
-                                    value={imageUrl}
-                                    onChange={(url) => setImageUrl(url as string)}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>첨부 파일 (PDF)</Label>
-                                <Input
-                                    type="hidden"
-                                    name="fileUrl"
-                                    value={fileUrl}
-                                    readOnly
-                                    data-testid="input-resource-file-hidden"
-                                />
-                                <FileUpload
-                                    value={fileUrl}
-                                    onChange={setFileUrl}
-                                    accept=".pdf"
-                                    label="PDF 파일 업로드"
-                                />
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="featured"
-                                    checked={isFeatured}
-                                    onCheckedChange={(checked) => setIsFeatured(checked === true)}
-                                    data-testid="checkbox-resource-featured"
-                                />
-                                <Label htmlFor="featured" className="text-sm font-normal cursor-pointer">
-                                    추천 자료로 설정
-                                </Label>
-                            </div>
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button type="button" variant="outline">
-                                        취소
+                                <div className="space-y-2">
+                                    <Label>첨부 파일 (PDF)</Label>
+                                    <Input
+                                        type="hidden"
+                                        name="fileUrl"
+                                        value={fileUrl}
+                                        readOnly
+                                        data-testid="input-resource-file-hidden"
+                                    />
+                                    <FileUpload
+                                        value={fileUrl}
+                                        onChange={setFileUrl}
+                                        accept=".pdf"
+                                        label="PDF 파일 업로드"
+                                    />
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="featured"
+                                        checked={isFeatured}
+                                        onCheckedChange={(checked) => setIsFeatured(checked === true)}
+                                        data-testid="checkbox-resource-featured"
+                                    />
+                                    <Label htmlFor="featured" className="text-sm font-normal cursor-pointer">
+                                        추천 자료로 설정
+                                    </Label>
+                                </div>
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button type="button" variant="outline">
+                                            취소
+                                        </Button>
+                                    </DialogClose>
+                                    <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} data-testid="button-submit-resource">
+                                        {editingArticle ? "수정" : "생성"}
                                     </Button>
-                                </DialogClose>
-                                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} data-testid="button-submit-resource">
-                                    {editingArticle ? "수정" : "생성"}
-                                </Button>
-                            </DialogFooter>
-                        </form>
+                                </DialogFooter>
+                            </form>
+                        )}
                     </DialogContent>
                 </Dialog>
             </div>
