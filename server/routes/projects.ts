@@ -12,6 +12,8 @@ export function registerProjectRoutes(app: Express) {
       const titles = req.query.titles ? (req.query.titles as string).split(',') : undefined;
       const result = await storage.getProjects(page, limit, titles);
       // Return projects array for backward compatibility
+      // Add caching to reduce DB load
+      res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
       res.json(result.projects);
     } catch (error) {
       console.error("Failed to fetch projects:", error);

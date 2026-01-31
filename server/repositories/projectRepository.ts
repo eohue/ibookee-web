@@ -25,16 +25,9 @@ export class ProjectRepository {
                 category: projects.category,
                 imageUrl: projects.imageUrl,
                 year: projects.year,
-                completionMonth: projects.completionMonth,
                 units: projects.units,
-                siteArea: projects.siteArea,
-                grossFloorArea: projects.grossFloorArea,
-                scale: projects.scale,
-                featured: projects.featured,
-                partnerLogos: projects.partnerLogos,
-                pdfUrl: projects.pdfUrl,
                 description: projects.description,
-                relatedArticles: projects.relatedArticles,
+                featured: projects.featured,
             })
                 .from(projects)
                 // Add conditional where clause
@@ -53,7 +46,7 @@ export class ProjectRepository {
         ]);
 
         return {
-            projects: projectsResult,
+            projects: projectsResult as Project[],
             total: countResult[0]?.count || 0
         };
     }
