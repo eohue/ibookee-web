@@ -13,6 +13,18 @@ export function registerUnitRoutes(app: Express) {
         }
     });
 
+    // Search units
+    app.get("/api/units/search", async (req, res) => {
+        try {
+            const projectId = req.query.projectId as string | undefined;
+            const status = req.query.status as string | undefined;
+            const units = await storage.searchProjectUnits({ projectId, status });
+            res.json(units);
+        } catch (error) {
+            res.status(500).json({ message: "Failed to search units" });
+        }
+    });
+
     // Get single unit
     app.get("/api/units/:id", async (req, res) => {
         try {

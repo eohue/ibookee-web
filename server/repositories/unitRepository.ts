@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { db } from "../db";
 import { projectUnits, type InsertProjectUnit, type ProjectUnit } from "@shared/schema";
 
@@ -9,6 +9,21 @@ export class UnitRepository {
             .from(projectUnits)
             .where(eq(projectUnits.projectId, projectId))
             .orderBy(projectUnits.displayOrder, projectUnits.unitNumber);
+    }
+
+    async searchProjectUnits(filters: { projectId?: string; status?: string }): Promise<ProjectUnit[]> {
+        const conditions = [];
+        if (filters.projectId) conditions.push(eq(projectUnits.projectId, filters.projectId));
+        if (filters.status) conditions.push(eq(projectUnits.status, filters.status));
+
+        let query = db.select().from(projectUnits);
+
+        if (conditions.length > 0) {
+            // @ts-ignore - Drizzle specific type issue
+            query = query.where(and(...conditions));
+        }
+
+        return await query.orderBy(projectUnits.displayOrder, projectUnits.unitNumber);
     }
 
     async getProjectUnit(id: string): Promise<ProjectUnit | undefined> {

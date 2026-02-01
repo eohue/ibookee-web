@@ -22,6 +22,9 @@ import SocialStreamPage from "@/pages/community/SocialStreamPage";
 import ResidentReporterPage from "@/pages/community/ResidentReporterPage";
 import SupportProgramsPage from "@/pages/community/SupportProgramsPage";
 import EventsPage from "@/pages/community/EventsPage";
+import SearchPage from "@/pages/Apply/SearchPage";
+import LiveDetail from "@/pages/Live/Detail/LiveDetail";
+import LiveLanding from "@/pages/Live/LiveLanding";
 
 import AuthPage from "@/pages/auth/AuthPage";
 import NotFound from "@/pages/not-found";
@@ -36,16 +39,19 @@ function Router() {
       <Route path="/business" component={Business} />
       <Route path="/space" component={Space} />
       <Route path="/space/:id" component={SpaceDetail} />
-      <Route path="/community" component={Community} />
-      <Route path="/community/event/:id" component={EventDetail} />
+      <Route path="/story" component={Community} />
+      <Route path="/story/event/:id" component={EventDetail} />
       <Route path="/insight" component={Insight} />
       <Route path="/insight/:id" component={InsightDetail} />
-      <Route path="/community/recruitment" component={HousingRecruitmentPage} />
-      <Route path="/community/social" component={SocialStreamPage} />
-      <Route path="/community/reporter" component={ResidentReporterPage} />
-      <Route path="/community/programs" component={SupportProgramsPage} />
-      <Route path="/community/events" component={EventsPage} />
+      <Route path="/story/recruitment" component={HousingRecruitmentPage} />
+      <Route path="/story/social" component={SocialStreamPage} />
+      <Route path="/story/reporter" component={ResidentReporterPage} />
+      <Route path="/story/programs" component={SupportProgramsPage} />
+      <Route path="/story/events" component={EventsPage} />
       <Route path="/resident-reporter-guide" component={ResidentReporterGuide} />
+      <Route path="/apply" component={SearchPage} />
+      <Route path="/live" component={LiveLanding} />
+      <Route path="/live/:id" component={LiveDetail} />
       <Route path="/contact" component={Contact} />
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/mypage" component={MyPage} />

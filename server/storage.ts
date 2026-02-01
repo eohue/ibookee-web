@@ -199,6 +199,7 @@ export interface IStorage {
   deleteHousingRecruitment(id: string): Promise<void>;
 
   // Project Units
+  searchProjectUnits(filters: { projectId?: string; status?: string }): Promise<ProjectUnit[]>;
   getProjectUnits(projectId: string): Promise<ProjectUnit[]>;
   getProjectUnit(id: string): Promise<ProjectUnit | undefined>;
   createProjectUnit(unit: InsertProjectUnit): Promise<ProjectUnit>;
@@ -696,6 +697,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Project Units
+  async searchProjectUnits(filters: { projectId?: string; status?: string }): Promise<ProjectUnit[]> {
+    return this.unitRepo.searchProjectUnits(filters);
+  }
+
   async getProjectUnits(projectId: string): Promise<ProjectUnit[]> {
     return this.unitRepo.getProjectUnits(projectId);
   }

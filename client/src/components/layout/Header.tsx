@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, Sun, Moon, User, LogIn, LayoutDashboard, LogOut } from "lucide-react";
+import { Menu, Sun, Moon, User, LogIn, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   NavigationMenu,
+  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
+  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import {
@@ -30,11 +32,9 @@ import logoWhite from "@assets/logo_white.png";
 import logoDark from "@assets/logo_dark.png";
 import { cn } from "@/lib/utils";
 
-const navigation = [
+const ibookeeSubNav = [
   { name: "About Us", href: "/about" },
   { name: "Business", href: "/business" },
-  { name: "Space", href: "/space" },
-  { name: "Life", href: "/community" },
   { name: "Insight", href: "/insight" },
   { name: "Contact", href: "/contact" },
 ];
@@ -66,7 +66,6 @@ export default function Header() {
   };
 
   const isHomePage = location === "/";
-  // Refined transparency logic
   const isTransparent = isHomePage && !isScrolled;
 
   return (
@@ -98,32 +97,85 @@ export default function Header() {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center justify-center flex-1 px-8">
             <NavigationMenu className="max-w-none">
-              <NavigationMenuList className="gap-1">
-                {navigation.map((item) => {
-                  const isEmphasis = item.name === "Space" || item.name === "Life";
-                  const isActive = location === item.href;
+              <NavigationMenuList className="gap-2">
 
-                  return (
-                    <NavigationMenuItem key={item.name}>
-                      <Link href={item.href}>
-                        <NavigationMenuLink
-                          className={cn(
-                            navigationMenuTriggerStyle(),
-                            "h-10 px-4 text-base transition-all bg-transparent hover:bg-transparent focus:bg-transparent",
-                            isTransparent
-                              ? "text-white hover:text-white/80 focus:text-white"
-                              : "text-foreground hover:text-primary focus:text-primary",
-                            isActive && !isTransparent && "text-primary font-semibold",
-                            isActive && isTransparent && "text-white font-bold bg-white/10",
-                            isEmphasis ? "font-bold text-lg" : "font-light"
-                          )}
-                        >
-                          {item.name}
-                        </NavigationMenuLink>
-                      </Link>
-                    </NavigationMenuItem>
-                  );
-                })}
+                {/* 1. Ibookee Dropdown */}
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger
+                    className={cn(
+                      "bg-transparent hover:bg-transparent focus:bg-transparent text-base data-[state=open]:bg-transparent",
+                      isTransparent
+                        ? "text-white hover:text-white/80 focus:text-white"
+                        : "text-foreground hover:text-primary focus:text-primary"
+                    )}
+                  >
+                    Ibookee
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[200px] md:grid-cols-1 bg-white dark:bg-zinc-950">
+                      {ibookeeSubNav.map((item) => (
+                        <li key={item.name}>
+                          <Link href={item.href}>
+                            <NavigationMenuLink
+                              className={cn(
+                                "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                location === item.href && "bg-accent/50 text-primary font-medium"
+                              )}
+                            >
+                              <div className="text-sm font-medium leading-none">{item.name}</div>
+                            </NavigationMenuLink>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                {/* 2. Space */}
+                <NavigationMenuItem>
+                  <Link href="/space">
+                    <NavigationMenuLink className={cn(
+                      navigationMenuTriggerStyle(),
+                      "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
+                      isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
+                      location.startsWith("/space") && !isTransparent && "text-primary",
+                      location.startsWith("/space") && isTransparent && "text-white/90"
+                    )}>
+                      Space
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+
+                {/* 3. Live */}
+                <NavigationMenuItem>
+                  <Link href="/live">
+                    <NavigationMenuLink className={cn(
+                      navigationMenuTriggerStyle(),
+                      "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
+                      isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
+                      location.startsWith("/live") && !isTransparent && "text-primary",
+                      location.startsWith("/live") && isTransparent && "text-white/90"
+                    )}>
+                      Live
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+
+                {/* 4. Story */}
+                <NavigationMenuItem>
+                  <Link href="/story">
+                    <NavigationMenuLink className={cn(
+                      navigationMenuTriggerStyle(),
+                      "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
+                      isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
+                      location.startsWith("/story") && !isTransparent && "text-primary",
+                      location.startsWith("/story") && isTransparent && "text-white/90"
+                    )}>
+                      Story
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+
               </NavigationMenuList>
             </NavigationMenu>
           </div>
@@ -228,31 +280,69 @@ export default function Header() {
                   <SheetTitle className="text-2xl font-bold">Menu</SheetTitle>
                 </SheetHeader>
 
-                <nav className="flex flex-col gap-1 px-4">
-                  {navigation.map((item) => {
-                    const isEmphasis = item.name === "Space" || item.name === "Life";
-                    const isActive = location === item.href;
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                          "px-4 py-3 rounded-lg transition-all duration-200",
-                          isEmphasis ? "font-bold text-xl" : "text-base font-light",
-                          isActive
-                            ? "bg-primary/10 text-primary translate-x-1"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                        )}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
-                    );
-                  })}
+                <nav className="flex flex-col gap-1 px-4 overflow-y-auto max-h-[calc(100vh-100px)]">
+                  {/* Mobile Ibookee Dropdown */}
+                  <div className="px-4 py-2">
+                    <div className="font-bold text-lg mb-2">Ibookee</div>
+                    <div className="flex flex-col gap-2 pl-4 border-l border-border ml-1">
+                      {ibookeeSubNav.map(item => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={cn(
+                            "text-base text-muted-foreground hover:text-foreground py-1",
+                            location === item.href && "text-primary font-medium"
+                          )}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/space"
+                    className={cn(
+                      "px-4 py-3 rounded-lg transition-all duration-200 font-bold text-xl",
+                      location.startsWith("/space")
+                        ? "bg-primary/10 text-primary translate-x-1"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Space
+                  </Link>
+
+                  <Link
+                    href="/live"
+                    className={cn(
+                      "px-4 py-3 rounded-lg transition-all duration-200 font-bold text-xl",
+                      location.startsWith("/live")
+                        ? "bg-primary/10 text-primary translate-x-1"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Live
+                  </Link>
+
+                  <Link
+                    href="/story"
+                    className={cn(
+                      "px-4 py-3 rounded-lg transition-all duration-200 font-bold text-xl",
+                      location.startsWith("/story")
+                        ? "bg-primary/10 text-primary translate-x-1"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Story
+                  </Link>
 
                   <div className="my-4 h-px bg-border mx-4" />
 
-                  <div className="px-4 space-y-2">
+                  <div className="px-4 space-y-2 pb-8">
                     {!authLoading && (
                       isAuthenticated ? (
                         <>
