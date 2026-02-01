@@ -128,23 +128,14 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
 
-        const parseAmount = (value: string) => {
-            if (!value) return undefined;
-            return parseInt(value.replace(/,/g, ""), 10);
-        };
-
-        const deposit = parseAmount(formData.get("deposit") as string);
-        const monthlyRent = parseAmount(formData.get("monthlyRent") as string);
-        const maintenanceFee = parseAmount(formData.get("maintenanceFee") as string);
-
         const data = {
             unitNumber: formData.get("unitNumber") as string,
             type: formData.get("type") as string,
             description: formData.get("description") as string,
             area: formData.get("area") as string,
-            deposit: deposit,
-            monthlyRent: monthlyRent,
-            maintenanceFee: maintenanceFee,
+            deposit: formData.get("deposit") as string,
+            monthlyRent: formData.get("monthlyRent") as string,
+            maintenanceFee: formData.get("maintenanceFee") as string,
             status: formData.get("status") as string,
             photos: photos,
             floorPlanUrl: floorPlanUrl || null,
@@ -157,8 +148,8 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
         }
     };
 
-    const formatNumber = (num?: number) => {
-        return num ? num.toLocaleString() : "";
+    const formatValue = (val?: string | number) => {
+        return val ? String(val) : "";
     };
 
     return (
@@ -197,7 +188,7 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
                                                             </Badge>
                                                         </div>
                                                         <p className="text-xs text-muted-foreground">
-                                                            {unit.type} | {unit.area} | {unit.deposit?.toLocaleString()} / {unit.monthlyRent?.toLocaleString()}
+                                                            {unit.type} | {unit.area} | {unit.deposit} / {unit.monthlyRent}
                                                         </p>
                                                     </div>
                                                     <div className="flex gap-1">
@@ -287,30 +278,30 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
 
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-2">
-                                <Label htmlFor="deposit">보증금 (원)</Label>
+                                <Label htmlFor="deposit">보증금</Label>
                                 <Input
                                     id="deposit"
                                     name="deposit"
-                                    placeholder="0"
-                                    defaultValue={formatNumber(editingUnit?.deposit || undefined)}
+                                    placeholder="예: 7천~1억4천만원"
+                                    defaultValue={formatValue(editingUnit?.deposit || undefined)}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="monthlyRent">월세 (원)</Label>
+                                <Label htmlFor="monthlyRent">월세</Label>
                                 <Input
                                     id="monthlyRent"
                                     name="monthlyRent"
-                                    placeholder="0"
-                                    defaultValue={formatNumber(editingUnit?.monthlyRent || undefined)}
+                                    placeholder="예: 6~28만원"
+                                    defaultValue={formatValue(editingUnit?.monthlyRent || undefined)}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="maintenanceFee">관리비 (원)</Label>
+                                <Label htmlFor="maintenanceFee">관리비</Label>
                                 <Input
                                     id="maintenanceFee"
                                     name="maintenanceFee"
-                                    placeholder="0"
-                                    defaultValue={formatNumber(editingUnit?.maintenanceFee || undefined)}
+                                    placeholder="예: 5만원"
+                                    defaultValue={formatValue(editingUnit?.maintenanceFee || undefined)}
                                 />
                             </div>
                         </div>

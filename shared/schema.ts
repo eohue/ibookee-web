@@ -407,9 +407,9 @@ export const projectUnits = pgTable("project_units", {
   type: text("type"), // A Type, Studio
   description: text("description"), // Room details
   area: text("area"), // 15m²
-  deposit: integer("deposit"), // 보증금
-  monthlyRent: integer("monthly_rent"), // 월세
-  maintenanceFee: integer("maintenance_fee"), // 관리비
+  deposit: text("deposit"), // 보증금 (예: "7천~1억4천만원")
+  monthlyRent: text("monthly_rent"), // 월세 (예: "6~28만원")
+  maintenanceFee: text("maintenance_fee"), // 관리비 (예: "5만원")
   status: text("status").default("available"), // available, occupied, reserved, maintenance
   photos: text("photos").array(), // Image URLs
   floorPlanUrl: text("floor_plan_url"), // Floor plan image

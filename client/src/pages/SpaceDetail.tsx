@@ -315,16 +315,16 @@ export default function SpaceDetail() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">보증금</span>
-                            <span className="font-medium">{unit.deposit?.toLocaleString()}원</span>
+                            <span className="font-medium">{unit.deposit}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">월세</span>
-                            <span className="font-medium">{unit.monthlyRent?.toLocaleString()}원</span>
+                            <span className="font-medium">{unit.monthlyRent}</span>
                           </div>
                           {unit.maintenanceFee && (
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">관리비</span>
-                              <span>{unit.maintenanceFee.toLocaleString()}원</span>
+                              <span>{unit.maintenanceFee}</span>
                             </div>
                           )}
                           {unit.description && (
