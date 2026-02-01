@@ -17,6 +17,11 @@ import Contact from "@/pages/Contact";
 import Dashboard from "@/pages/Dashboard";
 import MyPage from "@/pages/MyPage";
 import ResidentReporterGuide from "@/pages/ResidentReporterGuide";
+import HousingRecruitmentPage from "@/pages/community/HousingRecruitmentPage";
+import SocialStreamPage from "@/pages/community/SocialStreamPage";
+import ResidentReporterPage from "@/pages/community/ResidentReporterPage";
+import SupportProgramsPage from "@/pages/community/SupportProgramsPage";
+import EventsPage from "@/pages/community/EventsPage";
 
 import AuthPage from "@/pages/auth/AuthPage";
 import NotFound from "@/pages/not-found";
@@ -35,6 +40,11 @@ function Router() {
       <Route path="/community/event/:id" component={EventDetail} />
       <Route path="/insight" component={Insight} />
       <Route path="/insight/:id" component={InsightDetail} />
+      <Route path="/community/recruitment" component={HousingRecruitmentPage} />
+      <Route path="/community/social" component={SocialStreamPage} />
+      <Route path="/community/reporter" component={ResidentReporterPage} />
+      <Route path="/community/programs" component={SupportProgramsPage} />
+      <Route path="/community/events" component={EventsPage} />
       <Route path="/resident-reporter-guide" component={ResidentReporterGuide} />
       <Route path="/contact" component={Contact} />
       <Route path="/auth" component={AuthPage} />

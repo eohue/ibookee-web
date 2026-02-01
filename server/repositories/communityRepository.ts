@@ -17,7 +17,7 @@ export class CommunityRepository {
         const offset = (page - 1) * limit;
         const [totalResult] = await db.select({ count: sql<number>`count(*)` }).from(communityPosts);
         const posts = await db.select().from(communityPosts)
-            .orderBy(communityPosts.postedAt, communityPosts.createdAt)
+            .orderBy(desc(communityPosts.postedAt), desc(communityPosts.createdAt))
             .limit(limit)
             .offset(offset);
         return { posts, total: Number(totalResult?.count || 0) };
@@ -34,7 +34,7 @@ export class CommunityRepository {
             .where(arrayContains(communityPosts.hashtags, [hashtag]));
         const posts = await db.select().from(communityPosts)
             .where(arrayContains(communityPosts.hashtags, [hashtag]))
-            .orderBy(communityPosts.postedAt, communityPosts.createdAt)
+            .orderBy(desc(communityPosts.postedAt), desc(communityPosts.createdAt))
             .limit(limit)
             .offset(offset);
         return { posts, total: Number(totalResult?.count || 0) };

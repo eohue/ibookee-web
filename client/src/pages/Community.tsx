@@ -3,7 +3,7 @@ import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink, Loader2, MessageCircle, Info, Home } from "lucide-react";
+import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink, Loader2, MessageCircle, Info, Home, Plus } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -225,7 +225,7 @@ export default function Community() {
               <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
                 <Home className="w-6 h-6 text-primary" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-primary font-medium text-sm uppercase tracking-widest">
                   Housing Recruitment
                 </p>
@@ -233,6 +233,11 @@ export default function Community() {
                   입주자 모집 공고
                 </h2>
               </div>
+              <Link href="/community/recruitment">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </Link>
             </div>
 
             {recruitmentsLoading ? (
@@ -320,8 +325,14 @@ export default function Community() {
                     data-testid={`filter-hashtag-${tag.id}`}
                   >
                     {tag.label}
+                    {tag.label}
                   </Button>
                 ))}
+                <Link href="/community/social">
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full">
+                    <Plus className="w-5 h-5" />
+                  </Button>
+                </Link>
               </div>
             </div>
 
@@ -485,7 +496,12 @@ export default function Community() {
                   입주민 기자단
                 </h2>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
+                <Link href="/community/reporter">
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                    <Plus className="w-5 h-5" />
+                  </Button>
+                </Link>
                 <a href="/resident-reporter-guide">
                   <Button variant="ghost" className="group text-muted-foreground hover:text-primary">
                     <Info className="w-4 h-4 mr-2" />
@@ -547,6 +563,15 @@ export default function Community() {
                 입주민 지원 프로그램
               </h2>
             </div>
+
+            <div className="flex justify-end mb-4">
+              <Link href="/community/programs">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
+
 
             {programsError ? (
               <div className="text-center py-8">
@@ -635,6 +660,11 @@ export default function Community() {
                   다가오는 행사
                 </h2>
               </div>
+              <Link href="/community/events">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </Link>
             </div>
 
             {eventsError ? (
@@ -737,6 +767,6 @@ export default function Community() {
         isOpen={!!selectedProgram}
         onClose={() => setSelectedProgram(null)}
       />
-    </div>
+    </div >
   );
 }
