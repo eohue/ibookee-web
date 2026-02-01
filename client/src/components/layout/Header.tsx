@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, Sun, Moon, User, LogIn, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,14 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, isLoading: authLoading, logoutMutation } = useAuth();
 
+  // Hover states
+  const [isIbookeeOpen, setIsIbookeeOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // Timers for delay
+  const ibookeeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const profileTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     const saved = localStorage.getItem("theme");
     if (saved === "dark") {
@@ -62,6 +70,24 @@ export default function Header() {
       localStorage.setItem("theme", "light");
     }
   };
+
+  // Hover Handlers
+  const handleIbookeeEnter = () => {
+    if (ibookeeTimeoutRef.current) clearTimeout(ibookeeTimeoutRef.current);
+    setIsIbookeeOpen(true);
+  };
+  const handleIbookeeLeave = () => {
+    ibookeeTimeoutRef.current = setTimeout(() => setIsIbookeeOpen(false), 150);
+  };
+
+  const handleProfileEnter = () => {
+    if (profileTimeoutRef.current) clearTimeout(profileTimeoutRef.current);
+    setIsProfileOpen(true);
+  };
+  const handleProfileLeave = () => {
+    profileTimeoutRef.current = setTimeout(() => setIsProfileOpen(false), 150);
+  };
+
 
   const isHomePage = location === "/";
   const isTransparent = isHomePage && !isScrolled;
@@ -96,35 +122,40 @@ export default function Header() {
           <div className="hidden lg:flex items-center justify-center flex-1 px-8">
             <div className="flex items-center gap-1">
 
-              {/* 1. Ibookee Dropdown (Using DropdownMenu for exact alignment) */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className={cn(
-                    "group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
-                    isTransparent
-                      ? "bg-transparent text-white hover:bg-white/10 hover:text-white data-[state=open]:bg-white/10"
-                      : "bg-transparent text-foreground hover:bg-transparent hover:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary"
-                  )}
-                >
-                  Ibookee
-                  <ChevronDown className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 bg-background">
-                  {ibookeeSubNav.map((item) => (
-                    <DropdownMenuItem key={item.name} asChild>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "w-full cursor-pointer",
-                          location === item.href && "text-primary font-medium"
-                        )}
-                      >
-                        {item.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* 1. Ibookee Dropdown (Hover Enabled) */}
+              <div
+                onMouseEnter={handleIbookeeEnter}
+                onMouseLeave={handleIbookeeLeave}
+              >
+                <DropdownMenu open={isIbookeeOpen} onOpenChange={setIsIbookeeOpen}>
+                  <DropdownMenuTrigger
+                    className={cn(
+                      "group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
+                      isTransparent
+                        ? "bg-transparent text-white hover:bg-white/10 hover:text-white data-[state=open]:bg-white/10"
+                        : "bg-transparent text-foreground hover:bg-transparent hover:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary"
+                    )}
+                  >
+                    Ibookee
+                    <ChevronDown className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48 bg-background">
+                    {ibookeeSubNav.map((item) => (
+                      <DropdownMenuItem key={item.name} asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "w-full cursor-pointer",
+                            location === item.href && "text-primary font-medium"
+                          )}
+                        >
+                          {item.name}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
 
               <NavigationMenu className="max-w-none">
                 <NavigationMenuList className="gap-2">
@@ -195,50 +226,58 @@ export default function Header() {
 
             {!authLoading && (
               isAuthenticated ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={cn(
-                        "hidden md:flex gap-2 rounded-full px-4",
-                        isTransparent
-                          ? "text-white hover:bg-white/10 hover:text-white"
-                          : "text-foreground hover:bg-muted"
-                      )}
-                    >
-                      <User className="w-4 h-4" />
-                      <span className="max-w-[100px] truncate">{user?.firstName}</span>
-                      <ChevronDown className="h-4 w-4 opacity-50" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>내 계정</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/mypage" className="cursor-pointer w-full flex items-center">
-                        <User className="w-4 h-4 mr-2" />
-                        마이페이지
-                      </Link>
-                    </DropdownMenuItem>
-                    {user?.role === 'admin' && (
+                <div
+                  onMouseEnter={handleProfileEnter}
+                  onMouseLeave={handleProfileLeave}
+                >
+                  <DropdownMenu open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "hidden md:flex gap-2 rounded-full px-4",
+                          isTransparent
+                            ? "text-white hover:bg-white/10 hover:text-white"
+                            : "text-foreground hover:bg-muted"
+                        )}
+                      >
+                        <User className="w-4 h-4" />
+                        <span className="max-w-[100px] truncate">{user?.firstName}</span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>내 계정</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link href="/dashboard" className="cursor-pointer w-full flex items-center">
-                          <LayoutDashboard className="w-4 h-4 mr-2" />
-                          관리자
+                        <Link href="/mypage" className="cursor-pointer w-full flex items-center">
+                          <User className="w-4 h-4 mr-2" />
+                          마이페이지
                         </Link>
                       </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/20"
-                      onClick={() => logoutMutation.mutate()}
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      로그아웃
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      {user?.role === 'admin' && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/dashboard" className="cursor-pointer w-full flex items-center">
+                            <LayoutDashboard className="w-4 h-4 mr-2" />
+                            관리자
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/20"
+                        onClick={() => {
+                          setIsProfileOpen(false); // Close immediately on logout click
+                          logoutMutation.mutate();
+                        }}
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        로그아웃
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ) : (
                 <Link href="/auth">
                   <Button
