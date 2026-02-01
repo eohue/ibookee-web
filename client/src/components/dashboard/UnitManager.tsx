@@ -73,8 +73,13 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
             setIsDialogOpen(false);
             resetForm();
         },
-        onError: () => {
-            toast({ title: "생성 실패", variant: "destructive" });
+        onError: (error) => {
+            toast({
+                title: "생성 실패",
+                description: error.message || "알 수 없는 오류가 발생했습니다.",
+                variant: "destructive"
+            });
+            console.error("Unit creation error:", error);
         },
     });
 
@@ -88,8 +93,13 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
             setIsDialogOpen(false);
             resetForm();
         },
-        onError: () => {
-            toast({ title: "수정 실패", variant: "destructive" });
+        onError: (error) => {
+            toast({
+                title: "수정 실패",
+                description: error.message || "알 수 없는 오류가 발생했습니다.",
+                variant: "destructive"
+            });
+            console.error("Unit update error:", error);
         },
     });
 
