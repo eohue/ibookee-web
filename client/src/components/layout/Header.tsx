@@ -174,20 +174,22 @@ export default function Header() {
                     </Link>
                   </NavigationMenuItem>
 
-                  {/* 3. Live */}
-                  <NavigationMenuItem>
-                    <Link href="/live">
-                      <NavigationMenuLink className={cn(
-                        navigationMenuTriggerStyle(),
-                        "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
-                        isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
-                        location.startsWith("/live") && !isTransparent && "text-primary",
-                        location.startsWith("/live") && isTransparent && "text-white/90"
-                      )}>
-                        Live
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
+                  {/* 3. Live (Admin Only for now) */}
+                  {user?.role === 'admin' && (
+                    <NavigationMenuItem>
+                      <Link href="/live">
+                        <NavigationMenuLink className={cn(
+                          navigationMenuTriggerStyle(),
+                          "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
+                          isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
+                          location.startsWith("/live") && !isTransparent && "text-primary",
+                          location.startsWith("/live") && isTransparent && "text-white/90"
+                        )}>
+                          Live
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  )}
 
                   {/* 4. Story */}
                   <NavigationMenuItem>
@@ -351,18 +353,20 @@ export default function Header() {
                     Space
                   </Link>
 
-                  <Link
-                    href="/live"
-                    className={cn(
-                      "px-4 py-3 rounded-lg transition-all duration-200 font-bold text-xl",
-                      location.startsWith("/live")
-                        ? "bg-primary/10 text-primary translate-x-1"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Live
-                  </Link>
+                  {user?.role === 'admin' && (
+                    <Link
+                      href="/live"
+                      className={cn(
+                        "px-4 py-3 rounded-lg transition-all duration-200 font-bold text-xl",
+                        location.startsWith("/live")
+                          ? "bg-primary/10 text-primary translate-x-1"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      )}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Live
+                    </Link>
+                  )}
 
                   <Link
                     href="/story"
