@@ -22,8 +22,8 @@ export function IbookeeSubNav({ className }: { className?: string }) {
     return (
         <section
             className={cn(
-                "sticky z-40 bg-background/95 backdrop-blur-sm border-b border-border py-2 transition-[top] duration-300",
-                isVisible ? "top-[60px]" : "top-0", // Adjusted top offset to sit below header (header is approx 60px-80px depending on scroll)
+                "sticky z-40 bg-background/95 backdrop-blur-sm border-b border-border py-3 transition-[top] duration-300",
+                isVisible ? "top-[60px]" : "top-0",
                 className
             )}
         >
@@ -33,8 +33,8 @@ export function IbookeeSubNav({ className }: { className?: string }) {
                         <Link key={item.name} href={item.href}>
                             <Button
                                 variant={isActive(item.href) ? "default" : "outline"}
-                                size="sm"
-                                className="rounded-full"
+                                size="lg"
+                                className="rounded-full text-base font-medium px-6"
                             >
                                 {item.name}
                             </Button>

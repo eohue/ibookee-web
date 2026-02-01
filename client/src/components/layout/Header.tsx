@@ -136,7 +136,7 @@ export default function Header() {
                         : "bg-transparent text-foreground hover:bg-transparent hover:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary"
                     )}
                   >
-                    Ibookee
+                    IBOOKEE
                     <ChevronDown className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48 bg-background" sideOffset={8}>
@@ -322,7 +322,7 @@ export default function Header() {
                 <nav className="flex flex-col gap-1 px-4 overflow-y-auto max-h-[calc(100vh-100px)]">
                   {/* Mobile Ibookee Dropdown */}
                   <div className="px-4 py-2">
-                    <div className="font-bold text-lg mb-2">Ibookee</div>
+                    <div className="font-bold text-lg mb-2">IBOOKEE</div>
                     <div className="flex flex-col gap-2 pl-4 border-l border-border ml-1">
                       {ibookeeSubNav.map(item => (
                         <Link
