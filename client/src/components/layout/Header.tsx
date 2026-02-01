@@ -12,11 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import {
@@ -96,88 +94,87 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center justify-center flex-1 px-8">
-            <NavigationMenu className="max-w-none">
-              <NavigationMenuList className="gap-2">
+            <div className="flex items-center gap-1">
 
-                {/* 1. Ibookee Dropdown */}
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger
-                    className={cn(
-                      "bg-transparent hover:bg-transparent focus:bg-transparent text-base data-[state=open]:bg-transparent",
-                      isTransparent
-                        ? "text-white hover:text-white/80 focus:text-white"
-                        : "text-foreground hover:text-primary focus:text-primary"
-                    )}
-                  >
-                    Ibookee
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[400px] gap-3 p-4 md:w-[200px] md:grid-cols-1 bg-white dark:bg-zinc-950">
-                      {ibookeeSubNav.map((item) => (
-                        <li key={item.name}>
-                          <Link href={item.href}>
-                            <NavigationMenuLink
-                              className={cn(
-                                "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                                location === item.href && "bg-accent/50 text-primary font-medium"
-                              )}
-                            >
-                              <div className="text-sm font-medium leading-none">{item.name}</div>
-                            </NavigationMenuLink>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
+              {/* 1. Ibookee Dropdown (Using DropdownMenu for exact alignment) */}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className={cn(
+                    "group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
+                    isTransparent
+                      ? "bg-transparent text-white hover:bg-white/10 hover:text-white data-[state=open]:bg-white/10"
+                      : "bg-transparent text-foreground hover:bg-transparent hover:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary"
+                  )}
+                >
+                  Ibookee
+                  <ChevronDown className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 bg-background">
+                  {ibookeeSubNav.map((item) => (
+                    <DropdownMenuItem key={item.name} asChild>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "w-full cursor-pointer",
+                          location === item.href && "text-primary font-medium"
+                        )}
+                      >
+                        {item.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                {/* 2. Space */}
-                <NavigationMenuItem>
-                  <Link href="/space">
-                    <NavigationMenuLink className={cn(
-                      navigationMenuTriggerStyle(),
-                      "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
-                      isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
-                      location.startsWith("/space") && !isTransparent && "text-primary",
-                      location.startsWith("/space") && isTransparent && "text-white/90"
-                    )}>
-                      Space
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
+              <NavigationMenu className="max-w-none">
+                <NavigationMenuList className="gap-2">
+                  {/* 2. Space */}
+                  <NavigationMenuItem>
+                    <Link href="/space">
+                      <NavigationMenuLink className={cn(
+                        navigationMenuTriggerStyle(),
+                        "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
+                        isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
+                        location.startsWith("/space") && !isTransparent && "text-primary",
+                        location.startsWith("/space") && isTransparent && "text-white/90"
+                      )}>
+                        Space
+                      </NavigationMenuLink>
+                    </Link>
+                  </NavigationMenuItem>
 
-                {/* 3. Live */}
-                <NavigationMenuItem>
-                  <Link href="/live">
-                    <NavigationMenuLink className={cn(
-                      navigationMenuTriggerStyle(),
-                      "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
-                      isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
-                      location.startsWith("/live") && !isTransparent && "text-primary",
-                      location.startsWith("/live") && isTransparent && "text-white/90"
-                    )}>
-                      Live
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
+                  {/* 3. Live */}
+                  <NavigationMenuItem>
+                    <Link href="/live">
+                      <NavigationMenuLink className={cn(
+                        navigationMenuTriggerStyle(),
+                        "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
+                        isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
+                        location.startsWith("/live") && !isTransparent && "text-primary",
+                        location.startsWith("/live") && isTransparent && "text-white/90"
+                      )}>
+                        Live
+                      </NavigationMenuLink>
+                    </Link>
+                  </NavigationMenuItem>
 
-                {/* 4. Story */}
-                <NavigationMenuItem>
-                  <Link href="/story">
-                    <NavigationMenuLink className={cn(
-                      navigationMenuTriggerStyle(),
-                      "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
-                      isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
-                      location.startsWith("/story") && !isTransparent && "text-primary",
-                      location.startsWith("/story") && isTransparent && "text-white/90"
-                    )}>
-                      Story
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-
-              </NavigationMenuList>
-            </NavigationMenu>
+                  {/* 4. Story */}
+                  <NavigationMenuItem>
+                    <Link href="/story">
+                      <NavigationMenuLink className={cn(
+                        navigationMenuTriggerStyle(),
+                        "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
+                        isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
+                        location.startsWith("/story") && !isTransparent && "text-primary",
+                        location.startsWith("/story") && isTransparent && "text-white/90"
+                      )}>
+                        Story
+                      </NavigationMenuLink>
+                    </Link>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -212,6 +209,7 @@ export default function Header() {
                     >
                       <User className="w-4 h-4" />
                       <span className="max-w-[100px] truncate">{user?.firstName}</span>
+                      <ChevronDown className="h-4 w-4 opacity-50" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
