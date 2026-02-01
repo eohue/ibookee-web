@@ -11,6 +11,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import DOMPurify from "dompurify";
 
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { useState } from "react";
+import type { ProjectUnit } from "@shared/schema";
+import { UnitApplicationModal } from "@/components/space/UnitApplicationModal";
+
+const STATUS_LABELS: Record<string, string> = {
+  available: "입주 가능",
+  occupied: "입주 완료",
+  reserved: "계약 중",
+  maintenance: "정비 중",
+};
+
+const STATUS_VARIANTS: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+  available: "default",
+  occupied: "secondary",
+  reserved: "outline",
+  maintenance: "destructive",
+};
 
 export default function SpaceDetail() {
   const [, params] = useRoute("/space/:id");
@@ -25,6 +42,19 @@ export default function SpaceDetail() {
     queryKey: [`/api/projects/${projectId}/subprojects`],
     enabled: projectId !== null,
   });
+
+  const { data: units = [] } = useQuery<ProjectUnit[]>({
+    queryKey: [`/api/projects/${projectId}/units`],
+    enabled: projectId !== null,
+  });
+
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState<ProjectUnit | null>(null);
+
+  const handleApply = (unit: ProjectUnit) => {
+    setSelectedUnit(unit);
+    setIsApplicationModalOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -242,6 +272,88 @@ export default function SpaceDetail() {
                 </div>
               );
             })()}
+
+            {/* Room Availability Section */}
+            {units.length > 0 && (
+              <div className="border-t border-border pt-12 mb-12">
+                <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                  <Home className="w-5 h-5" />
+                  공실 현황
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {units.map((unit) => (
+                    <Card key={unit.id} className="overflow-hidden bg-card/50">
+                      {unit.floorPlanUrl && (
+                        <div className="aspect-[4/3] relative overflow-hidden bg-muted">
+                          <img
+                            src={unit.floorPlanUrl}
+                            alt={`${unit.unitNumber} 평면도`}
+                            className="w-full h-full object-contain p-4"
+                          />
+                          {unit.status === 'occupied' && (
+                            <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                              <Badge variant="secondary">입주 완료</Badge>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="font-semibold text-lg">{unit.unitNumber}</h4>
+                            <p className="text-sm text-muted-foreground">{unit.type}</p>
+                          </div>
+                          <Badge variant={STATUS_VARIANTS[unit.status || "available"] as any}>
+                            {STATUS_LABELS[unit.status || "available"]}
+                          </Badge>
+                        </div>
+
+                        <div className="space-y-2 text-sm mb-4">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">전용면적</span>
+                            <span>{unit.area}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">보증금</span>
+                            <span className="font-medium">{unit.deposit?.toLocaleString()}원</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">월세</span>
+                            <span className="font-medium">{unit.monthlyRent?.toLocaleString()}원</span>
+                          </div>
+                          {unit.maintenanceFee && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">관리비</span>
+                              <span>{unit.maintenanceFee.toLocaleString()}원</span>
+                            </div>
+                          )}
+                          {unit.description && (
+                            <p className="text-muted-foreground text-xs pt-2 border-t mt-2">
+                              {unit.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <Button
+                          className="w-full"
+                          variant={unit.status === 'available' ? 'default' : 'outline'}
+                          onClick={() => handleApply(unit)}
+                        >
+                          {unit.status === 'available' ? '입주 신청' : '대기 알림 신청'}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <UnitApplicationModal
+              isOpen={isApplicationModalOpen}
+              onClose={() => setIsApplicationModalOpen(false)}
+              unit={selectedUnit}
+              projectTitle={project.title}
+            />
 
             {/* Subprojects Section */}
             {subprojects.length > 0 && (

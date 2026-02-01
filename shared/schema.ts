@@ -398,6 +398,29 @@ export type HousingRecruitment = typeof housingRecruitments.$inferSelect;
 // Re-export auth models
 export * from "./models/auth";
 
+
+// Project Units (공실 현황)
+export const projectUnits = pgTable("project_units", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }).notNull(),
+  unitNumber: text("unit_number").notNull(), // 101호, A동 201호
+  type: text("type"), // A Type, Studio
+  description: text("description"), // Room details
+  area: text("area"), // 15m²
+  deposit: integer("deposit"), // 보증금
+  monthlyRent: integer("monthly_rent"), // 월세
+  maintenanceFee: integer("maintenance_fee"), // 관리비
+  status: text("status").default("available"), // available, occupied, reserved, maintenance
+  photos: text("photos").array(), // Image URLs
+  floorPlanUrl: text("floor_plan_url"), // Floor plan image
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertProjectUnitSchema = createInsertSchema(projectUnits).omit({ id: true, createdAt: true });
+export type InsertProjectUnit = z.infer<typeof insertProjectUnitSchema>;
+export type ProjectUnit = typeof projectUnits.$inferSelect;
+
 export interface CommunityFeedItem {
   id: string;
   type: 'social' | 'program' | 'event' | 'reporter';

@@ -41,6 +41,8 @@ import {
   type InsertResidentReporterComment,
   type HousingRecruitment,
   type InsertHousingRecruitment,
+  type ProjectUnit,
+  type InsertProjectUnit,
 } from "@shared/schema";
 import { ProjectRepository } from "./repositories/projectRepository";
 import { ArticleRepository } from "./repositories/articleRepository";
@@ -195,6 +197,13 @@ export interface IStorage {
   createHousingRecruitment(recruitment: InsertHousingRecruitment): Promise<HousingRecruitment>;
   updateHousingRecruitment(id: string, recruitment: Partial<InsertHousingRecruitment>): Promise<HousingRecruitment | undefined>;
   deleteHousingRecruitment(id: string): Promise<void>;
+
+  // Project Units
+  getProjectUnits(projectId: string): Promise<ProjectUnit[]>;
+  getProjectUnit(id: string): Promise<ProjectUnit | undefined>;
+  createProjectUnit(unit: InsertProjectUnit): Promise<ProjectUnit>;
+  updateProjectUnit(id: string, unit: Partial<InsertProjectUnit>): Promise<ProjectUnit | undefined>;
+  deleteProjectUnit(id: string): Promise<void>;
 }
 
 import { UserRepository } from "./repositories/userRepository";
@@ -209,6 +218,7 @@ import { StatsRepository } from "./repositories/statsRepository";
 import { SiteRepository } from "./repositories/siteRepository";
 import { HousingRepository } from "./repositories/housingRepository";
 import { ReporterRepository } from "./repositories/reporterRepository";
+import { UnitRepository } from "./repositories/unitRepository";
 
 export class DatabaseStorage implements IStorage {
   private projectRepo = new ProjectRepository();
@@ -222,6 +232,7 @@ export class DatabaseStorage implements IStorage {
   private siteRepo = new SiteRepository();
   private housingRepo = new HousingRepository();
   private reporterRepo = new ReporterRepository();
+  private unitRepo = new UnitRepository();
 
   // Projects
   async getProjects(page: number = 1, limit: number = 100, titles?: string[]): Promise<{ projects: Project[], total: number }> {
@@ -682,6 +693,27 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHousingRecruitment(id: string): Promise<void> {
     return this.housingRepo.deleteHousingRecruitment(id);
+  }
+
+  // Project Units
+  async getProjectUnits(projectId: string): Promise<ProjectUnit[]> {
+    return this.unitRepo.getProjectUnits(projectId);
+  }
+
+  async getProjectUnit(id: string): Promise<ProjectUnit | undefined> {
+    return this.unitRepo.getProjectUnit(id);
+  }
+
+  async createProjectUnit(unit: InsertProjectUnit): Promise<ProjectUnit> {
+    return this.unitRepo.createProjectUnit(unit);
+  }
+
+  async updateProjectUnit(id: string, unit: Partial<InsertProjectUnit>): Promise<ProjectUnit | undefined> {
+    return this.unitRepo.updateProjectUnit(id, unit);
+  }
+
+  async deleteProjectUnit(id: string): Promise<void> {
+    return this.unitRepo.deleteProjectUnit(id);
   }
 }
 

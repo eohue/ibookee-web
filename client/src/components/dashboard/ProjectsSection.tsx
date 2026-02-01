@@ -43,6 +43,7 @@ import type { Project, RelatedArticle } from "@shared/schema";
 import { MultiSelect } from "@/components/ui/multi-select-custom";
 import { PROJECT_CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
 import { SubprojectManager } from "./SubprojectManager";
+import { UnitManager } from "./UnitManager";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -575,6 +576,7 @@ export function ProjectsSection() {
                                         </div>
                                     </div>
                                     <SubprojectManager projectId={project.id} projectTitle={project.title} />
+                                    <UnitManager projectId={project.id} projectTitle={project.title} />
                                 </CardContent>
                             </Card>
                         ))}

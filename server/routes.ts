@@ -20,6 +20,8 @@ import { registerReporterRoutes } from "./routes/reporters";
 import { registerRecruitmentRoutes } from "./routes/recruitments";
 import { registerHomeRoutes } from "./routes/home";
 
+import { registerUnitRoutes } from "./routes/units";
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -48,11 +50,11 @@ export async function registerRoutes(
   registerSocialRoutes(app);
   registerSettingsRoutes(app);
   registerPageRoutes(app);
-  registerPageRoutes(app);
   registerStatsRoutes(app);
   registerReporterRoutes(app);
   registerRecruitmentRoutes(app);
   registerHomeRoutes(app);
+  registerUnitRoutes(app);
 
   return httpServer;
 }

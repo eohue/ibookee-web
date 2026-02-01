@@ -330,10 +330,15 @@ export default function Contact() {
                                 <SelectValue placeholder="선택해주세요" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="seoul">서울</SelectItem>
-                                <SelectItem value="gyeonggi">경기</SelectItem>
-                                <SelectItem value="incheon">인천</SelectItem>
-                                <SelectItem value="other">기타</SelectItem>
+                                <SelectItem value="캔자스대저택">캔자스대저택</SelectItem>
+                                <SelectItem value="안암생활">안암생활</SelectItem>
+                                <SelectItem value="장안생활">장안생활</SelectItem>
+                                <SelectItem value="부평생활">부평생활</SelectItem>
+                                <SelectItem value="주안생활">주안생활</SelectItem>
+                                <SelectItem value="홍시주택">홍시주택</SelectItem>
+                                <SelectItem value="다다름하우스">다다름하우스</SelectItem>
+                                <SelectItem value="조원생활">조원생활</SelectItem>
+                                <SelectItem value="그루하우스">그루하우스</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
