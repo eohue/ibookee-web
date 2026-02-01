@@ -128,14 +128,14 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
 
-        const depositInput = formData.get("deposit") as string;
-        const deposit = depositInput ? parseInt(depositInput) : undefined;
+        const parseAmount = (value: string) => {
+            if (!value) return undefined;
+            return parseInt(value.replace(/,/g, ""), 10);
+        };
 
-        const rentInput = formData.get("monthlyRent") as string;
-        const monthlyRent = rentInput ? parseInt(rentInput) : undefined;
-
-        const maintenanceInput = formData.get("maintenanceFee") as string;
-        const maintenanceFee = maintenanceInput ? parseInt(maintenanceInput) : undefined;
+        const deposit = parseAmount(formData.get("deposit") as string);
+        const monthlyRent = parseAmount(formData.get("monthlyRent") as string);
+        const maintenanceFee = parseAmount(formData.get("maintenanceFee") as string);
 
         const data = {
             unitNumber: formData.get("unitNumber") as string,
@@ -155,6 +155,10 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
         } else {
             createMutation.mutate(data);
         }
+    };
+
+    const formatNumber = (num?: number) => {
+        return num ? num.toLocaleString() : "";
     };
 
     return (
@@ -287,9 +291,8 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
                                 <Input
                                     id="deposit"
                                     name="deposit"
-                                    type="number"
                                     placeholder="0"
-                                    defaultValue={editingUnit?.deposit?.toString() || ""}
+                                    defaultValue={formatNumber(editingUnit?.deposit || undefined)}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -297,9 +300,8 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
                                 <Input
                                     id="monthlyRent"
                                     name="monthlyRent"
-                                    type="number"
                                     placeholder="0"
-                                    defaultValue={editingUnit?.monthlyRent?.toString() || ""}
+                                    defaultValue={formatNumber(editingUnit?.monthlyRent || undefined)}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -307,9 +309,8 @@ export function UnitManager({ projectId, projectTitle }: UnitManagerProps) {
                                 <Input
                                     id="maintenanceFee"
                                     name="maintenanceFee"
-                                    type="number"
                                     placeholder="0"
-                                    defaultValue={editingUnit?.maintenanceFee?.toString() || ""}
+                                    defaultValue={formatNumber(editingUnit?.maintenanceFee || undefined)}
                                 />
                             </div>
                         </div>
