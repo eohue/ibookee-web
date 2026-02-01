@@ -45,6 +45,8 @@ import { cn } from "@/lib/utils";
 import { useScrollVisible } from "@/hooks/use-scroll-visible";
 
 
+import { IbookeeSubNav } from "@/components/layout/IbookeeSubNav";
+
 export default function Insight() {
   const [activeCategory, setActiveCategory] = useState(getCategoryFromUrl);
   const [currentPage, setCurrentPage] = useState(getPageFromUrl);
@@ -206,11 +208,12 @@ export default function Insight() {
             </div>
           </div>
         </section>
+        <IbookeeSubNav />
 
         <section
           className={cn(
-            "sticky z-40 bg-background/95 backdrop-blur-sm border-b border-border py-2 transition-[top] duration-300",
-            isVisible ? "top-14" : "top-0"
+            "sticky z-30 bg-background/95 backdrop-blur-sm border-b border-border py-2 transition-[top] duration-300",
+            isVisible ? "top-[110px]" : "top-[52px]"
           )}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

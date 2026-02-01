@@ -16,6 +16,8 @@ const defaultHistoryMilestones = [
   { year: 2024, title: "2,500세대 달성", description: "누적 입주 세대 2,500가구 돌파" },
 ];
 
+import { IbookeeSubNav } from "@/components/layout/IbookeeSubNav";
+
 export default function About() {
   const { stats } = useCompanyStats();
   const { getImageUrl } = usePageImages();
@@ -69,6 +71,7 @@ export default function About() {
             </div>
           </div>
         </section>
+        <IbookeeSubNav />
 
         <section className="py-20 bg-background" data-testid="section-who-we-are">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

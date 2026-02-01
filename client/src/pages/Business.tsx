@@ -118,6 +118,8 @@ const esgMetrics = [
   },
 ];
 
+import { IbookeeSubNav } from "@/components/layout/IbookeeSubNav";
+
 export default function Business() {
   const { getImageUrl } = usePageImages();
 
@@ -161,6 +163,7 @@ export default function Business() {
             </div>
           </div>
         </section>
+        <IbookeeSubNav />
 
         <section className="py-20 bg-background" data-testid="section-overview">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

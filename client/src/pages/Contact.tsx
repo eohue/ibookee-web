@@ -50,6 +50,8 @@ const formTypes = [
   },
 ];
 
+import { IbookeeSubNav } from "@/components/layout/IbookeeSubNav";
+
 export default function Contact() {
   const { toast } = useToast();
   const [location] = useLocation();
@@ -191,6 +193,7 @@ export default function Contact() {
             </div>
           </div>
         </section>
+        <IbookeeSubNav />
 
         <section className="py-12 bg-background" data-testid="section-contact-info">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
