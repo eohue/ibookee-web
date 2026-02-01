@@ -127,10 +127,10 @@ export default function Header() {
                 onMouseEnter={handleIbookeeEnter}
                 onMouseLeave={handleIbookeeLeave}
               >
-                <DropdownMenu open={isIbookeeOpen} onOpenChange={setIsIbookeeOpen}>
+                <DropdownMenu open={isIbookeeOpen} onOpenChange={setIsIbookeeOpen} modal={false}>
                   <DropdownMenuTrigger
                     className={cn(
-                      "group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
+                      "group inline-flex h-10 w-max items-center justify-center rounded-md px-4 text-lg font-bold transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
                       isTransparent
                         ? "bg-transparent text-white hover:bg-white/10 hover:text-white data-[state=open]:bg-white/10"
                         : "bg-transparent text-foreground hover:bg-transparent hover:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary"
@@ -139,7 +139,7 @@ export default function Header() {
                     Ibookee
                     <ChevronDown className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48 bg-background">
+                  <DropdownMenuContent align="start" className="w-48 bg-background" sideOffset={8}>
                     {ibookeeSubNav.map((item) => (
                       <DropdownMenuItem key={item.name} asChild>
                         <Link
