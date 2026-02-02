@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 import { db } from "../db";
 import {
     inquiries,
@@ -7,8 +7,26 @@ import {
 } from "@shared/schema";
 
 export class InquiryRepository {
-    async getInquiries(): Promise<Inquiry[]> {
-        return db.select().from(inquiries);
+    async getInquiries(page: number = 1, limit: number = 20, type?: string): Promise<{ inquiries: Inquiry[], total: number }> {
+        const filters = [];
+        if (type && type !== "all") {
+            filters.push(eq(inquiries.type, type));
+        }
+
+        const whereClause = filters.length > 0 ? filters[0] : undefined;
+
+        const [totalResult] = await db.select({ count: count() })
+            .from(inquiries)
+            .where(whereClause);
+
+        const items = await db.select()
+            .from(inquiries)
+            .where(whereClause)
+            .orderBy(desc(inquiries.createdAt))
+            .limit(limit)
+            .offset((page - 1) * limit);
+
+        return { inquiries: items, total: Number(totalResult?.count || 0) };
     }
 
     async getInquiriesByType(type: string): Promise<Inquiry[]> {

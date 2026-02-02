@@ -57,7 +57,7 @@ export interface IStorage {
   deleteProject(id: string): Promise<void>;
 
   // Inquiries
-  getInquiries(): Promise<Inquiry[]>;
+  getInquiries(page?: number, limit?: number, type?: string): Promise<{ inquiries: Inquiry[], total: number }>;
   getInquiriesByType(type: string): Promise<Inquiry[]>;
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
   deleteInquiry(id: string): Promise<void>;
@@ -261,8 +261,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Inquiries
-  async getInquiries(): Promise<Inquiry[]> {
-    return this.inquiryRepo.getInquiries();
+  async getInquiries(page: number = 1, limit: number = 20, type?: string): Promise<{ inquiries: Inquiry[], total: number }> {
+    return this.inquiryRepo.getInquiries(page, limit, type);
   }
 
   async getInquiriesByType(type: string): Promise<Inquiry[]> {

@@ -18,20 +18,28 @@ export function registerInquiryRoutes(app: Express) {
         }
     });
 
-    app.get("/api/inquiries", async (_req, res) => {
+    app.get("/api/inquiries", async (req, res) => {
         try {
-            const inquiries = await storage.getInquiries();
-            res.json(inquiries);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 20;
+            const type = req.query.type as string;
+
+            const result = await storage.getInquiries(page, limit, type);
+            res.json(result);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch inquiries" });
         }
     });
 
     // Admin Inquiries API
-    app.get("/api/admin/inquiries", isAdmin, async (_req, res) => {
+    app.get("/api/admin/inquiries", isAdmin, async (req, res) => {
         try {
-            const inquiries = await storage.getInquiries();
-            res.json(inquiries);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 20;
+            const type = req.query.type as string;
+
+            const result = await storage.getInquiries(page, limit, type);
+            res.json(result);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch inquiries" });
         }
