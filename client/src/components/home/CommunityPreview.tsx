@@ -32,7 +32,7 @@ export default function CommunityPreview() {
               아이부키 입주민들의 생생한 커뮤니티 활동을 만나보세요.
             </p>
           </div>
-          <Link href="/community">
+          <Link href="/story">
             <Button variant="outline" className="group" data-testid="button-view-all-community">
               커뮤니티 더보기
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -46,7 +46,16 @@ export default function CommunityPreview() {
               <div key={i} className="aspect-square bg-muted animate-pulse rounded-lg" />
             ))
           ) : posts.slice(0, 8).map((item) => (
-            <Link key={item.id} href={`/community`}>
+            <Link
+              key={item.id}
+              href={
+                item.type === 'social' ? '/story/social' :
+                  item.type === 'program' ? '/story/programs' :
+                    item.type === 'reporter' ? '/story/reporter' :
+                      item.type === 'event' ? '/story/events' :
+                        '/story'
+              }
+            >
               <div
                 className="group relative aspect-square overflow-hidden rounded-lg glass-interactive cursor-pointer"
                 data-testid={`card-community-${item.id}`}

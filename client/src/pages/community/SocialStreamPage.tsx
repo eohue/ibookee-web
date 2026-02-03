@@ -121,11 +121,11 @@ export default function SocialStreamPage() {
                                     <ArrowLeft className="w-5 h-5" />
                                 </Button>
                             </Link>
-                            <div>
+                            <div className="min-w-fit">
                                 <p className="text-primary font-medium text-sm uppercase tracking-widest mb-1">
                                     Ibookee Life
                                 </p>
-                                <h1 className="text-3xl font-bold">소셜 스트림</h1>
+                                <h1 className="text-3xl font-bold whitespace-nowrap">소셜 스트림</h1>
                             </div>
                         </div>
 

@@ -48,7 +48,7 @@ export default function ReporterPreview({ articles = [], isLoading }: ReporterPr
                                 기자단이란?
                             </Button>
                         </Link>
-                        <Link href="/community">
+                        <Link href="/story/reporter">
                             <Button variant="outline" className="group">
                                 기사 더보기
                                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -69,7 +69,7 @@ export default function ReporterPreview({ articles = [], isLoading }: ReporterPr
                             <div className="flex -ml-4 px-2">
                                 {displayedArticles.map((article) => (
                                     <div key={article.id} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-4">
-                                        <Link href="/community">
+                                        <Link href="/story/reporter">
                                             <Card
                                                 className="overflow-hidden cursor-pointer h-full transition-all duration-300 border-2 border-border shadow-lg hover:shadow-xl bg-card"
                                                 data-testid={`article-${article.id}`}

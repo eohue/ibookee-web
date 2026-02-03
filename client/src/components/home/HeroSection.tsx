@@ -101,7 +101,7 @@ export default function HeroSection() {
                 className="w-full sm:w-auto px-7 py-5 text-[15px] font-semibold rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all shadow-xl shadow-primary/20"
                 data-testid="button-explore-projects"
               >
-                프로젝트 둘러보기
+                프로젝트 보기
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
