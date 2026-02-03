@@ -69,6 +69,9 @@ export function ProjectsSection() {
     const [currentPage, setCurrentPage] = useState(getPageFromUrl);
     const [editorKey, setEditorKey] = useState(0);
 
+    const [isLive, setIsLive] = useState(false);
+    const [rentStatus, setRentStatus] = useState("available");
+
     const [detailEditorProjectId, setDetailEditorProjectId] = useState<string | null>(null);
 
 
@@ -154,8 +157,8 @@ export function ProjectsSection() {
             toast({ title: "프로젝트가 생성되었습니다." });
             setIsDialogOpen(false);
         },
-        onError: () => {
-            toast({ title: "생성 실패", variant: "destructive" });
+        onError: (error: Error) => {
+            toast({ title: "생성 실패", description: error.message, variant: "destructive" });
         },
     });
 
@@ -169,8 +172,8 @@ export function ProjectsSection() {
             setEditingProject(null);
             setIsDialogOpen(false);
         },
-        onError: () => {
-            toast({ title: "수정 실패", variant: "destructive" });
+        onError: (error: Error) => {
+            toast({ title: "수정 실패", description: error.message, variant: "destructive" });
         },
     });
 
@@ -210,6 +213,8 @@ export function ProjectsSection() {
             setDescription(project.description);
             setPartnerLogos((project.partnerLogos as unknown as string[]) ?? []);
             setRelatedArticles((project.relatedArticles as unknown as RelatedArticle[]) ?? []);
+            setIsLive(project.isLive ?? false);
+            setRentStatus(project.rentStatus ?? "available");
         } else {
             setSelectedCategories(["youth"]);
             setImageUrl("");
@@ -217,6 +222,8 @@ export function ProjectsSection() {
             setDescription("");
             setPartnerLogos([]);
             setRelatedArticles([]);
+            setIsLive(false);
+            setRentStatus("available");
         }
         setEditorKey(prev => prev + 1);
         setIsDialogOpen(true);
@@ -248,10 +255,9 @@ export function ProjectsSection() {
             featured: false,
             partnerLogos: partnerLogos,
             relatedArticles: relatedArticles,
-            isLive: formData.get("isLive") === "on", // Switch sets value to "on" when checked
-            rentStatus: formData.get("rentStatus") as string,
+            isLive: isLive,
+            rentStatus: rentStatus,
         };
-
         if (editingProject) {
             updateMutation.mutate({ id: editingProject.id, data });
         } else {
@@ -348,18 +354,14 @@ export function ProjectsSection() {
                                         <div className="flex items-center gap-2">
                                             <Switch
                                                 id="isLive"
-                                                name="isLive"
-                                                defaultChecked={editingProject?.isLive || false}
-                                                onCheckedChange={(checked) => {
-                                                    // Note: Form submission will handle this via hidden input or manual handling if we weren't using FormData for everything
-                                                    // Actually FormData doesn't pick up unchecked boxes easily, so let's handle it carefully
-                                                }}
+                                                checked={isLive}
+                                                onCheckedChange={setIsLive}
                                             />
                                             <Label htmlFor="isLive">Live 페이지 노출</Label>
                                         </div>
                                         <div className="w-[1px] h-8 bg-border" />
                                         <div className="flex-1">
-                                            <Select name="rentStatus" defaultValue={editingProject?.rentStatus || "available"}>
+                                            <Select value={rentStatus} onValueChange={setRentStatus}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="입주 상태" />
                                                 </SelectTrigger>
