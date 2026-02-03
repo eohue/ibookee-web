@@ -17,18 +17,7 @@ export class ProjectRepository {
         const offset = (page - 1) * limit;
 
         const [projectsResult, countResult] = await Promise.all([
-            db.select({
-                id: projects.id,
-                title: projects.title,
-                titleEn: projects.titleEn,
-                location: projects.location,
-                category: projects.category,
-                imageUrl: projects.imageUrl,
-                year: projects.year,
-                units: projects.units,
-                description: projects.description,
-                featured: projects.featured,
-            })
+            db.select()
                 .from(projects)
                 // Add conditional where clause
                 .where(
