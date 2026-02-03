@@ -13,7 +13,7 @@ import {
 } from "@shared/schema";
 
 export class ProjectRepository {
-    async getProjects(page: number = 1, limit: number = 100, titles?: string[]): Promise<{ projects: Project[], total: number }> {
+    async getProjects(page: number = 1, limit: number = 100, titles?: string[], isLive?: boolean): Promise<{ projects: Project[], total: number }> {
         const offset = (page - 1) * limit;
 
         const [projectsResult, countResult] = await Promise.all([
@@ -31,18 +31,22 @@ export class ProjectRepository {
             })
                 .from(projects)
                 // Add conditional where clause
-                .where(titles && titles.length > 0
-                    ? sql`${projects.title} IN ${titles}`
-                    : undefined)
+                .where(
+                    sql`${titles && titles.length > 0 ? sql`${projects.title} IN ${titles}` : sql`1=1`
+                        } AND ${typeof isLive === 'boolean' ? eq(projects.isLive, isLive) : sql`1=1`
+                        }`
+                )
                 .orderBy(desc(projects.year))
                 .limit(limit)
                 .offset(offset),
 
             db.select({ count: count() })
                 .from(projects)
-                .where(titles && titles.length > 0
-                    ? sql`${projects.title} IN ${titles}`
-                    : undefined)
+                .where(
+                    sql`${titles && titles.length > 0 ? sql`${projects.title} IN ${titles}` : sql`1=1`
+                        } AND ${typeof isLive === 'boolean' ? eq(projects.isLive, isLive) : sql`1=1`
+                        }`
+                )
         ]);
 
         return {

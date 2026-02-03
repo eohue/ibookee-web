@@ -10,7 +10,8 @@ export function registerProjectRoutes(app: Express) {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 50;
       const titles = req.query.titles ? (req.query.titles as string).split(',') : undefined;
-      const result = await storage.getProjects(page, limit, titles);
+      const isLive = req.query.isLive === 'true' ? true : req.query.isLive === 'false' ? false : undefined;
+      const result = await storage.getProjects(page, limit, titles, isLive);
       // Return projects array for backward compatibility
       // Add caching to reduce DB load
       res.set('Cache-Control', 'public, max-age=60, s-maxage=60');

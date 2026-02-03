@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 
 export default function LiveLanding() {
     const { data: projects = [], isLoading } = useQuery<Project[]>({
-        queryKey: ["/api/projects"],
+        queryKey: ["/api/projects?isLive=true"],
     });
 
     // Determine project category mapping
