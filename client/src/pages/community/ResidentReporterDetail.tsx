@@ -1,37 +1,40 @@
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ResidentReporter, ResidentReporterComment } from "@shared/schema";
-import { X, Heart, MessageSquare, Send, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRoute, Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import { useEffect } from "react";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Heart, MessageSquare, Send, Trash2, AlertCircle, RefreshCw } from "lucide-react";
+import type { ResidentReporter, ResidentReporterComment } from "@shared/schema";
 
-interface ReporterArticleModalProps {
-    article: (ResidentReporter | (Omit<ResidentReporter, "content"> & { content?: string })) | null;
-    isOpen: boolean;
-    onClose: () => void;
-}
-
-export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArticleModalProps) {
+export default function ResidentReporterDetail() {
+    const [, params] = useRoute("/story/reporter/:id");
+    const articleId = params?.id;
     const { toast } = useToast();
     const queryClient = useQueryClient();
+    const { user } = useAuth();
     const [comment, setComment] = useState("");
     const [htmlContent, setHtmlContent] = useState("");
-    const { user } = useAuth();
+
+    const { data: article, isLoading, isError, refetch } = useQuery<ResidentReporter>({
+        queryKey: ["/api/resident-reporter", articleId],
+        queryFn: async () => {
+            if (!articleId) throw new Error("No article ID");
+            const res = await fetch(`/api/resident-reporter/${articleId}`);
+            if (!res.ok) throw new Error("Failed to fetch article");
+            return res.json();
+        },
+        enabled: !!articleId,
+    });
 
     useEffect(() => {
         const parseMarkdown = async () => {
@@ -47,35 +50,32 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
 
     // Fetch comments
     const { data: comments = [] } = useQuery<ResidentReporterComment[]>({
-        queryKey: [`/api/resident-reporter/${article?.id}/comments`],
-        enabled: !!article?.id && isOpen,
+        queryKey: [`/api/resident-reporter/${articleId}/comments`],
+        enabled: !!articleId,
     });
 
     // Like mutation
     const likeMutation = useMutation({
         mutationFn: async () => {
-            if (!article) return;
-            await apiRequest("POST", `/api/resident-reporter/${article.id}/like`);
+            if (!articleId) return;
+            await apiRequest("POST", `/api/resident-reporter/${articleId}/like`);
         },
         onSuccess: () => {
-            // Invalidate list to update like count on card if needed, 
-            // but mainly we want to update the local article state or refetch the list that provided the article.
-            // Since 'article' prop comes from parent, we might need to invalidate the parent query.
-            queryClient.invalidateQueries({ queryKey: ["/api/resident-reporter"] });
-            queryClient.invalidateQueries({ queryKey: ["/api/my/reporter-articles"] });
-            // Also if we want live update in modal, we might need to fetch single article or rely on parent update.
+            queryClient.invalidateQueries({ queryKey: ["/api/resident-reporter", articleId] }); // Update local article
+            queryClient.invalidateQueries({ queryKey: ["/api/resident-reporter"] }); // Update list
         },
     });
 
     // Comment mutation
     const commentMutation = useMutation({
         mutationFn: async (content: string) => {
-            if (!article) return;
-            await apiRequest("POST", `/api/resident-reporter/${article.id}/comments`, { content });
+            if (!articleId) return;
+            await apiRequest("POST", `/api/resident-reporter/${articleId}/comments`, { content });
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [`/api/resident-reporter/${article?.id}/comments`] });
-            queryClient.invalidateQueries({ queryKey: ["/api/resident-reporter"] }); // Update comment count on list
+            queryClient.invalidateQueries({ queryKey: [`/api/resident-reporter/${articleId}/comments`] });
+            queryClient.invalidateQueries({ queryKey: ["/api/resident-reporter"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/resident-reporter", articleId] }); // Update whatever needs it
             setComment("");
             toast({
                 title: "댓글 등록 완료",
@@ -94,11 +94,11 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
     // Delete comment mutation
     const deleteCommentMutation = useMutation({
         mutationFn: async (commentId: string) => {
-            if (!article) return;
-            await apiRequest("DELETE", `/api/resident-reporter/${article.id}/comments/${commentId}`);
+            if (!articleId) return;
+            await apiRequest("DELETE", `/api/resident-reporter/${articleId}/comments/${commentId}`);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [`/api/resident-reporter/${article?.id}/comments`] });
+            queryClient.invalidateQueries({ queryKey: [`/api/resident-reporter/${articleId}/comments`] });
             queryClient.invalidateQueries({ queryKey: ["/api/resident-reporter"] });
             toast({
                 title: "삭제 완료",
@@ -106,8 +106,6 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
             });
         },
     });
-
-    if (!article) return null;
 
     const handleLike = () => {
         likeMutation.mutate();
@@ -119,7 +117,6 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
         commentMutation.mutate(comment);
     };
 
-    // Calculate time ago
     const timeAgo = (dateStr: string | Date | null) => {
         if (!dateStr) return "";
         const date = new Date(dateStr);
@@ -132,19 +129,75 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
         return `${Math.floor(diffInSeconds / 86400)}일 전`;
     };
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen">
+                <Header />
+                <main className="pt-32 pb-20">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <Skeleton className="h-8 w-32 mb-8" />
+                        <Skeleton className="aspect-video w-full rounded-lg mb-8" />
+                        <div className="space-y-4">
+                            <Skeleton className="h-10 w-3/4" />
+                            <Skeleton className="h-6 w-1/2" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-full" />
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        )
+    }
+
+    if (isError || !article) {
+        return (
+            <div className="min-h-screen">
+                <Header />
+                <main className="pt-32 pb-20">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <Link href="/story/reporter">
+                            <Button variant="ghost" className="mb-8">
+                                <ArrowLeft className="w-4 h-4 mr-2" />
+                                목록으로
+                            </Button>
+                        </Link>
+                        <div className="text-center py-16">
+                            <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-semibold text-foreground mb-2">기사를 불러올 수 없습니다</h3>
+                            <Button variant="outline" onClick={() => refetch()}>
+                                <RefreshCw className="w-4 h-4 mr-2" />
+                                다시 시도
+                            </Button>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
+
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-3xl h-[90vh] p-0 overflow-hidden flex flex-col bg-background" overlayClassName="bg-black">
-                <DialogHeader className="p-6 pb-4 shrink-0 border-b">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
+        <div className="min-h-screen">
+            <Header />
+            <main className="pt-32 pb-20">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <Link href="/story/reporter">
+                        <Button variant="ghost" className="mb-8">
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            목록으로
+                        </Button>
+                    </Link>
+
+                    <article>
+                        <header className="mb-8">
                             <div className="flex items-center gap-2 mb-3">
                                 {article.status === 'approved' && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                                         승인됨
                                     </span>
                                 )}
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-sm text-muted-foreground">
                                     {new Date(article.createdAt || "").toLocaleDateString("ko-KR", {
                                         year: "numeric",
                                         month: "long",
@@ -153,28 +206,26 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
                                 </span>
                             </div>
 
-                            <DialogTitle className="text-2xl font-bold leading-tight mb-2">
+                            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6 leading-tight">
                                 {article.title}
-                            </DialogTitle>
+                            </h1>
 
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Avatar className="h-6 w-6">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10">
                                         <AvatarFallback>{article.authorName[0]}</AvatarFallback>
                                     </Avatar>
-                                    <span className="font-medium text-sm text-foreground">
-                                        {article.authorName} 기자
-                                    </span>
+                                    <div>
+                                        <div className="font-medium text-foreground">
+                                            {article.authorName} 기자
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </DialogHeader>
+                        </header>
 
-                <ScrollArea className="flex-1 min-h-0 bg-secondary/5">
-                    <div className="max-w-2xl mx-auto px-6 py-8">
                         {article.imageUrl && (
-                            <div className="mb-8 rounded-xl overflow-hidden shadow-sm ring-1 ring-border/5">
+                            <div className="mb-10 rounded-xl overflow-hidden shadow-sm ring-1 ring-border/5">
                                 <img
                                     src={article.imageUrl}
                                     alt={article.title}
@@ -184,7 +235,7 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
                         )}
 
                         <div
-                            className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-xl"
+                            className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-xl mb-12"
                             dangerouslySetInnerHTML={{
                                 __html: DOMPurify.sanitize(htmlContent, {
                                     ADD_TAGS: ['iframe'],
@@ -193,7 +244,7 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
                             }}
                         />
 
-                        <div className="mt-12 pt-8 border-t flex items-center justify-center">
+                        <div className="flex items-center justify-center py-8 border-t border-b mb-12">
                             <Button
                                 variant="outline"
                                 size="lg"
@@ -205,27 +256,26 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
                                 <span className="font-medium">좋아요 {article.likes || 0}</span>
                             </Button>
                         </div>
-                    </div>
 
-                    <div className="max-w-2xl mx-auto px-6 pb-12">
-                        <div className="bg-background rounded-xl border p-6 shadow-sm">
-                            <h3 className="font-bold mb-6 flex items-center gap-2">
+                        {/* Comments Section */}
+                        <div className="max-w-3xl mx-auto">
+                            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
                                 <MessageSquare className="w-5 h-5" />
                                 댓글 <span className="text-primary">{comments.length}</span>
                             </h3>
 
                             {user ? (
-                                <form onSubmit={handleCommentSubmit} className="flex gap-3 mb-8">
-                                    <Avatar className="h-9 w-9 mt-0.5">
+                                <form onSubmit={handleCommentSubmit} className="flex gap-4 mb-10">
+                                    <Avatar className="h-10 w-10">
                                         <AvatarImage src={user?.profileImageUrl || ""} />
                                         <AvatarFallback>{user?.firstName?.[0] || "U"}</AvatarFallback>
                                     </Avatar>
-                                    <div className="flex-1 flex gap-2">
+                                    <div className="flex-1 flex gap-3">
                                         <Input
                                             placeholder="댓글을 남겨주세요..."
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
-                                            className="flex-1"
+                                            className="h-10"
                                         />
                                         <Button type="submit" disabled={!comment.trim() || commentMutation.isPending}>
                                             <Send className="w-4 h-4" />
@@ -233,48 +283,50 @@ export function ReporterArticleModal({ article, isOpen, onClose }: ReporterArtic
                                     </div>
                                 </form>
                             ) : (
-                                <div className="text-center p-4 mb-8 bg-muted/30 rounded-lg">
-                                    <p className="text-sm text-muted-foreground">댓글을 작성하려면 로그인이 필요합니다.</p>
+                                <div className="text-center p-6 mb-10 bg-muted/30 rounded-lg">
+                                    <p className="text-muted-foreground">댓글을 작성하려면 로그인이 필요합니다.</p>
                                 </div>
                             )}
 
                             <div className="space-y-6">
                                 {comments.map((item) => (
-                                    <div key={item.id} className="flex gap-3 group">
-                                        <Avatar className="h-8 w-8">
+                                    <div key={item.id} className="flex gap-4 group">
+                                        <Avatar className="h-10 w-10">
                                             <AvatarFallback>{item.nickname[0]}</AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-sm">{item.nickname}</span>
+                                                    <span className="font-medium text-foreground">{item.nickname}</span>
                                                     <span className="text-xs text-muted-foreground">{timeAgo(item.createdAt)}</span>
                                                 </div>
                                                 {user?.role === 'admin' && (
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                                                         onClick={() => deleteCommentMutation.mutate(item.id)}
                                                     >
-                                                        <Trash2 className="w-3 h-3 text-destructive" />
+                                                        <Trash2 className="w-4 h-4 text-destructive" />
                                                     </Button>
                                                 )}
                                             </div>
-                                            <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">{item.content}</p>
+                                            <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed">{item.content}</p>
                                         </div>
                                     </div>
                                 ))}
                                 {comments.length === 0 && (
-                                    <div className="text-center py-8 text-muted-foreground text-sm">
+                                    <div className="text-center py-12 text-muted-foreground">
                                         첫 번째 댓글을 남겨보세요.
                                     </div>
                                 )}
                             </div>
                         </div>
-                    </div>
-                </ScrollArea>
-            </DialogContent>
-        </Dialog>
+
+                    </article>
+                </div>
+            </main>
+            <Footer />
+        </div>
     );
 }

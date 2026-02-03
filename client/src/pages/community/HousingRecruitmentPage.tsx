@@ -17,7 +17,7 @@ export default function HousingRecruitmentPage() {
             <main className="pt-32 pb-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-4 mb-8">
-                        <Link href="/community">
+                        <Link href="/story">
                             <Button variant="ghost" size="icon">
                                 <ArrowLeft className="w-5 h-5" />
                             </Button>

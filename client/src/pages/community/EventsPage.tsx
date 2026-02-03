@@ -7,11 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Event } from "@shared/schema";
+import { useState } from "react";
+import { EventDetailModal } from "@/components/community/EventDetailModal";
 
 export default function EventsPage() {
     const { data: events = [], isLoading, isError, refetch } = useQuery<Event[]>({
         queryKey: ["/api/events"],
     });
+
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
     const upcomingEvents = events.filter((event) =>
         event.published && (event.status === "upcoming" || event.status === "ongoing")
@@ -23,7 +27,7 @@ export default function EventsPage() {
             <main className="pt-32 pb-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-4 mb-12">
-                        <Link href="/community">
+                        <Link href="/story">
                             <Button variant="ghost" size="icon">
                                 <ArrowLeft className="w-5 h-5" />
                             </Button>
@@ -68,12 +72,12 @@ export default function EventsPage() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {upcomingEvents.map((event) => (
-                                <a
+                                <div
                                     key={event.id}
-                                    href={`/community/event/${event.id}`}
-                                    className="block"
+                                    onClick={() => setSelectedEvent(event)}
+                                    className="block cursor-pointer"
                                 >
-                                    <Card className="overflow-hidden cursor-pointer h-full border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card">
+                                    <Card className="overflow-hidden h-full border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card">
                                         {event.imageUrl && (
                                             <div className="aspect-video w-full overflow-hidden">
                                                 <img
@@ -102,13 +106,18 @@ export default function EventsPage() {
                                             <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
                                         </div>
                                     </Card>
-                                </a>
+                                </div>
                             ))}
                         </div>
                     )}
                 </div>
             </main>
             <Footer />
+            <EventDetailModal
+                event={selectedEvent}
+                isOpen={!!selectedEvent}
+                onClose={() => setSelectedEvent(null)}
+            />
         </div>
     );
 }

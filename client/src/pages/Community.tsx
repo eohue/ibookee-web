@@ -12,9 +12,9 @@ import type { CommunityPost, Event, ResidentProgram, SocialAccount, Project, Hou
 import { PostDetailModal } from "@/components/community/PostDetailModal";
 import { ProgramApplicationModal } from "@/components/community/ProgramApplicationModal";
 import { ReporterSubmissionModal } from "@/components/community/ReporterSubmissionModal";
-import { ReporterArticleModal } from "@/components/community/ReporterArticleModal";
 import { useAuth } from "@/hooks/use-auth";
 import type { ResidentReporter } from "@shared/schema";
+import { EventDetailModal } from "@/components/community/EventDetailModal";
 
 const defaultHashtags = [
   { id: "all", label: "전체" },
@@ -67,8 +67,8 @@ export default function Community() {
   const [activeHashtag, setActiveHashtag] = useState("all");
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [isReporterModalOpen, setIsReporterModalOpen] = useState(false);
-  const [selectedArticle, setSelectedArticle] = useState<Omit<ResidentReporter, "content"> | ResidentReporter | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<ResidentProgram | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const observerRef = useRef<HTMLDivElement>(null);
 
   const { data: socialAccounts = [], isLoading: accountsLoading } = useQuery<SocialAccount[]>({
@@ -184,18 +184,6 @@ export default function Community() {
   });
 
   const reporterArticles = reporterData?.articles || [];
-
-  // Fetch full article details when selected
-  const { data: fullArticle } = useQuery<ResidentReporter>({
-    queryKey: ["/api/resident-reporter", selectedArticle?.id],
-    queryFn: async () => {
-      if (!selectedArticle?.id) throw new Error("No article selected");
-      const res = await fetch(`/api/resident-reporter/${selectedArticle.id}`);
-      if (!res.ok) throw new Error("Failed to fetch article");
-      return res.json();
-    },
-    enabled: !!selectedArticle?.id,
-  });
 
   return (
     <div className="min-h-screen" data-testid="page-community">
@@ -523,30 +511,35 @@ export default function Community() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {reporterArticles.map(article => (
-                  <Card key={article.id} className="overflow-hidden cursor-pointer border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card" onClick={() => setSelectedArticle(article)}>
-                    {article.imageUrl && (
-                      <div className="aspect-video w-full overflow-hidden relative">
-                        <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                        {article.status === 'approved' && (
-                          <span className="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-500 text-white shadow-sm">
-                            승인됨
-                          </span>
+
+                {
+                  reporterArticles.map(article => (
+                    <Link href={`/story/reporter/${article.id}`} key={article.id}>
+                      <Card className="overflow-hidden cursor-pointer border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card">
+                        {article.imageUrl && (
+                          <div className="aspect-video w-full overflow-hidden relative">
+                            <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                            {article.status === 'approved' && (
+                              <span className="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-500 text-white shadow-sm">
+                                승인됨
+                              </span>
+                            )}
+                          </div>
                         )}
-                      </div>
-                    )}
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm text-primary font-medium">{article.authorName} 기자</span>
-                        <span className="text-xs text-muted-foreground">{new Date(article.createdAt || "").toLocaleDateString()}</span>
-                      </div>
-                      <h3 className="text-xl font-bold mb-3 line-clamp-1">{article.title}</h3>
-                      <p className="text-muted-foreground line-clamp-3 text-sm">
-                        {"내용을 보려면 클릭하세요."}
-                      </p>
-                    </div>
-                  </Card>
-                ))}
+                        <div className="p-6">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm text-primary font-medium">{article.authorName} 기자</span>
+                            <span className="text-xs text-muted-foreground">{new Date(article.createdAt || "").toLocaleDateString()}</span>
+                          </div>
+                          <h3 className="text-xl font-bold mb-3 line-clamp-1">{article.title}</h3>
+                          <p className="text-muted-foreground line-clamp-3 text-sm">
+                            {"내용을 보려면 클릭하세요."}
+                          </p>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))
+                }
               </div>
             )}
           </div>
@@ -701,46 +694,49 @@ export default function Community() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {upcomingEvents.map((event) => (
-                  <a
-                    key={event.id}
-                    href={`/story/event/${event.id}`}
-                    className="block"
-                  >
-                    <Card
-                      className="overflow-hidden cursor-pointer h-full border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card"
-                      data-testid={`event-${event.id}`}
+
+                {
+                  upcomingEvents.map((event) => (
+                    <div
+                      key={event.id}
+                      onClick={() => setSelectedEvent(event)}
+                      className="block cursor-pointer"
                     >
-                      {event.imageUrl && (
-                        <div className="aspect-video w-full overflow-hidden">
-                          <img
-                            src={event.imageUrl}
-                            alt={event.title}
-                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                          />
-                        </div>
-                      )}
-                      <div className="p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <Calendar className="w-6 h-6 text-primary" />
+                      <Card
+                        className="overflow-hidden h-full border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card"
+                        data-testid={`event-${event.id}`}
+                      >
+                        {event.imageUrl && (
+                          <div className="aspect-video w-full overflow-hidden">
+                            <img
+                              src={event.imageUrl}
+                              alt={event.title}
+                              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                            />
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-primary">
-                              {new Date(event.date).toLocaleDateString("ko-KR", {
-                                month: "long",
-                                day: "numeric",
-                              })}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{event.location}</p>
+                        )}
+                        <div className="p-6">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <Calendar className="w-6 h-6 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-primary">
+                                {new Date(event.date).toLocaleDateString("ko-KR", {
+                                  month: "long",
+                                  day: "numeric",
+                                })}
+                              </p>
+                              <p className="text-xs text-muted-foreground">{event.location}</p>
+                            </div>
                           </div>
+                          <h3 className="font-semibold text-foreground mb-2">{event.title}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
                         </div>
-                        <h3 className="font-semibold text-foreground mb-2">{event.title}</h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
-                      </div>
-                    </Card>
-                  </a>
-                ))}
+                      </Card>
+                    </div>
+                  ))
+                }
               </div>
             )}
           </div>
@@ -757,10 +753,14 @@ export default function Community() {
         isOpen={isReporterModalOpen}
         onClose={() => setIsReporterModalOpen(false)}
       />
-      <ReporterArticleModal
-        article={fullArticle || selectedArticle}
-        isOpen={!!selectedArticle}
-        onClose={() => setSelectedArticle(null)}
+      <ReporterSubmissionModal
+        isOpen={isReporterModalOpen}
+        onClose={() => setIsReporterModalOpen(false)}
+      />
+      <EventDetailModal
+        event={selectedEvent}
+        isOpen={!!selectedEvent}
+        onClose={() => setSelectedEvent(null)}
       />
       <ProgramApplicationModal
         program={selectedProgram}

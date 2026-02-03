@@ -120,18 +120,20 @@ export default function Footer() {
               {footer.copyright}
             </p>
             <div className="flex items-center gap-6">
-              <span
+              <Link
+                href="/privacy"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 data-testid="link-privacy"
               >
                 개인정보처리방침
-              </span>
-              <span
+              </Link>
+              <Link
+                href="/terms"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 data-testid="link-terms"
               >
                 이용약관
-              </span>
+              </Link>
             </div>
           </div>
         </div>

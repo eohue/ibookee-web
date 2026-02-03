@@ -20,11 +20,14 @@ import ResidentReporterGuide from "@/pages/ResidentReporterGuide";
 import HousingRecruitmentPage from "@/pages/community/HousingRecruitmentPage";
 import SocialStreamPage from "@/pages/community/SocialStreamPage";
 import ResidentReporterPage from "@/pages/community/ResidentReporterPage";
+import ResidentReporterDetail from "@/pages/community/ResidentReporterDetail";
 import SupportProgramsPage from "@/pages/community/SupportProgramsPage";
 import EventsPage from "@/pages/community/EventsPage";
 import SearchPage from "@/pages/Apply/SearchPage";
 import LiveDetail from "@/pages/Live/LiveDetail";
 import LiveLanding from "@/pages/Live/LiveLanding";
+import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
+import TermsOfService from "@/pages/legal/TermsOfService";
 
 import AuthPage from "@/pages/auth/AuthPage";
 import NotFound from "@/pages/not-found";
@@ -46,6 +49,7 @@ function Router() {
       <Route path="/story/recruitment" component={HousingRecruitmentPage} />
       <Route path="/story/social" component={SocialStreamPage} />
       <Route path="/story/reporter" component={ResidentReporterPage} />
+      <Route path="/story/reporter/:id" component={ResidentReporterDetail} />
       <Route path="/story/programs" component={SupportProgramsPage} />
       <Route path="/story/events" component={EventsPage} />
       <Route path="/resident-reporter-guide" component={ResidentReporterGuide} />
@@ -53,6 +57,8 @@ function Router() {
       <Route path="/live" component={LiveLanding} />
       <Route path="/live/:id" component={LiveDetail} />
       <Route path="/contact" component={Contact} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={TermsOfService} />
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/mypage" component={MyPage} />
       <ProtectedRoute path="/dashboard" component={Dashboard} />

@@ -9,12 +9,10 @@ import { Card } from "@/components/ui/card";
 import type { ResidentReporter } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { ReporterSubmissionModal } from "@/components/community/ReporterSubmissionModal";
-import { ReporterArticleModal } from "@/components/community/ReporterArticleModal";
 
 export default function ResidentReporterPage() {
     const { user } = useAuth();
     const [isReporterModalOpen, setIsReporterModalOpen] = useState(false);
-    const [selectedArticle, setSelectedArticle] = useState<Omit<ResidentReporter, "content"> | ResidentReporter | null>(null);
 
     const { data: reporterData } = useQuery<{ articles: Omit<ResidentReporter, "content">[], total: number }>({
         queryKey: ["/api/resident-reporter"],
@@ -22,17 +20,7 @@ export default function ResidentReporterPage() {
 
     const reporterArticles = reporterData?.articles || [];
 
-    // Fetch full article details when selected
-    const { data: fullArticle } = useQuery<ResidentReporter>({
-        queryKey: ["/api/resident-reporter", selectedArticle?.id],
-        queryFn: async () => {
-            if (!selectedArticle?.id) throw new Error("No article selected");
-            const res = await fetch(`/api/resident-reporter/${selectedArticle.id}`);
-            if (!res.ok) throw new Error("Failed to fetch article");
-            return res.json();
-        },
-        enabled: !!selectedArticle?.id,
-    });
+
 
     return (
         <div className="min-h-screen">
@@ -41,7 +29,7 @@ export default function ResidentReporterPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                         <div className="flex items-center gap-4">
-                            <Link href="/community">
+                            <Link href="/story">
                                 <Button variant="ghost" size="icon">
                                     <ArrowLeft className="w-5 h-5" />
                                 </Button>
@@ -78,28 +66,30 @@ export default function ResidentReporterPage() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {reporterArticles.map(article => (
-                                <Card key={article.id} className="overflow-hidden cursor-pointer border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card" onClick={() => setSelectedArticle(article)}>
-                                    {article.imageUrl && (
-                                        <div className="aspect-video w-full overflow-hidden relative">
-                                            <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                            {article.status === 'approved' && (
-                                                <span className="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-500 text-white shadow-sm">
-                                                    승인됨
-                                                </span>
-                                            )}
+                                <Link href={`/story/reporter/${article.id}`} key={article.id}>
+                                    <Card className="overflow-hidden cursor-pointer border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card">
+                                        {article.imageUrl && (
+                                            <div className="aspect-video w-full overflow-hidden relative">
+                                                <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                                {article.status === 'approved' && (
+                                                    <span className="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-500 text-white shadow-sm">
+                                                        승인됨
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                        <div className="p-6">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-sm text-primary font-medium">{article.authorName} 기자</span>
+                                                <span className="text-xs text-muted-foreground">{new Date(article.createdAt || "").toLocaleDateString()}</span>
+                                            </div>
+                                            <h3 className="text-xl font-bold mb-3 line-clamp-1">{article.title}</h3>
+                                            <p className="text-muted-foreground line-clamp-3 text-sm">
+                                                {"내용을 보려면 클릭하세요."}
+                                            </p>
                                         </div>
-                                    )}
-                                    <div className="p-6">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="text-sm text-primary font-medium">{article.authorName} 기자</span>
-                                            <span className="text-xs text-muted-foreground">{new Date(article.createdAt || "").toLocaleDateString()}</span>
-                                        </div>
-                                        <h3 className="text-xl font-bold mb-3 line-clamp-1">{article.title}</h3>
-                                        <p className="text-muted-foreground line-clamp-3 text-sm">
-                                            {"내용을 보려면 클릭하세요."}
-                                        </p>
-                                    </div>
-                                </Card>
+                                    </Card>
+                                </Link>
                             ))}
                         </div>
                     )}
@@ -110,10 +100,9 @@ export default function ResidentReporterPage() {
                 isOpen={isReporterModalOpen}
                 onClose={() => setIsReporterModalOpen(false)}
             />
-            <ReporterArticleModal
-                article={fullArticle || selectedArticle}
-                isOpen={!!selectedArticle}
-                onClose={() => setSelectedArticle(null)}
+            <ReporterSubmissionModal
+                isOpen={isReporterModalOpen}
+                onClose={() => setIsReporterModalOpen(false)}
             />
         </div>
     );
