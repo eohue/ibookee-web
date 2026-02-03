@@ -233,7 +233,7 @@ export default function Community() {
                   입주자 모집 공고
                 </h2>
               </div>
-              <Link href="/community/recruitment">
+              <Link href="/story/recruitment">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
                   <Plus className="w-5 h-5" />
                 </Button>
@@ -307,8 +307,8 @@ export default function Community() {
                 <p className="text-primary font-medium text-sm uppercase tracking-widest mb-2">
                   Ibookee Life
                 </p>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                  소셜<br />스트림
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground whitespace-nowrap">
+                  소셜 스트림
                 </h2>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -328,7 +328,7 @@ export default function Community() {
                     {tag.label}
                   </Button>
                 ))}
-                <Link href="/community/social">
+                <Link href="/story/social">
                   <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full">
                     <Plus className="w-5 h-5" />
                   </Button>
@@ -497,7 +497,7 @@ export default function Community() {
                 </h2>
               </div>
               <div className="flex gap-2 items-center">
-                <Link href="/community/reporter">
+                <Link href="/story/reporter">
                   <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
                     <Plus className="w-5 h-5" />
                   </Button>
@@ -565,7 +565,7 @@ export default function Community() {
             </div>
 
             <div className="flex justify-end mb-4">
-              <Link href="/community/programs">
+              <Link href="/story/programs">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
                   <Plus className="w-5 h-5" />
                 </Button>
@@ -660,7 +660,7 @@ export default function Community() {
                   다가오는 행사
                 </h2>
               </div>
-              <Link href="/community/events">
+              <Link href="/story/events">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
                   <Plus className="w-5 h-5" />
                 </Button>
@@ -704,7 +704,7 @@ export default function Community() {
                 {upcomingEvents.map((event) => (
                   <a
                     key={event.id}
-                    href={`/community/event/${event.id}`}
+                    href={`/story/event/${event.id}`}
                     className="block"
                   >
                     <Card
