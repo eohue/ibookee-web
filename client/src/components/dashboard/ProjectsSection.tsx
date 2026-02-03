@@ -640,17 +640,16 @@ export function ProjectsSection() {
                                             <Trash2 className="w-4 h-4 text-destructive" />
                                         </Button>
                                     </div>
-                                </div>
-                                <SubprojectManager projectId={project.id} projectTitle={project.title} />
-                                <UnitManager projectId={project.id} projectTitle={project.title} />
-                            </CardContent>
+                                    <SubprojectManager projectId={project.id} projectTitle={project.title} />
+                                    <UnitManager projectId={project.id} projectTitle={project.title} />
+                                </CardContent>
                             </Card>
                         ))}
-                </div>
-            {renderPagination()}
-        </>
-    )
-}
+                    </div>
+                    {renderPagination()}
+                </>
+            )
+            }
         </div >
     );
 }
