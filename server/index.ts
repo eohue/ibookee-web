@@ -58,9 +58,11 @@ app.use((req, res, next) => {
 // Initialization promise for serverless
 let initPromise: Promise<void> | null = null;
 
+import { runSafeMigration } from "./utils/manual-migrate";
+
 async function initialize() {
-  // Migration removed to improve startup performance
-  // Use 'npm run db:push' for schema changes
+  // Safe Manual Migration for critical columns
+  await runSafeMigration();
 
   await registerRoutes(httpServer, app);
 
