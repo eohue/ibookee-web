@@ -86,6 +86,7 @@ export function registerProjectRoutes(app: Express) {
       }
       res.json(project);
     } catch (error) {
+      console.error("Project update error:", error);
       res.status(500).json({ error: "Failed to update project" });
     }
   });
