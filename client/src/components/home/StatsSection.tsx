@@ -14,25 +14,21 @@ export default function StatsSection({ stats: propStats, isLoading }: StatsSecti
       icon: Building,
       value: stats.projectCount.value,
       label: stats.projectCount.label,
-      description: "Projects Completed",
     },
     {
       icon: Users,
       value: stats.householdCount.value,
       label: stats.householdCount.label,
-      description: "Households",
     },
     {
       icon: Calendar,
       value: stats.yearsInBusiness.value,
       label: stats.yearsInBusiness.label,
-      description: "Years of Experience",
     },
     {
       icon: Award,
       value: stats.awardCount.value,
       label: stats.awardCount.label,
-      description: "Awards",
     },
   ];
 
@@ -54,9 +50,6 @@ export default function StatsSection({ stats: propStats, isLoading }: StatsSecti
               </div>
               <div className="text-lg font-medium text-white mb-1">
                 {stat.label}
-              </div>
-              <div className="text-sm text-white/70">
-                {stat.description}
               </div>
             </div>
           ))}

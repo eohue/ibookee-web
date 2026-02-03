@@ -49,7 +49,7 @@ export default function Space() {
           <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2301&auto=format&fit=crop')] bg-cover bg-center" />
           <div className="container mx-auto max-w-5xl relative z-10 text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight">
-              Space at Ibookee
+              Space to Life
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-light leading-relaxed">
               아이부키가 만든 공간들을 둘러보세요.

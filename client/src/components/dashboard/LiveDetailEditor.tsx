@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2, Save, ArrowLeft } from "lucide-react";
 import type { LiveProjectDetail, RoomType, CommunityFeature } from "@shared/schema";
 import { Separator } from "@/components/ui/separator";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 interface LiveDetailEditorProps {
     projectId: string;
@@ -147,7 +148,11 @@ export function LiveDetailEditor({ projectId, projectTitle, onBack }: LiveDetail
                         </div>
                         <div className="space-y-2">
                             <Label>Concept Description</Label>
-                            <Textarea value={conceptText} onChange={e => setConceptText(e.target.value)} className="min-h-[100px]" placeholder="긴 설명 텍스트..." />
+                            <RichTextEditor
+                                value={conceptText}
+                                onChange={setConceptText}
+                                className="min-h-[200px]"
+                            />
                         </div>
                     </CardContent>
                 </Card>

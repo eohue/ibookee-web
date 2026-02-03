@@ -213,7 +213,7 @@ export default function Insight() {
         <section
           className={cn(
             "sticky z-30 bg-background/95 backdrop-blur-sm border-b border-border py-2 transition-[top] duration-300",
-            isVisible ? "top-[128px]" : "top-[68px]"
+            isVisible ? "top-[120px]" : "top-[68px]"
           )}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -128,16 +128,16 @@ export default function Header() {
                 onMouseLeave={handleIbookeeLeave}
               >
                 <DropdownMenu open={isIbookeeOpen} onOpenChange={setIsIbookeeOpen} modal={false}>
-                  <DropdownMenuTrigger
-                    className={cn(
-                      "group inline-flex h-10 w-max items-center justify-center rounded-md px-4 text-lg font-bold transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
+                  <DropdownMenuTrigger asChild>
+                    <Link href="/about" className={cn(
+                      "group inline-flex h-10 w-max items-center justify-center rounded-md px-4 text-lg font-bold transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer",
                       isTransparent
                         ? "bg-transparent text-white hover:bg-white/10 hover:text-white data-[state=open]:bg-white/10"
                         : "bg-transparent text-foreground hover:bg-transparent hover:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary"
-                    )}
-                  >
-                    IBOOKEE
-                    <ChevronDown className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
+                    )}>
+                      IBOOKEE
+                      <ChevronDown className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
+                    </Link>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48 bg-background" sideOffset={8}>
                     {ibookeeSubNav.map((item) => (
@@ -234,20 +234,22 @@ export default function Header() {
                 >
                   <DropdownMenu open={isProfileOpen} onOpenChange={setIsProfileOpen}>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={cn(
-                          "hidden md:flex gap-2 rounded-full px-4",
-                          isTransparent
-                            ? "text-white hover:bg-white/10 hover:text-white"
-                            : "text-foreground hover:bg-muted"
-                        )}
-                      >
-                        <User className="w-4 h-4" />
-                        <span className="max-w-[100px] truncate">{user?.firstName}</span>
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </Button>
+                      <Link href="/mypage" className="cursor-pointer">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={cn(
+                            "hidden md:flex gap-2 rounded-full px-4",
+                            isTransparent
+                              ? "text-white hover:bg-white/10 hover:text-white"
+                              : "text-foreground hover:bg-muted"
+                          )}
+                        >
+                          <User className="w-4 h-4" />
+                          <span className="max-w-[100px] truncate">{user?.firstName}</span>
+                          <ChevronDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                      </Link>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuLabel>내 계정</DropdownMenuLabel>

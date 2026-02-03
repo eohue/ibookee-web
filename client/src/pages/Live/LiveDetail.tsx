@@ -87,7 +87,7 @@ export default function LiveDetail() {
             </section>
 
             {/* Sticky Nav */}
-            <div className="sticky top-[60px] z-40 bg-background/90 backdrop-blur-md border-b border-border">
+            <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border">
                 <div className="container mx-auto px-4">
                     <nav className="flex items-center gap-8 py-4 overflow-x-auto no-scrollbar">
                         <a href="#concept" className="text-sm font-bold uppercase tracking-widest hover:text-primary whitespace-nowrap">Concept</a>
@@ -112,9 +112,10 @@ export default function LiveDetail() {
                         </h3>
                     </div>
                     <div className="w-full md:w-2/3">
-                        <div className="prose prose-lg dark:prose-invert max-w-none mb-12 text-muted-foreground leading-relaxed whitespace-pre-line">
-                            {detail?.conceptText || project.description}
-                        </div>
+                        <div
+                            className="prose prose-lg dark:prose-invert max-w-none mb-12 text-muted-foreground leading-relaxed whitespace-pre-wrap"
+                            dangerouslySetInnerHTML={{ __html: detail?.conceptText || project.description }}
+                        />
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {[
