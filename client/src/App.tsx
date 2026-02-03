@@ -23,7 +23,7 @@ import ResidentReporterPage from "@/pages/community/ResidentReporterPage";
 import SupportProgramsPage from "@/pages/community/SupportProgramsPage";
 import EventsPage from "@/pages/community/EventsPage";
 import SearchPage from "@/pages/Apply/SearchPage";
-import LiveDetail from "@/pages/Live/Detail/LiveDetail";
+import LiveDetail from "@/pages/Live/LiveDetail";
 import LiveLanding from "@/pages/Live/LiveLanding";
 
 import AuthPage from "@/pages/auth/AuthPage";

@@ -24,6 +24,8 @@ export const projects = pgTable("projects", {
   partnerLogos: jsonb("partner_logos"), // Array of PartnerLogo objects
   pdfUrl: text("pdf_url"),
   relatedArticles: jsonb("related_articles"), // Array of { title: string, url: string }
+  isLive: boolean("is_live").default(false), // Is this a "Live" project?
+  rentStatus: text("rent_status").default("available"), // available, waiting, closed
 }, (table) => {
   return {
     yearIndex: index("projects_year_idx").on(table.year),
@@ -430,4 +432,35 @@ export interface CommunityFeedItem {
   likes?: number; // only for social
   comments?: number; // only for social
   hashtags?: string[]; // only for social
+}
+
+// Live Project Details (Rich Content for Detail Page)
+export const liveProjectDetails = pgTable("live_project_details", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }).notNull(),
+  heroImage: text("hero_image"),
+  heroSlogan: text("hero_slogan"), // "Live in Mangrove"
+  conceptTitle: text("concept_title"), // "함께 성장하는 집"
+  conceptText: text("concept_text"), // Long description
+  roomTypes: jsonb("room_types"), // Array of { name, summary, price, images: [] }
+  communityImages: jsonb("community_images"), // Array of { title, desc, image }
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertLiveProjectDetailSchema = createInsertSchema(liveProjectDetails).omit({ id: true, updatedAt: true });
+export type InsertLiveProjectDetail = z.infer<typeof insertLiveProjectDetailSchema>;
+export type LiveProjectDetail = typeof liveProjectDetails.$inferSelect;
+
+export interface RoomType {
+  name: string; // "Single", "Dorm"
+  summary: string; // "나만의 아늑한 공간"
+  details: string[]; // ["슈퍼싱글 침대", "개인 냉장고"]
+  price?: string; // "500,000"
+  images: string[];
+}
+
+export interface CommunityFeature {
+  title: string;
+  description: string;
+  imageUrl: string;
 }

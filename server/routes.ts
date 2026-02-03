@@ -19,6 +19,7 @@ import { registerMetadataRoutes } from "./routes/metadata";
 import { registerReporterRoutes } from "./routes/reporters";
 import { registerRecruitmentRoutes } from "./routes/recruitments";
 import { registerHomeRoutes } from "./routes/home";
+import { registerLiveDetailRoutes } from "./routes/live-details";
 
 import { registerUnitRoutes } from "./routes/units";
 
@@ -55,6 +56,7 @@ export async function registerRoutes(
   registerRecruitmentRoutes(app);
   registerHomeRoutes(app);
   registerUnitRoutes(app);
+  registerLiveDetailRoutes(app);
 
   return httpServer;
 }

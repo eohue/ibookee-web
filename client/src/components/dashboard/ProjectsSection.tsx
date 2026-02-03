@@ -44,6 +44,9 @@ import { MultiSelect } from "@/components/ui/multi-select-custom";
 import { PROJECT_CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
 import { SubprojectManager } from "./SubprojectManager";
 import { UnitManager } from "./UnitManager";
+import { LiveDetailEditor } from "./LiveDetailEditor";
+import { Switch } from "@/components/ui/switch";
+
 
 const ITEMS_PER_PAGE = 20;
 
@@ -65,6 +68,9 @@ export function ProjectsSection() {
     const [relatedArticles, setRelatedArticles] = useState<RelatedArticle[]>([]);
     const [currentPage, setCurrentPage] = useState(getPageFromUrl);
     const [editorKey, setEditorKey] = useState(0);
+
+    const [detailEditorProjectId, setDetailEditorProjectId] = useState<string | null>(null);
+
 
 
     const { data: projects, isLoading, isError, error } = useQuery<Project[]>({
@@ -168,6 +174,16 @@ export function ProjectsSection() {
         },
     });
 
+    const liveStatusMutation = useMutation({
+        mutationFn: async ({ id, isLive, rentStatus }: { id: string; isLive: boolean; rentStatus: string }) => {
+            await apiRequest("PUT", `/api/admin/projects/${id}/live-status`, { isLive, rentStatus });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/projects"] });
+            toast({ title: "Live 상태가 업데이트되었습니다." });
+        },
+    });
+
     const deleteMutation = useMutation({
         mutationFn: async (id: string) => {
             await apiRequest("DELETE", `/api/admin/projects/${id}`);
@@ -232,6 +248,8 @@ export function ProjectsSection() {
             featured: false,
             partnerLogos: partnerLogos,
             relatedArticles: relatedArticles,
+            isLive: formData.get("isLive") === "on", // Switch sets value to "on" when checked
+            rentStatus: formData.get("rentStatus") as string,
         };
 
         if (editingProject) {
@@ -243,7 +261,13 @@ export function ProjectsSection() {
 
 
 
-    return (
+    return detailEditorProjectId ? (
+        <LiveDetailEditor
+            projectId={detailEditorProjectId}
+            projectTitle={projects?.find(p => p.id === detailEditorProjectId)?.title || ""}
+            onBack={() => setDetailEditorProjectId(null)}
+        />
+    ) : (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">프로젝트 관리</h2>
@@ -317,6 +341,36 @@ export function ProjectsSection() {
                                         ))}
                                     </div>
                                     <input type="hidden" name="category" value={JSON.stringify(selectedCategories)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="block mb-2">Live 설정</Label>
+                                    <div className="flex items-center gap-4 border p-4 rounded-md">
+                                        <div className="flex items-center gap-2">
+                                            <Switch
+                                                id="isLive"
+                                                name="isLive"
+                                                defaultChecked={editingProject?.isLive || false}
+                                                onCheckedChange={(checked) => {
+                                                    // Note: Form submission will handle this via hidden input or manual handling if we weren't using FormData for everything
+                                                    // Actually FormData doesn't pick up unchecked boxes easily, so let's handle it carefully
+                                                }}
+                                            />
+                                            <Label htmlFor="isLive">Live 페이지 노출</Label>
+                                        </div>
+                                        <div className="w-[1px] h-8 bg-border" />
+                                        <div className="flex-1">
+                                            <Select name="rentStatus" defaultValue={editingProject?.rentStatus || "available"}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="입주 상태" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="available">입주 가능 Available</SelectItem>
+                                                    <SelectItem value="waiting">대기 가능 Waiting</SelectItem>
+                                                    <SelectItem value="closed">마감 Closed</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -556,34 +610,47 @@ export function ProjectsSection() {
                                                 {project.location} | {project.year}년 | {project.units}세대
                                             </p>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => openDialog(project)}
-                                                data-testid={`button-edit-project-${project.id}`}
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => deleteMutation.mutate(project.id)}
-                                                data-testid={`button-delete-project-${project.id}`}
-                                            >
-                                                <Trash2 className="w-4 h-4 text-destructive" />
-                                            </Button>
-                                        </div>
                                     </div>
-                                    <SubprojectManager projectId={project.id} projectTitle={project.title} />
-                                    <UnitManager projectId={project.id} projectTitle={project.title} />
-                                </CardContent>
+                                    <div className="flex gap-2">
+                                        {project.isLive && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 md:h-9"
+                                                onClick={() => setDetailEditorProjectId(project.id)}
+                                            >
+                                                <span className="hidden md:inline">페이지 관리</span>
+                                                <span className="md:hidden">관리</span>
+                                            </Button>
+                                        )}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => openDialog(project)}
+                                            data-testid={`button-edit-project-${project.id}`}
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => deleteMutation.mutate(project.id)}
+                                            data-testid={`button-delete-project-${project.id}`}
+                                        >
+                                            <Trash2 className="w-4 h-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                </div>
+                                <SubprojectManager projectId={project.id} projectTitle={project.title} />
+                                <UnitManager projectId={project.id} projectTitle={project.title} />
+                            </CardContent>
                             </Card>
                         ))}
-                    </div>
-                    {renderPagination()}
-                </>
-            )}
-        </div>
+                </div>
+            {renderPagination()}
+        </>
+    )
+}
+        </div >
     );
 }
