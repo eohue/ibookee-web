@@ -19,22 +19,18 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Calendar, Mail, Phone, Trash2, MessageSquare } from "lucide-react";
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Calendar, Mail, Phone, Trash2, MessageSquare, Download } from "lucide-react";
+import * as XLSX from "xlsx";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Inquiry } from "@shared/schema";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -52,6 +48,7 @@ export function InquiriesSection() {
     const { toast } = useToast();
     const [page, setPage] = useState(getParamsFromUrl().page);
     const [type, setType] = useState(getParamsFromUrl().type);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     // Sync URL with state
     useEffect(() => {
@@ -125,6 +122,46 @@ export function InquiriesSection() {
     const inquiries = data?.inquiries || [];
     const totalPages = Math.ceil((data?.total || 0) / ITEMS_PER_PAGE);
 
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(inquiries.map(i => i.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleSelect = (id: string, checked: boolean) => {
+        if (checked) {
+            setSelectedIds(prev => [...prev, id]);
+        } else {
+            setSelectedIds(prev => prev.filter(i => i !== id));
+        }
+    };
+
+    const handleExport = () => {
+        if (selectedIds.length === 0) {
+            toast({ title: "내보낼 항목을 선택해주세요.", variant: "destructive" });
+            return;
+        }
+
+        const selectedInquiries = inquiries.filter(i => selectedIds.includes(i.id));
+
+        const exportData = selectedInquiries.map(i => ({
+            "유형": getTypeLabel(i.type),
+            "이름": i.name,
+            "회사": i.company || "-",
+            "이메일": i.email,
+            "전화번호": i.phone || "-",
+            "내용": i.message,
+            "작성일": i.createdAt ? new Date(i.createdAt).toLocaleDateString("ko-KR") : "-"
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Inquiries");
+        XLSX.writeFile(wb, `문의내역_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
     const renderPagination = () => {
         if (totalPages <= 1) return null;
 
@@ -183,7 +220,15 @@ export function InquiriesSection() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h2 className="text-xl font-semibold">문의 관리 <span className="text-sm font-normal text-muted-foreground ml-2">Total {data?.total || 0}</span></h2>
+                <div className="flex items-center gap-4">
+                    <h2 className="text-xl font-semibold">문의 관리 <span className="text-sm font-normal text-muted-foreground ml-2">Total {data?.total || 0}</span></h2>
+                    {selectedIds.length > 0 && (
+                        <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
+                            <Download className="w-4 h-4" />
+                            엑셀 다운로드 ({selectedIds.length})
+                        </Button>
+                    )}
+                </div>
                 <Tabs value={type} onValueChange={handleTabChange} className="w-full sm:w-auto">
                     <TabsList className="grid w-full grid-cols-4 sm:w-auto">
                         <TabsTrigger value="all">전체</TabsTrigger>
@@ -198,6 +243,13 @@ export function InquiriesSection() {
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-[50px]">
+                                <Checkbox
+                                    checked={inquiries.length > 0 && selectedIds.length === inquiries.length}
+                                    onCheckedChange={handleSelectAll}
+                                    aria-label="Select all"
+                                />
+                            </TableHead>
                             <TableHead className="w-[100px]">유형</TableHead>
                             <TableHead className="w-[180px]">보낸 사람</TableHead>
                             <TableHead className="w-[200px]">연락처</TableHead>
@@ -209,19 +261,26 @@ export function InquiriesSection() {
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center">
+                                <TableCell colSpan={7} className="h-24 text-center">
                                     로딩 중...
                                 </TableCell>
                             </TableRow>
                         ) : inquiries.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center">
+                                <TableCell colSpan={7} className="h-24 text-center">
                                     접수된 문의가 없습니다.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             inquiries.map((inquiry) => (
                                 <TableRow key={inquiry.id}>
+                                    <TableCell>
+                                        <Checkbox
+                                            checked={selectedIds.includes(inquiry.id)}
+                                            onCheckedChange={(checked) => handleSelect(inquiry.id, checked as boolean)}
+                                            aria-label={`Select inquiry from ${inquiry.name}`}
+                                        />
+                                    </TableCell>
                                     <TableCell>
                                         <Badge variant={getTypeVariant(inquiry.type)} className="whitespace-nowrap">
                                             {getTypeLabel(inquiry.type)}
@@ -250,18 +309,24 @@ export function InquiriesSection() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div className="max-w-[300px] truncate cursor-help text-sm">
-                                                        {inquiry.message}
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent className="max-w-[400px] p-4 text-sm whitespace-pre-wrap">
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <div className="max-w-[300px] truncate cursor-pointer text-sm hover:underline">
                                                     {inquiry.message}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                                </div>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-[600px] max-h-[80vh] overflow-y-auto">
+                                                <DialogHeader>
+                                                    <DialogTitle>문의 내용</DialogTitle>
+                                                    <DialogDescription>
+                                                        보낸 사람: {inquiry.name} ({inquiry.email})
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="mt-4 text-sm whitespace-pre-wrap leading-relaxed">
+                                                    {inquiry.message}
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
                                     </TableCell>
                                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                                         {inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString("ko-KR") : "-"}
