@@ -670,6 +670,7 @@ function EditArticleDialog({
                         <div className="space-y-2">
                             <Label>본문</Label>
                             <RichTextEditor
+                                key={article?.id}
                                 value={content}
                                 onChange={setContent}
                                 className="min-h-[300px]"
