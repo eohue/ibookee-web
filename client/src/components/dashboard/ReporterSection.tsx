@@ -453,7 +453,13 @@ function ArticleTable({
     );
 }
 
+import { marked } from "marked";
+
+// ... (existing helper function)
+
 function ViewArticleDialog({ article, onClose }: { article: ResidentReporter | null; onClose: () => void }) {
+    const [htmlContent, setHtmlContent] = useState("");
+
     // Fetch full viewing article
     const { data: fullViewingArticle } = useQuery<ResidentReporter>({
         queryKey: ["/api/resident-reporter", article?.id],
@@ -466,9 +472,26 @@ function ViewArticleDialog({ article, onClose }: { article: ResidentReporter | n
         enabled: !!article?.id,
     });
 
-    // Use the fetched full article if available, otherwise fallback to the list item (which might miss content)
-    // But typically list item is passed for immediate display of title etc.
+    // Use the fetched full article if available, otherwise fallback to the list item
     const displayArticle = fullViewingArticle || article;
+
+    useEffect(() => {
+        const parseContent = async () => {
+            const contentToParse = fullViewingArticle?.content || article?.content;
+            if (contentToParse) {
+                try {
+                    const parsed = await marked.parse(contentToParse);
+                    setHtmlContent(parsed);
+                } catch (e) {
+                    console.error("Failed to parse markdown", e);
+                    setHtmlContent(contentToParse);
+                }
+            } else {
+                setHtmlContent("");
+            }
+        };
+        parseContent();
+    }, [fullViewingArticle, article]);
 
     return (
         <Dialog open={!!article} onOpenChange={() => onClose()}>
@@ -484,7 +507,7 @@ function ViewArticleDialog({ article, onClose }: { article: ResidentReporter | n
                         {fullViewingArticle.imageUrl && (
                             <img src={fullViewingArticle.imageUrl} alt={fullViewingArticle.title} className="w-full rounded-lg" />
                         )}
-                        <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(fullViewingArticle.content) }} />
+                        <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }} />
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground border-t pt-4">
                             <div className="flex items-center gap-1.5">
                                 <Calendar className="w-4 h-4" />
@@ -530,7 +553,7 @@ function EditArticleDialog({
     const [postedAt, setPostedAt] = useState<string>("");
 
     // Fetch full article for editing
-    const { data: fullData } = useQuery({
+    const { data: fullData, isLoading } = useQuery({
         queryKey: ["/api/resident-reporter", article?.id, "edit"],
         queryFn: async () => {
             if (!article?.id) return null;
@@ -543,22 +566,38 @@ function EditArticleDialog({
 
     // Populate form when data is loaded
     useEffect(() => {
-        if (fullData) {
-            setTitle(fullData.title);
-            setContent(fullData.content || "");
-            setAuthorName(fullData.authorName);
-            setImageUrl(fullData.imageUrl || "");
-            // Format for datetime-local input: YYYY-MM-DDTHH:mm
-            if (fullData.postedAt) {
-                const date = new Date(fullData.postedAt);
-                const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-                setPostedAt(isoString);
-            } else if (fullData.createdAt) {
-                const date = new Date(fullData.createdAt);
-                const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-                setPostedAt(isoString);
+        const initializeForm = async () => {
+            if (fullData) {
+                setTitle(fullData.title);
+                setAuthorName(fullData.authorName);
+                setImageUrl(fullData.imageUrl || "");
+
+                // Parse markdown content to HTML for the editor
+                if (fullData.content) {
+                    try {
+                        const parsed = await marked.parse(fullData.content);
+                        setContent(parsed);
+                    } catch (e) {
+                        console.error("Failed to parse markdown for editor", e);
+                        setContent(fullData.content);
+                    }
+                } else {
+                    setContent("");
+                }
+
+                // Format for datetime-local input: YYYY-MM-DDTHH:mm
+                if (fullData.postedAt) {
+                    const date = new Date(fullData.postedAt);
+                    const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                    setPostedAt(isoString);
+                } else if (fullData.createdAt) {
+                    const date = new Date(fullData.createdAt);
+                    const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                    setPostedAt(isoString);
+                }
             }
-        }
+        };
+        initializeForm();
     }, [fullData]);
 
     const handleClose = () => {
@@ -589,44 +628,48 @@ function EditArticleDialog({
                     <DialogTitle>기사 수정</DialogTitle>
                     <DialogDescription>기사 내용을 수정합니다. 수정일이 자동으로 기록됩니다.</DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label>제목</Label>
-                        <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+                {isLoading && !fullData ? (
+                    <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
+                ) : (
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>제목</Label>
+                            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>작성자</Label>
+                            <Input value={authorName} onChange={(e) => setAuthorName(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>대표 이미지</Label>
+                            <ImageUpload
+                                value={imageUrl}
+                                onChange={(url) => setImageUrl(typeof url === 'string' ? url : url[0])}
+                                maxFiles={1}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>게시 날짜 (선택)</Label>
+                            <Input
+                                type="datetime-local"
+                                value={postedAt}
+                                onChange={(e) => setPostedAt(e.target.value)}
+                            />
+                            <p className="text-xs text-muted-foreground">날짜를 지정하지 않으면 원본 작성일이 유지됩니다.</p>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>본문</Label>
+                            <RichTextEditor
+                                value={content}
+                                onChange={setContent}
+                                className="min-h-[300px]"
+                            />
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label>작성자</Label>
-                        <Input value={authorName} onChange={(e) => setAuthorName(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>대표 이미지</Label>
-                        <ImageUpload
-                            value={imageUrl}
-                            onChange={(url) => setImageUrl(typeof url === 'string' ? url : url[0])}
-                            maxFiles={1}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>게시 날짜 (선택)</Label>
-                        <Input
-                            type="datetime-local"
-                            value={postedAt}
-                            onChange={(e) => setPostedAt(e.target.value)}
-                        />
-                        <p className="text-xs text-muted-foreground">날짜를 지정하지 않으면 원본 작성일이 유지됩니다.</p>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>본문</Label>
-                        <RichTextEditor
-                            value={content}
-                            onChange={setContent}
-                            className="min-h-[300px]"
-                        />
-                    </div>
-                </div>
+                )}
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose}>취소</Button>
-                    <Button onClick={handleSave} disabled={isPending}>
+                    <Button onClick={handleSave} disabled={isPending || isLoading}>
                         {isPending ? "저장 중..." : "저장"}
                     </Button>
                 </DialogFooter>
