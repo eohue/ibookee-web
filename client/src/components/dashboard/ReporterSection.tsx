@@ -479,12 +479,17 @@ function ViewArticleDialog({ article, onClose }: { article: ResidentReporter | n
         const parseContent = async () => {
             const contentToParse = fullViewingArticle?.content || article?.content;
             if (contentToParse) {
-                try {
-                    const parsed = await marked.parse(contentToParse);
-                    setHtmlContent(parsed);
-                } catch (e) {
-                    console.error("Failed to parse markdown", e);
+                // Check if content looks like HTML
+                if (contentToParse.trim().startsWith("<")) {
                     setHtmlContent(contentToParse);
+                } else {
+                    try {
+                        const parsed = await marked.parse(contentToParse);
+                        setHtmlContent(parsed);
+                    } catch (e) {
+                        console.error("Failed to parse markdown", e);
+                        setHtmlContent(contentToParse);
+                    }
                 }
             } else {
                 setHtmlContent("");
@@ -574,12 +579,17 @@ function EditArticleDialog({
 
                 // Parse markdown content to HTML for the editor
                 if (fullData.content) {
-                    try {
-                        const parsed = await marked.parse(fullData.content);
-                        setContent(parsed);
-                    } catch (e) {
-                        console.error("Failed to parse markdown for editor", e);
+                    // Check if content looks like HTML
+                    if (fullData.content.trim().startsWith("<")) {
                         setContent(fullData.content);
+                    } else {
+                        try {
+                            const parsed = await marked.parse(fullData.content);
+                            setContent(parsed);
+                        } catch (e) {
+                            console.error("Failed to parse markdown for editor", e);
+                            setContent(fullData.content);
+                        }
                     }
                 } else {
                     setContent("");
