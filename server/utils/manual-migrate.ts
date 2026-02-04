@@ -48,6 +48,15 @@ export async function runSafeMigration() {
             await client.query(`ALTER TABLE inquiries ADD COLUMN preferred_project TEXT`);
         }
 
+        // 5. Check and Add 'posted_at' column to resident_reporters
+        const checkPostedAt = await client.query(
+            `SELECT column_name FROM information_schema.columns WHERE table_name='resident_reporters' AND column_name='posted_at'`
+        );
+        if (checkPostedAt.rows.length === 0) {
+            console.log("Adding missing column: posted_at to resident_reporters");
+            await client.query(`ALTER TABLE resident_reporters ADD COLUMN posted_at TIMESTAMP DEFAULT NOW()`);
+        }
+
     } catch (error) {
         console.error("Safe migration failed:", error);
         // Don't throw, let the app try to start anyway, or throw if critical?
