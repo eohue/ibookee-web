@@ -571,43 +571,26 @@ function EditArticleDialog({
 
     // Populate form when data is loaded
     useEffect(() => {
-        const initializeForm = async () => {
-            if (fullData) {
-                setTitle(fullData.title);
-                setAuthorName(fullData.authorName);
-                setImageUrl(fullData.imageUrl || "");
+        if (fullData) {
+            setTitle(fullData.title);
+            setAuthorName(fullData.authorName);
+            setImageUrl(fullData.imageUrl || "");
 
-                // Parse markdown content to HTML for the editor
-                if (fullData.content) {
-                    // Check if content looks like HTML
-                    if (fullData.content.trim().startsWith("<")) {
-                        setContent(fullData.content);
-                    } else {
-                        try {
-                            const parsed = await marked.parse(fullData.content);
-                            setContent(parsed);
-                        } catch (e) {
-                            console.error("Failed to parse markdown for editor", e);
-                            setContent(fullData.content);
-                        }
-                    }
-                } else {
-                    setContent("");
-                }
+            // Set content directly to match Resource section behavior
+            // This avoids async parsing issues with marked
+            setContent(fullData.content || "");
 
-                // Format for datetime-local input: YYYY-MM-DDTHH:mm
-                if (fullData.postedAt) {
-                    const date = new Date(fullData.postedAt);
-                    const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-                    setPostedAt(isoString);
-                } else if (fullData.createdAt) {
-                    const date = new Date(fullData.createdAt);
-                    const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-                    setPostedAt(isoString);
-                }
+            // Format for datetime-local input: YYYY-MM-DDTHH:mm
+            if (fullData.postedAt) {
+                const date = new Date(fullData.postedAt);
+                const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                setPostedAt(isoString);
+            } else if (fullData.createdAt) {
+                const date = new Date(fullData.createdAt);
+                const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                setPostedAt(isoString);
             }
-        };
-        initializeForm();
+        }
     }, [fullData]);
 
     const handleClose = () => {
