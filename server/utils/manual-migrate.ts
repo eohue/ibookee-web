@@ -39,6 +39,15 @@ export async function runSafeMigration() {
     `);
         console.log("Verified table: live_project_details");
 
+        // 4. Check and Add 'preferred_project' column to inquiries
+        const checkPreferredProject = await client.query(
+            `SELECT column_name FROM information_schema.columns WHERE table_name='inquiries' AND column_name='preferred_project'`
+        );
+        if (checkPreferredProject.rows.length === 0) {
+            console.log("Adding missing column: preferred_project to inquiries");
+            await client.query(`ALTER TABLE inquiries ADD COLUMN preferred_project TEXT`);
+        }
+
     } catch (error) {
         console.error("Safe migration failed:", error);
         // Don't throw, let the app try to start anyway, or throw if critical?
