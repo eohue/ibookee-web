@@ -198,7 +198,7 @@ export default function ResidentReporterDetail() {
                                     </span>
                                 )}
                                 <span className="text-sm text-muted-foreground">
-                                    {new Date(article.createdAt || "").toLocaleDateString("ko-KR", {
+                                    {new Date(article.postedAt || article.createdAt || "").toLocaleDateString("ko-KR", {
                                         year: "numeric",
                                         month: "long",
                                         day: "numeric"

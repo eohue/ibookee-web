@@ -177,12 +177,13 @@ export function registerReporterRoutes(app: Express) {
     // Admin: Update article (edit content)
     app.put("/api/admin/resident-reporter/:id", isAdmin, async (req, res) => {
         try {
-            const { title, content, authorName, imageUrl } = req.body;
+            const { title, content, authorName, imageUrl, postedAt } = req.body;
             const article = await storage.adminUpdateReporterArticle(req.params.id, {
                 title,
                 content,
                 authorName,
                 imageUrl,
+                postedAt: postedAt ? new Date(postedAt) : undefined, // Check if postedAt matches the schema type
             });
             if (!article) {
                 return res.status(404).json({ error: "Article not found" });

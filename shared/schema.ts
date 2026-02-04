@@ -362,11 +362,14 @@ export const residentReporters = pgTable("resident_reporters", {
   createdAt: timestamp("created_at").defaultNow(),
   approvedAt: timestamp("approved_at"),
   updatedAt: timestamp("updated_at"),
+  postedAt: timestamp("posted_at").defaultNow(), // Custom display date
   likes: integer("likes").default(0),
   commentCount: integer("comment_count").default(0),
 });
 
-export const insertResidentReporterSchema = createInsertSchema(residentReporters).omit({ id: true, createdAt: true, approvedAt: true, updatedAt: true, likes: true, commentCount: true });
+export const insertResidentReporterSchema = createInsertSchema(residentReporters, {
+  postedAt: z.coerce.date().optional(),
+}).omit({ id: true, createdAt: true, approvedAt: true, updatedAt: true, likes: true, commentCount: true });
 export type InsertResidentReporter = z.infer<typeof insertResidentReporterSchema>;
 export type ResidentReporter = typeof residentReporters.$inferSelect;
 

@@ -38,6 +38,8 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import type { ResidentReporter } from "@shared/schema";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { format } from "date-fns";
 import { useState, useEffect } from "react";
 
 const ITEMS_PER_PAGE = 10;
@@ -140,7 +142,7 @@ export function ReporterSection() {
     });
 
     const editMutation = useMutation({
-        mutationFn: async (data: { id: string; title: string; content: string; authorName: string; imageUrl: string }) => {
+        mutationFn: async (data: { id: string; title: string; content: string; authorName: string; imageUrl: string; postedAt: string | null }) => {
             const res = await apiRequest("PUT", `/api/admin/resident-reporter/${data.id}`, data);
             return res.json();
         },
@@ -394,7 +396,7 @@ function ArticleTable({
                                 <div className="space-y-1 text-xs">
                                     <div className="flex items-center gap-1 text-muted-foreground">
                                         <Calendar className="w-3 h-3" />
-                                        작성: {new Date(article.createdAt || "").toLocaleDateString()}
+                                        작성: {new Date(article.postedAt || article.createdAt || "").toLocaleDateString()}
                                     </div>
                                     {article.approvedAt && (
                                         <div className="flex items-center gap-1 text-green-600">
@@ -486,7 +488,7 @@ function ViewArticleDialog({ article, onClose }: { article: ResidentReporter | n
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground border-t pt-4">
                             <div className="flex items-center gap-1.5">
                                 <Calendar className="w-4 h-4" />
-                                작성일: {new Date(fullViewingArticle.createdAt || "").toLocaleDateString("ko-KR")}
+                                작성일: {new Date(fullViewingArticle.postedAt || fullViewingArticle.createdAt || "").toLocaleDateString("ko-KR")}
                             </div>
                             {fullViewingArticle.approvedAt && (
                                 <div className="flex items-center gap-1.5">
@@ -518,13 +520,14 @@ function EditArticleDialog({
 }: {
     article: ResidentReporter | null;
     onClose: () => void;
-    onSave: (data: { id: string; title: string; content: string; authorName: string; imageUrl: string }) => void;
+    onSave: (data: { id: string; title: string; content: string; authorName: string; imageUrl: string; postedAt: string | null }) => void;
     isPending: boolean;
 }) {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [authorName, setAuthorName] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+    const [postedAt, setPostedAt] = useState<string>("");
 
     // Fetch full article for editing
     const { data: fullData } = useQuery({
@@ -545,6 +548,16 @@ function EditArticleDialog({
             setContent(fullData.content || "");
             setAuthorName(fullData.authorName);
             setImageUrl(fullData.imageUrl || "");
+            // Format for datetime-local input: YYYY-MM-DDTHH:mm
+            if (fullData.postedAt) {
+                const date = new Date(fullData.postedAt);
+                const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                setPostedAt(isoString);
+            } else if (fullData.createdAt) {
+                const date = new Date(fullData.createdAt);
+                const isoString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                setPostedAt(isoString);
+            }
         }
     }, [fullData]);
 
@@ -553,6 +566,7 @@ function EditArticleDialog({
         setContent("");
         setAuthorName("");
         setImageUrl("");
+        setPostedAt("");
         onClose();
     };
 
@@ -564,6 +578,7 @@ function EditArticleDialog({
             content,
             authorName,
             imageUrl,
+            postedAt: postedAt ? new Date(postedAt).toISOString() : null,
         });
     };
 
@@ -592,13 +607,21 @@ function EditArticleDialog({
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label>본문</Label>
-                        <Textarea
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            className="min-h-[200px]"
+                        <Label>게시 날짜 (선택)</Label>
+                        <Input
+                            type="datetime-local"
+                            value={postedAt}
+                            onChange={(e) => setPostedAt(e.target.value)}
                         />
-                        <p className="text-xs text-muted-foreground">HTML 형식으로 입력할 수 있습니다.</p>
+                        <p className="text-xs text-muted-foreground">날짜를 지정하지 않으면 원본 작성일이 유지됩니다.</p>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>본문</Label>
+                        <RichTextEditor
+                            value={content}
+                            onChange={setContent}
+                            className="min-h-[300px]"
+                        />
                     </div>
                 </div>
                 <DialogFooter>

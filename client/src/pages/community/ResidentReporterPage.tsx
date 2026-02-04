@@ -81,7 +81,7 @@ export default function ResidentReporterPage() {
                                         <div className="p-6">
                                             <div className="flex items-center justify-between mb-3">
                                                 <span className="text-sm text-primary font-medium">{article.authorName} 기자</span>
-                                                <span className="text-xs text-muted-foreground">{new Date(article.createdAt || "").toLocaleDateString()}</span>
+                                                <span className="text-xs text-muted-foreground">{new Date(article.postedAt || article.createdAt || "").toLocaleDateString()}</span>
                                             </div>
                                             <h3 className="text-xl font-bold mb-3 line-clamp-1">{article.title}</h3>
                                             <p className="text-muted-foreground line-clamp-3 text-sm">
