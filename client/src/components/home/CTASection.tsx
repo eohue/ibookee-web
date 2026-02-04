@@ -1,11 +1,19 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Project } from "@shared/schema";
 
 export default function CTASection() {
   const { toast } = useToast();
@@ -13,11 +21,16 @@ export default function CTASection() {
     name: "",
     email: "",
     phone: "",
+    preferredHouse: "",
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ["/api/projects?isLive=true"],
+  });
+
   const inquiryMutation = useMutation({
-    mutationFn: async (data: { type: string; name: string; email: string; phone: string; message: string }) => {
+    mutationFn: async (data: { type: string; name: string; email: string; phone: string; message: string; preferredProject?: string }) => {
       const response = await apiRequest("POST", "/api/inquiries", data);
       return response.json();
     },
@@ -45,6 +58,7 @@ export default function CTASection() {
       email: formData.email,
       phone: formData.phone,
       message: "입주 대기 신청",
+      preferredProject: formData.preferredHouse,
     });
   };
 
@@ -138,6 +152,24 @@ export default function CTASection() {
                       className="mt-1.5"
                       data-testid="input-phone"
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="preferredHouse">희망 입주 주택 (선택)</Label>
+                    <Select
+                      value={formData.preferredHouse}
+                      onValueChange={(value) => setFormData({ ...formData, preferredHouse: value })}
+                    >
+                      <SelectTrigger className="mt-1.5" id="preferredHouse">
+                        <SelectValue placeholder="입주 희망하는 주택을 선택해주세요" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.title}>
+                            {project.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <Button
                     type="submit"

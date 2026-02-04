@@ -148,6 +148,7 @@ export function InquiriesSection() {
 
         const exportData = selectedInquiries.map(i => ({
             "유형": getTypeLabel(i.type),
+            "희망 주택": i.preferredProject || "-",
             "이름": i.name,
             "회사": i.company || "-",
             "이메일": i.email,
@@ -251,6 +252,7 @@ export function InquiriesSection() {
                                 />
                             </TableHead>
                             <TableHead className="w-[100px]">유형</TableHead>
+                            <TableHead className="w-[120px]">희망 주택</TableHead>
                             <TableHead className="w-[180px]">보낸 사람</TableHead>
                             <TableHead className="w-[200px]">연락처</TableHead>
                             <TableHead>내용</TableHead>
@@ -287,6 +289,9 @@ export function InquiriesSection() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
+                                        <div className="text-sm font-medium">{inquiry.preferredProject || "-"}</div>
+                                    </TableCell>
+                                    <TableCell>
                                         <div className="font-medium">{inquiry.name}</div>
                                         {inquiry.company && (
                                             <div className="text-xs text-muted-foreground truncate" title={inquiry.company}>
@@ -320,6 +325,11 @@ export function InquiriesSection() {
                                                     <DialogTitle>문의 내용</DialogTitle>
                                                     <DialogDescription>
                                                         보낸 사람: {inquiry.name} ({inquiry.email})
+                                                        {inquiry.preferredProject && (
+                                                            <span className="block mt-1 text-primary font-medium">
+                                                                희망 입주 주택: {inquiry.preferredProject}
+                                                            </span>
+                                                        )}
                                                     </DialogDescription>
                                                 </DialogHeader>
                                                 <div className="mt-4 text-sm whitespace-pre-wrap leading-relaxed">

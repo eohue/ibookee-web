@@ -76,6 +76,7 @@ export const inquiries = pgTable("inquiries", {
   phone: text("phone"),
   company: text("company"),
   message: text("message").notNull(),
+  preferredProject: text("preferred_project"), // 희망 입주 주택
   createdAt: timestamp("created_at").defaultNow(),
 });
 

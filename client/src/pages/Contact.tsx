@@ -20,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 import { useFooterSettings } from "@/hooks/use-site-settings";
+import type { Project } from "@shared/schema";
 
 type FormType = "move-in" | "business" | "recruit" | "resident-auth";
 
@@ -99,8 +100,12 @@ export default function Contact() {
     }
   }, []);
 
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ["/api/projects?isLive=true"],
+  });
+
   const inquiryMutation = useMutation({
-    mutationFn: async (data: { type: string; name: string; email: string; phone?: string; company?: string; message: string }) => {
+    mutationFn: async (data: { type: string; name: string; email: string; phone?: string; company?: string; message: string; preferredProject?: string }) => {
       const response = await apiRequest("POST", "/api/inquiries", data);
       return response.json();
     },
@@ -130,7 +135,8 @@ export default function Contact() {
         name: moveInData.name,
         email: moveInData.email,
         phone: moveInData.phone,
-        message: `희망지역: ${moveInData.preferredLocation}\n\n${moveInData.message}`,
+        message: moveInData.message,
+        preferredProject: moveInData.preferredLocation,
       };
     } else if (activeForm === "business") {
       data = {
@@ -333,15 +339,11 @@ export default function Contact() {
                                 <SelectValue placeholder="선택해주세요" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="캔자스대저택">캔자스대저택</SelectItem>
-                                <SelectItem value="안암생활">안암생활</SelectItem>
-                                <SelectItem value="장안생활">장안생활</SelectItem>
-                                <SelectItem value="부평생활">부평생활</SelectItem>
-                                <SelectItem value="주안생활">주안생활</SelectItem>
-                                <SelectItem value="홍시주택">홍시주택</SelectItem>
-                                <SelectItem value="다다름하우스">다다름하우스</SelectItem>
-                                <SelectItem value="조원생활">조원생활</SelectItem>
-                                <SelectItem value="그루하우스">그루하우스</SelectItem>
+                                {projects.map((project) => (
+                                  <SelectItem key={project.id} value={project.title}>
+                                    {project.title}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>
