@@ -11,6 +11,7 @@ export function registerProgramRoutes(app: Express) {
             const programs = type
                 ? await storage.getResidentProgramsByType(type)
                 : await storage.getResidentPrograms();
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
             res.json(programs);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch programs" });

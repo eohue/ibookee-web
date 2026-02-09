@@ -11,6 +11,7 @@ export function registerSettingsRoutes(app: Express) {
             if (!setting) {
                 return res.status(404).json({ error: "Setting not found" });
             }
+            res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
             res.json(setting);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch setting" });

@@ -18,6 +18,7 @@ export function registerLiveDetailRoutes(app: Express) {
                 return res.json({});
             }
 
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
             res.json(detail);
         } catch (error) {
             console.error("Error fetching live details:", error);

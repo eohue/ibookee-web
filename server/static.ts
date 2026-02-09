@@ -10,10 +10,18 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  // Hashed static assets (JS, CSS, images) — 1 year cache, immutable
+  app.use(express.static(distPath, {
+    maxAge: "1y",
+    immutable: true,
+    etag: true,
+    index: false, // Don't serve index.html from here
+  }));
 
-  // fall through to index.html if the file doesn't exist
+  // SPA fallback — index.html always fresh (no-cache)
   app.use("*", (_req, res) => {
+    res.set("Cache-Control", "no-cache, no-store, must-revalidate");
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
+

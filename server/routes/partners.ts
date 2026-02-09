@@ -8,6 +8,7 @@ export function registerPartnerRoutes(app: Express) {
     app.get("/api/partners", async (_req, res) => {
         try {
             const partners = await storage.getPartners();
+            res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
             res.json(partners);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch partners" });

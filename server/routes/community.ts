@@ -9,6 +9,7 @@ export function registerCommunityRoutes(app: Express) {
         try {
             const limit = parseInt(req.query.limit as string) || 20;
             const feed = await storage.getUnifiedCommunityFeed(limit);
+            res.set('Cache-Control', 'public, max-age=30, s-maxage=30');
             res.json(feed);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch community feed" });
@@ -28,6 +29,7 @@ export function registerCommunityRoutes(app: Express) {
             } else {
                 result = await storage.getCommunityPosts(page, limit);
             }
+            res.set('Cache-Control', 'public, max-age=30, s-maxage=30');
             res.json(result);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch community posts" });

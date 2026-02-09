@@ -8,6 +8,7 @@ export function registerSocialRoutes(app: Express) {
     app.get("/api/social-accounts", async (_req, res) => {
         try {
             const accounts = await storage.getSocialAccounts();
+            res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
             res.json(accounts.filter(a => a.isActive));
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch social accounts" });

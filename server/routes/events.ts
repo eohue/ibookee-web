@@ -8,6 +8,7 @@ export function registerEventRoutes(app: Express) {
     app.get("/api/events", async (_req, res) => {
         try {
             const events = await storage.getEvents();
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
             res.json(events);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch events" });

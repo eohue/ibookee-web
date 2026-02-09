@@ -11,6 +11,7 @@ export function registerHomeRoutes(app: Express) {
                 storage.getSiteSetting("company_stats"),
             ]);
 
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
             res.json({
                 projects: projectsResult.projects,
                 reporters: reportersResult.articles, // Limit already applied in DB

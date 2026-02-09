@@ -11,6 +11,7 @@ export function registerPageRoutes(app: Express) {
             if (!page) {
                 return res.status(404).json({ error: "Page not found" });
             }
+            res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
             res.json(page);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch page" });
@@ -21,6 +22,7 @@ export function registerPageRoutes(app: Express) {
     app.get("/api/page-images", async (_req, res) => {
         try {
             const images = await storage.getPageImages();
+            res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
             res.json(images);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch page images" });
@@ -30,6 +32,7 @@ export function registerPageRoutes(app: Express) {
     app.get("/api/page-images/:pageKey", async (req, res) => {
         try {
             const images = await storage.getPageImagesByPage(req.params.pageKey);
+            res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
             res.json(images);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch page images" });

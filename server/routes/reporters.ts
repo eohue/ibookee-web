@@ -133,6 +133,7 @@ export function registerReporterRoutes(app: Express) {
             const limit = parseInt(req.query.limit as string) || 20;
 
             const result = await storage.getReporterArticles("approved", page, limit);
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
             res.json(result);
         } catch (error) {
             console.error("Failed to fetch reporter articles:", error);

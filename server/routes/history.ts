@@ -8,6 +8,7 @@ export function registerHistoryRoutes(app: Express) {
     app.get("/api/history", async (_req, res) => {
         try {
             const milestones = await storage.getHistoryMilestones();
+            res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
             res.json(milestones);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch history" });

@@ -8,6 +8,7 @@ export function registerRecruitmentRoutes(app: Express) {
     app.get("/api/recruitments", async (req, res) => {
         try {
             const recruitments = await storage.getPublishedHousingRecruitments();
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
             res.json(recruitments);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch recruitments" });
