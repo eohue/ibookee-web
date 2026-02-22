@@ -27,9 +27,10 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Calendar, Mail, Phone, Trash2, MessageSquare, Download } from "lucide-react";
+import { Calendar, Mail, Phone, Trash2, MessageSquare, Download, Lock } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import type { Inquiry } from "@shared/schema";
 
 const ITEMS_PER_PAGE = 20;
@@ -49,6 +50,10 @@ export function InquiriesSection() {
     const [page, setPage] = useState(getParamsFromUrl().page);
     const [type, setType] = useState(getParamsFromUrl().type);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+    // For answer dialog
+    const [selectedInquiryId, setSelectedInquiryId] = useState<string | null>(null);
+    const [answerText, setAnswerText] = useState("");
 
     // Sync URL with state
     useEffect(() => {
@@ -93,6 +98,20 @@ export function InquiriesSection() {
         },
         onError: () => {
             toast({ title: "삭제 실패", variant: "destructive" });
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, data }: { id: string; data: Partial<Inquiry> }) => {
+            const res = await apiRequest("PATCH", `/api/admin/inquiries/${id}`, data);
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/inquiries"] });
+            toast({ title: "답변이 저장되었습니다." });
+        },
+        onError: () => {
+            toast({ title: "저장 실패", variant: "destructive" });
         },
     });
 
@@ -148,13 +167,19 @@ export function InquiriesSection() {
 
         const exportData = selectedInquiries.map(i => ({
             "유형": getTypeLabel(i.type),
+            "제목": i.title || "-",
+            "상태": i.status === 'answered' ? '답변완료' : '대기중',
+            "비밀글": i.isSecret ? 'Y' : 'N',
             "희망 주택": i.preferredProject || "-",
             "이름": i.name,
             "회사": i.company || "-",
             "이메일": i.email,
             "전화번호": i.phone || "-",
+            "비밀번호": i.password || "-",
             "내용": i.message,
-            "작성일": i.createdAt ? new Date(i.createdAt).toLocaleDateString("ko-KR") : "-"
+            "답변내용": i.answer || "-",
+            "작성일": i.createdAt ? new Date(i.createdAt).toLocaleDateString("ko-KR") : "-",
+            "답변일": i.answeredAt ? new Date(i.answeredAt).toLocaleDateString("ko-KR") : "-"
         }));
 
         const ws = XLSX.utils.json_to_sheet(exportData);
@@ -163,10 +188,13 @@ export function InquiriesSection() {
         XLSX.writeFile(wb, `문의내역_${new Date().toISOString().slice(0, 10)}.xlsx`);
     };
 
+    const handleSaveAnswer = (inquiryId: string) => {
+        updateMutation.mutate({ id: inquiryId, data: { answer: answerText } });
+    };
+
     const renderPagination = () => {
         if (totalPages <= 1) return null;
 
-        // Pagination logic (simplified for brevity but functional)
         const pages: (number | 'ellipsis')[] = [];
         const showEllipsisStart = page > 3;
         const showEllipsisEnd = page < totalPages - 2;
@@ -251,11 +279,11 @@ export function InquiriesSection() {
                                     aria-label="Select all"
                                 />
                             </TableHead>
+                            <TableHead className="w-[80px]">상태</TableHead>
                             <TableHead className="w-[100px]">유형</TableHead>
                             <TableHead className="w-[120px]">희망 주택</TableHead>
-                            <TableHead className="w-[180px]">보낸 사람</TableHead>
-                            <TableHead className="w-[200px]">연락처</TableHead>
-                            <TableHead>내용</TableHead>
+                            <TableHead className="w-[200px]">보낸 사람</TableHead>
+                            <TableHead>내용/제목</TableHead>
                             <TableHead className="w-[120px]">날짜</TableHead>
                             <TableHead className="w-[80px] text-right">관리</TableHead>
                         </TableRow>
@@ -263,13 +291,13 @@ export function InquiriesSection() {
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center">
+                                <TableCell colSpan={8} className="h-24 text-center">
                                     로딩 중...
                                 </TableCell>
                             </TableRow>
                         ) : inquiries.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center">
+                                <TableCell colSpan={8} className="h-24 text-center">
                                     접수된 문의가 없습니다.
                                 </TableCell>
                             </TableRow>
@@ -284,56 +312,102 @@ export function InquiriesSection() {
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={getTypeVariant(inquiry.type)} className="whitespace-nowrap">
-                                            {getTypeLabel(inquiry.type)}
+                                        <Badge variant={inquiry.status === "answered" ? "default" : "secondary"}>
+                                            {inquiry.status === "answered" ? "답변완료" : "대기중"}
                                         </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-1.5 whitespace-nowrap">
+                                            {getTypeLabel(inquiry.type)}
+                                            {inquiry.isSecret && <Lock className="w-3 h-3 text-muted-foreground shrink-0" />}
+                                        </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="text-sm font-medium">{inquiry.preferredProject || "-"}</div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="font-medium">{inquiry.name}</div>
-                                        {inquiry.company && (
-                                            <div className="text-xs text-muted-foreground truncate" title={inquiry.company}>
-                                                {inquiry.company}
-                                            </div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="text-sm space-y-0.5">
-                                            <div className="flex items-center gap-1">
-                                                <Mail className="w-3 h-3 text-muted-foreground" />
-                                                <span className="truncate" title={inquiry.email}>{inquiry.email}</span>
-                                            </div>
-                                            {inquiry.phone && (
-                                                <div className="flex items-center gap-1">
-                                                    <Phone className="w-3 h-3 text-muted-foreground" />
-                                                    <span>{inquiry.phone}</span>
-                                                </div>
-                                            )}
+                                        <div className="font-medium truncate" title={inquiry.name}>{inquiry.name}</div>
+                                        <div className="text-xs text-muted-foreground truncate" title={`${inquiry.email}${inquiry.phone ? ` / ${inquiry.phone}` : ''}`}>
+                                            {inquiry.email} {inquiry.phone && `/ ${inquiry.phone}`}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Dialog>
+                                        <Dialog onOpenChange={(open) => {
+                                            if (open) {
+                                                setSelectedInquiryId(inquiry.id);
+                                                setAnswerText(inquiry.answer || "");
+                                            } else {
+                                                setSelectedInquiryId(null);
+                                            }
+                                        }}>
                                             <DialogTrigger asChild>
-                                                <div className="max-w-[300px] truncate cursor-pointer text-sm hover:underline">
-                                                    {inquiry.message}
+                                                <div className="max-w-[300px] cursor-pointer text-sm hover:underline group">
+                                                    <div className="font-medium truncate group-hover:text-primary transition-colors">
+                                                        {inquiry.title || "(제목 없음)"}
+                                                    </div>
+                                                    <div className="truncate text-muted-foreground text-xs mt-0.5">
+                                                        {inquiry.message}
+                                                    </div>
                                                 </div>
                                             </DialogTrigger>
-                                            <DialogContent className="max-w-[600px] max-h-[80vh] overflow-y-auto">
+                                            <DialogContent className="max-w-[700px] max-h-[90vh] overflow-y-auto">
                                                 <DialogHeader>
-                                                    <DialogTitle>문의 내용</DialogTitle>
-                                                    <DialogDescription>
-                                                        보낸 사람: {inquiry.name} ({inquiry.email})
-                                                        {inquiry.preferredProject && (
-                                                            <span className="block mt-1 text-primary font-medium">
-                                                                희망 입주 주택: {inquiry.preferredProject}
-                                                            </span>
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Badge variant={inquiry.status === "answered" ? "default" : "secondary"}>
+                                                            {inquiry.status === "answered" ? "답변완료" : "대기중"}
+                                                        </Badge>
+                                                        {inquiry.isSecret && (
+                                                            <Badge variant="outline" className="flex items-center gap-1">
+                                                                <Lock className="w-3 h-3" /> 비밀글
+                                                            </Badge>
                                                         )}
+                                                    </div>
+                                                    <DialogTitle className="text-xl mb-1">{inquiry.title || "(제목 없음)"}</DialogTitle>
+                                                    <DialogDescription className="text-sm border-b pb-4 mt-2">
+                                                        <div className="grid grid-cols-2 gap-y-2 mt-2">
+                                                            <div><span className="font-medium text-foreground">보낸 사람:</span> {inquiry.name}</div>
+                                                            <div><span className="font-medium text-foreground">연락처:</span> {inquiry.phone || "-"}</div>
+                                                            <div><span className="font-medium text-foreground">이메일:</span> {inquiry.email}</div>
+                                                            {inquiry.type === "business" && <div><span className="font-medium text-foreground">회사/기관:</span> {inquiry.company || "-"}</div>}
+                                                            {inquiry.preferredProject && (
+                                                                <div className="col-span-2 text-primary">
+                                                                    <span className="font-medium">희망 입주 주택:</span> {inquiry.preferredProject}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </DialogDescription>
                                                 </DialogHeader>
-                                                <div className="mt-4 text-sm whitespace-pre-wrap leading-relaxed">
-                                                    {inquiry.message}
+
+                                                <div className="my-2 space-y-4">
+                                                    <div>
+                                                        <h4 className="font-medium mb-2 text-sm text-muted-foreground">문의 내용</h4>
+                                                        <div className="p-4 bg-muted/30 rounded-lg text-sm whitespace-pre-wrap leading-relaxed border">
+                                                            {inquiry.message}
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <h4 className="font-medium mb-2 text-sm text-foreground flex items-center justify-between">
+                                                            <span>답변 작성</span>
+                                                            <span className="text-xs font-normal text-muted-foreground">
+                                                                답변을 저장하면 게시판에서 내용을 볼 수 있습니다.
+                                                            </span>
+                                                        </h4>
+                                                        <Textarea
+                                                            className="min-h-[150px] resize-y"
+                                                            placeholder="답변 내용을 입력하세요..."
+                                                            value={answerText}
+                                                            onChange={(e) => setAnswerText(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-end mt-4 pt-4 border-t gap-2">
+                                                    <Button
+                                                        onClick={() => handleSaveAnswer(inquiry.id)}
+                                                        disabled={updateMutation.isPending}
+                                                    >
+                                                        {updateMutation.isPending ? "저장 중..." : "답변 저장"}
+                                                    </Button>
                                                 </div>
                                             </DialogContent>
                                         </Dialog>

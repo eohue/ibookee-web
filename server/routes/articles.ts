@@ -32,6 +32,10 @@ export function registerArticleRoutes(app: Express) {
             if (!article) {
                 return res.status(404).json({ error: "Article not found" });
             }
+
+            // Increment view count
+            storage.incrementArticleViewCount(req.params.id).catch(console.error);
+
             res.json(article);
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch article" });

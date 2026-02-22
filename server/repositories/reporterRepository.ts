@@ -35,6 +35,7 @@ export class ReporterRepository {
             imageUrl: residentReporters.imageUrl,
             status: residentReporters.status,
             createdAt: residentReporters.createdAt,
+            postedAt: residentReporters.postedAt,
             approvedAt: residentReporters.approvedAt,
             updatedAt: residentReporters.updatedAt,
             likes: residentReporters.likes,

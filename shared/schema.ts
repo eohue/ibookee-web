@@ -71,16 +71,22 @@ export type Subproject = typeof subprojects.$inferSelect;
 export const inquiries = pgTable("inquiries", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   type: text("type").notNull(), // move-in, business, recruit
+  title: text("title").notNull().default(''),
   name: text("name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
   company: text("company"),
+  password: text("password"),
   message: text("message").notNull(),
   preferredProject: text("preferred_project"), // 희망 입주 주택
+  status: text("status").default("pending"), // pending, answered
+  answer: text("answer"),
+  isSecret: boolean("is_secret").default(true),
+  answeredAt: timestamp("answered_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertInquirySchema = createInsertSchema(inquiries).omit({ id: true, createdAt: true });
+export const insertInquirySchema = createInsertSchema(inquiries).omit({ id: true, createdAt: true, answeredAt: true, status: true });
 export type InsertInquiry = z.infer<typeof insertInquirySchema>;
 export type Inquiry = typeof inquiries.$inferSelect;
 
@@ -96,6 +102,7 @@ export const articles = pgTable("articles", {
   fileUrl: text("file_url"),
   sourceUrl: text("source_url"), // 원문 기사 링크
   publishedAt: timestamp("published_at").defaultNow(),
+  viewCount: integer("view_count").default(0).notNull(),
   featured: boolean("featured").default(false),
 }, (table) => {
   return {

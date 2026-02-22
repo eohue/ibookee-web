@@ -57,6 +57,29 @@ export async function runSafeMigration() {
             await client.query(`ALTER TABLE resident_reporters ADD COLUMN posted_at TIMESTAMP DEFAULT NOW()`);
         }
 
+        // 6. Check and Add new columns to inquiries for bulletin board
+        const checkTitle = await client.query(
+            `SELECT column_name FROM information_schema.columns WHERE table_name='inquiries' AND column_name='title'`
+        );
+        if (checkTitle.rows.length === 0) {
+            console.log("Adding missing columns to inquiries for bulletin board");
+            await client.query(`ALTER TABLE inquiries ADD COLUMN title TEXT NOT NULL DEFAULT ''`);
+            await client.query(`ALTER TABLE inquiries ADD COLUMN password TEXT`);
+            await client.query(`ALTER TABLE inquiries ADD COLUMN status TEXT DEFAULT 'pending'`);
+            await client.query(`ALTER TABLE inquiries ADD COLUMN answer TEXT`);
+            await client.query(`ALTER TABLE inquiries ADD COLUMN is_secret BOOLEAN DEFAULT true`);
+            await client.query(`ALTER TABLE inquiries ADD COLUMN answered_at TIMESTAMP`);
+        }
+
+        // 7. Check and Add new column for view_count in articles
+        const checkArticlesViewCount = await client.query(
+            `SELECT column_name FROM information_schema.columns WHERE table_name='articles' AND column_name='view_count'`
+        );
+        if (checkArticlesViewCount.rows.length === 0) {
+            console.log("Adding missing column view_count to articles");
+            await client.query(`ALTER TABLE articles ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0`);
+        }
+
     } catch (error) {
         console.error("Safe migration failed:", error);
         // Don't throw, let the app try to start anyway, or throw if critical?

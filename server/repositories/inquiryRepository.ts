@@ -38,6 +38,19 @@ export class InquiryRepository {
         return result[0];
     }
 
+    async getInquiry(id: string): Promise<Inquiry | undefined> {
+        const items = await db.select().from(inquiries).where(eq(inquiries.id, id));
+        return items[0];
+    }
+
+    async updateInquiry(id: string, updateData: Partial<Inquiry>): Promise<Inquiry | undefined> {
+        const result = await db.update(inquiries)
+            .set(updateData)
+            .where(eq(inquiries.id, id))
+            .returning();
+        return result[0];
+    }
+
     async deleteInquiry(id: string): Promise<void> {
         await db.delete(inquiries).where(eq(inquiries.id, id));
     }

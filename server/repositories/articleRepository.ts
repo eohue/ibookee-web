@@ -21,6 +21,7 @@ export class ArticleRepository {
                 fileUrl: articles.fileUrl,
                 sourceUrl: articles.sourceUrl,
                 publishedAt: articles.publishedAt,
+                viewCount: articles.viewCount,
                 featured: articles.featured,
             })
                 .from(articles)
@@ -56,6 +57,7 @@ export class ArticleRepository {
                 fileUrl: articles.fileUrl,
                 sourceUrl: articles.sourceUrl,
                 publishedAt: articles.publishedAt,
+                viewCount: articles.viewCount,
                 featured: articles.featured,
             })
                 .from(articles)
@@ -85,5 +87,11 @@ export class ArticleRepository {
 
     async deleteArticle(id: string): Promise<void> {
         await db.delete(articles).where(eq(articles.id, id));
+    }
+
+    async incrementArticleViewCount(id: string): Promise<void> {
+        await db.update(articles)
+            .set({ viewCount: sql`${articles.viewCount} + 1` })
+            .where(eq(articles.id, id));
     }
 }

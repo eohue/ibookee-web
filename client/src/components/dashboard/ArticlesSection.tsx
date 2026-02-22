@@ -444,7 +444,7 @@ export function ArticlesSection() {
                                                 {article.featured && <Badge>추천</Badge>}
                                             </div>
                                             <p className="text-sm text-muted-foreground line-clamp-1">
-                                                {article.author} | {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("ko-KR") : ""}
+                                                {article.author} | {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("ko-KR") : ""} | 조회수 {article.viewCount || 0}
                                             </p>
                                         </div>
                                         <div className="flex gap-2">

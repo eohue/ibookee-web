@@ -59,7 +59,9 @@ export interface IStorage {
   // Inquiries
   getInquiries(page?: number, limit?: number, type?: string): Promise<{ inquiries: Inquiry[], total: number }>;
   getInquiriesByType(type: string): Promise<Inquiry[]>;
+  getInquiry(id: string): Promise<Inquiry | undefined>;
   createInquiry(inquiry: InsertInquiry): Promise<Inquiry>;
+  updateInquiry(id: string, updateData: Partial<Inquiry>): Promise<Inquiry | undefined>;
   deleteInquiry(id: string): Promise<void>;
 
   // Articles
@@ -70,6 +72,7 @@ export interface IStorage {
   createArticle(article: InsertArticle): Promise<Article>;
   updateArticle(id: string, article: Partial<InsertArticle>): Promise<Article | undefined>;
   deleteArticle(id: string): Promise<void>;
+  incrementArticleViewCount(id: string): Promise<void>;
 
   // Social Accounts
   getSocialAccounts(): Promise<SocialAccount[]>;
@@ -269,8 +272,16 @@ export class DatabaseStorage implements IStorage {
     return this.inquiryRepo.getInquiriesByType(type);
   }
 
+  async getInquiry(id: string): Promise<Inquiry | undefined> {
+    return this.inquiryRepo.getInquiry(id);
+  }
+
   async createInquiry(inquiry: InsertInquiry): Promise<Inquiry> {
     return this.inquiryRepo.createInquiry(inquiry);
+  }
+
+  async updateInquiry(id: string, updateData: Partial<Inquiry>): Promise<Inquiry | undefined> {
+    return this.inquiryRepo.updateInquiry(id, updateData);
   }
 
   async deleteInquiry(id: string): Promise<void> {
@@ -300,6 +311,10 @@ export class DatabaseStorage implements IStorage {
 
   async deleteArticle(id: string): Promise<void> {
     return this.articleRepo.deleteArticle(id);
+  }
+
+  async incrementArticleViewCount(id: string): Promise<void> {
+    return this.articleRepo.incrementArticleViewCount(id);
   }
 
   // Stats Optimization
