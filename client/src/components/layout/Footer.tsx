@@ -12,7 +12,7 @@ const footerLinks = {
     { name: "Insight", href: "/insight" },
   ],
   services: [
-    { name: "Projects", href: "/space" },
+    { name: "프로젝트", href: "/space" },
     { name: "Life", href: "/community" },
     { name: "Contact", href: "/contact" },
   ],

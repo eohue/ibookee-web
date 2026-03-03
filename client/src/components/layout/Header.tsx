@@ -135,7 +135,7 @@ export default function Header() {
                         ? "bg-transparent text-white hover:bg-white/10 hover:text-white data-[state=open]:bg-white/10"
                         : "bg-transparent text-foreground hover:bg-transparent hover:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary"
                     )}>
-                      IBOOKEE
+                      아이부키
                       <ChevronDown className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180" aria-hidden="true" />
                     </Link>
                   </DropdownMenuTrigger>
@@ -169,7 +169,7 @@ export default function Header() {
                         location.startsWith("/space") && !isTransparent && "text-primary",
                         location.startsWith("/space") && isTransparent && "text-white/90"
                       )}>
-                        Space
+                        프로젝트
                       </NavigationMenuLink>
                     </Link>
                   </NavigationMenuItem>
@@ -185,7 +185,7 @@ export default function Header() {
                           location.startsWith("/live") && !isTransparent && "text-primary",
                           location.startsWith("/live") && isTransparent && "text-white/90"
                         )}>
-                          Live
+                          입주모집
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
@@ -201,7 +201,7 @@ export default function Header() {
                         location.startsWith("/story") && !isTransparent && "text-primary",
                         location.startsWith("/story") && isTransparent && "text-white/90"
                       )}>
-                        Story
+                        사는이야기
                       </NavigationMenuLink>
                     </Link>
                   </NavigationMenuItem>
@@ -324,7 +324,7 @@ export default function Header() {
                 <nav className="flex flex-col gap-1 px-4 overflow-y-auto max-h-[calc(100vh-100px)]">
                   {/* Mobile Ibookee Dropdown */}
                   <div className="px-4 py-2">
-                    <div className="font-bold text-lg mb-2">IBOOKEE</div>
+                    <div className="font-bold text-lg mb-2">아이부키</div>
                     <div className="flex flex-col gap-2 pl-4 border-l border-border ml-1">
                       {ibookeeSubNav.map(item => (
                         <Link
@@ -352,7 +352,7 @@ export default function Header() {
                     )}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Space
+                    프로젝트
                   </Link>
 
                   {user?.role === 'admin' && (
@@ -366,7 +366,7 @@ export default function Header() {
                       )}
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Live
+                      입주모집
                     </Link>
                   )}
 
@@ -380,7 +380,7 @@ export default function Header() {
                     )}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Story
+                    사는이야기
                   </Link>
 
                   <div className="my-4 h-px bg-border mx-4" />
