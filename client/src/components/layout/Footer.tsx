@@ -7,14 +7,14 @@ import { useEffect, useState } from "react";
 
 const footerLinks = {
   company: [
-    { name: "About Us", href: "/about" },
-    { name: "Business", href: "/business" },
-    { name: "Insight", href: "/insight" },
+    { name: "소개", href: "/about" },
+    { name: "비즈니스", href: "/business" },
+    { name: "인사이트", href: "/insight" },
   ],
   services: [
     { name: "프로젝트", href: "/space" },
-    { name: "Life", href: "/community" },
-    { name: "Contact", href: "/contact" },
+    { name: "사는이야기", href: "/community" },
+    { name: "문의하기", href: "/contact" },
   ],
 };
 

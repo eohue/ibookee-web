@@ -31,10 +31,10 @@ import logoDark from "@assets/logo_dark.png";
 import { cn } from "@/lib/utils";
 
 const ibookeeSubNav = [
-  { name: "About Us", href: "/about" },
-  { name: "Business", href: "/business" },
-  { name: "Insight", href: "/insight" },
-  { name: "Contact", href: "/contact" },
+  { name: "소개", href: "/about" },
+  { name: "비즈니스", href: "/business" },
+  { name: "인사이트", href: "/insight" },
+  { name: "문의하기", href: "/contact" },
 ];
 
 export default function Header() {

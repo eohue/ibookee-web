@@ -44,7 +44,7 @@ export default function LiveLanding() {
                         transition={{ duration: 0.8, delay: 0.2 }}
                     >
                         <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-tight tracking-tighter">
-                            LIVE AT<br />IBOOKEE
+                            아이부키<br />입주모집
                         </h1>
                     </motion.div>
                     <motion.p
@@ -63,7 +63,7 @@ export default function LiveLanding() {
                     transition={{ delay: 1, duration: 1 }}
                     className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
                 >
-                    <span className="text-sm uppercase tracking-widest text-white/50">Scroll</span>
+                    <span className="text-sm uppercase tracking-widest text-white/50">스크롤</span>
                     <div className="w-[1px] h-12 bg-white/30" />
                 </motion.div>
             </section>
@@ -129,8 +129,8 @@ export default function LiveLanding() {
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
                         <div>
-                            <span className="text-primary font-bold tracking-widest uppercase text-sm mb-2 block">Our Types</span>
-                            <h2 className="text-3xl md:text-5xl font-bold">Curated Lifestyle</h2>
+                            <span className="text-primary font-bold tracking-widest uppercase text-sm mb-2 block">단축 타입</span>
+                            <h2 className="text-3xl md:text-5xl font-bold">맞춤형 라이프스타일</h2>
                         </div>
                         <p className="text-zinc-400 max-w-md text-lg">
                             나에게 맞는 라이프스타일을 찾아보세요.<br />다양한 형태의 삶이 공존하는 곳입니다.
@@ -168,9 +168,9 @@ export default function LiveLanding() {
             <section className="py-24 md:py-32 bg-white">
                 <div className="container mx-auto px-4 max-w-7xl">
                     <div className="text-center mb-20">
-                        <span className="text-primary font-bold tracking-widest uppercase text-sm mb-2 block">Line up</span>
+                        <span className="text-primary font-bold tracking-widest uppercase text-sm mb-2 block">프로젝트 라인업</span>
                         <h2 className="text-4xl md:text-6xl font-bold mb-6 text-zinc-900">
-                            Find Your Home
+                            집을 찾아보세요
                         </h2>
                     </div>
 
@@ -205,7 +205,7 @@ export default function LiveLanding() {
                                             {/* Overlay on hover */}
                                             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                 <div className="bg-white text-black px-6 py-3 rounded-full font-medium transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                                    View House
+                                                    자세히 보기
                                                 </div>
                                             </div>
                                         </div>

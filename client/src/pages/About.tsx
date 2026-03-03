@@ -58,7 +58,7 @@ export default function About() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
               <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
-                About Us
+                소개
               </p>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
                 소셜 하우징<br />
@@ -78,7 +78,7 @@ export default function About() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               <div>
                 <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
-                  Who We Are
+                  우리가 걷는 길
                 </p>
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                   공간에 삶의 가치를<br />
@@ -130,7 +130,7 @@ export default function About() {
               </div>
               <div>
                 <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
-                  CEO Message
+                  대표 인사말
                 </p>
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
                   "주거는 상품이 아니라,<br />
@@ -216,7 +216,7 @@ export default function About() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
                 <p className="text-primary font-medium text-sm uppercase tracking-widest mb-4">
-                  Partners
+                  파트너
                 </p>
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground">
                   신뢰할 수 있는 파트너
