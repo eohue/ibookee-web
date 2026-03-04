@@ -3,6 +3,7 @@ import { db } from "../db";
 import { liveProjectDetails, projects } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { isAdmin } from "../replit_integrations/auth";
 
 export function registerLiveDetailRoutes(app: Express) {
     // Get Live Detail for a Project
@@ -27,9 +28,8 @@ export function registerLiveDetailRoutes(app: Express) {
     });
 
     // Update/Create Live Detail (Admin)
-    app.post("/api/admin/projects/:projectId/live-detail", async (req, res) => {
+    app.post("/api/admin/projects/:projectId/live-detail", isAdmin, async (req, res) => {
         try {
-            requireAuth(req, res); // Ensure admin
             const { projectId } = req.params;
             const data = req.body;
 
@@ -66,9 +66,8 @@ export function registerLiveDetailRoutes(app: Express) {
     });
 
     // Toggle Project Live Status (Admin)
-    app.put("/api/admin/projects/:id/live-status", async (req, res) => {
+    app.put("/api/admin/projects/:id/live-status", isAdmin, async (req, res) => {
         try {
-            requireAuth(req, res);
             const { id } = req.params;
             const { isLive, rentStatus } = req.body;
 
@@ -84,10 +83,4 @@ export function registerLiveDetailRoutes(app: Express) {
             res.status(500).json({ message: "Failed to update status" });
         }
     });
-}
-
-function requireAuth(req: any, res: any) {
-    if (!req.isAuthenticated() || !req.user?.isAdmin) {
-        throw new Error("Unauthorized");
-    }
 }
