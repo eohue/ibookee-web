@@ -15,6 +15,12 @@ import { ReporterSubmissionModal } from "@/components/community/ReporterSubmissi
 import { useAuth } from "@/hooks/use-auth";
 import type { ResidentReporter } from "@shared/schema";
 import { EventDetailModal } from "@/components/community/EventDetailModal";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const defaultHashtags = [
   { id: "all", label: "전체" },
@@ -248,42 +254,53 @@ export default function Community() {
               </div>
             ) : (
               <div className="space-y-3">
-                {recruitments.map((recruitment) => (
-                  <div
-                    key={recruitment.id}
-                    className="bg-background rounded-lg p-4 border-2 border-border/80 hover:border-primary/50 hover:shadow-md transition-all"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">
-                          {recruitment.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {recruitment.createdAt
-                            ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR")
-                            : ""}
-                        </p>
-                      </div>
-                      {recruitment.fileUrl && (
-                        <a
-                          href={recruitment.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium flex-shrink-0"
-                        >
-                          <ArrowRight className="w-4 h-4" />
-                          공고문 보기
-                        </a>
-                      )}
-                    </div>
-                    {recruitment.content && (
-                      <div 
-                        className="text-sm text-muted-foreground mt-2 line-clamp-2 [&>p]:mb-0"
-                        dangerouslySetInnerHTML={{ __html: recruitment.content }}
-                      />
-                    )}
-                  </div>
-                ))}
+                <Accordion type="single" collapsible className="w-full space-y-3">
+                  {recruitments.map((recruitment) => (
+                    <AccordionItem
+                      key={recruitment.id}
+                      value={recruitment.id.toString()}
+                      className="bg-background rounded-lg border-2 border-border/80 hover:border-primary/50 transition-all overflow-hidden"
+                    >
+                      <AccordionTrigger className="px-4 py-4 hover:no-underline [&[data-state=open]]:bg-muted/30">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full pr-4 text-left">
+                          <div className="w-full md:w-auto overflow-hidden">
+                            <h3 className="font-semibold text-foreground truncate">
+                              {recruitment.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1 font-normal">
+                              {recruitment.createdAt
+                                ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR")
+                                : ""}
+                            </p>
+                          </div>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 pt-3 border-t bg-muted/10">
+                        <div className="space-y-4">
+                          {recruitment.content && (
+                            <div 
+                              className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed min-h-[60px]"
+                              dangerouslySetInnerHTML={{ __html: recruitment.content }}
+                            />
+                          )}
+                          {recruitment.fileUrl && (
+                            <div className="pt-2 flex justify-end">
+                              <a
+                                href={recruitment.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
+                              >
+                                <ArrowRight className="w-4 h-4" />
+                                공고문 보기
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               </div>
             )}
           </div>
