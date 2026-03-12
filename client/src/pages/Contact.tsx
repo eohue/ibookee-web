@@ -390,11 +390,23 @@ export default function Contact() {
                                 </div>
                                 <div className="pt-4 border-t">
                                   <Label className="mb-2 block">개인정보 수집 및 이용 동의 <span className="text-red-500">*</span></Label>
-                                  <div className="bg-muted/30 p-4 rounded-md text-xs text-muted-foreground mb-3 h-24 overflow-y-auto border whitespace-pre-line">
-                                    {`1. 수집하는 개인정보 항목: 이름, 성별, 연령대, 거주지, 연락처, 이메일
-2. 수집 및 이용 목적: 입주 상담 및 안내, 모집 관련 정보 제공
-3. 보유 및 이용 기간: 동의일로부터 1년 (또는 목적 달성 시 파기)
-4. 동의 거부 안내: 귀하는 본 동의를 거부하실 수 있으나, 거부 시 모집 안내를 수신하실 수 없습니다.`}
+                                  <div className="bg-muted/30 p-4 rounded-md text-xs text-muted-foreground mb-3 h-32 overflow-y-auto border whitespace-pre-line">
+                                    {`<개인정보 수집 및 이용에 대한 안내>
+개인정보취급방침은 현행 [공공기관의 개인정보 보호에 관한 법률] 및 [공공기관의 개인정보 보호를 위한 기본지침]에 근거를 두고 있습니다. 아이부키에서 운영하고 있는 웹사이트는 다음과 같으며, 이 방침은 별도의 설명이 없는 한 아이부키에서 운용하는 모든 웹사이트에 적용됨을 알려드립니다.
+https://www.ibookee.kr
+1. 개인정보의 수집 목적
+아이부키 운영 주택 입주자 모집 알림용
+2. 수집하려는 개인정보의 항목
+성명, 연락처(전화번호 또는 휴대폰번호), 이메일
+서비스 이용과정에서 자동으로 생성되어 수집되는 정보 (IP Address, 쿠키, 방문 일시, 서비스 이용 기록, 불량 이용 기록)
+3. 개인정보의 보유 및 이용기간
+개인정보의 보유 및 이용 기간은 3년이며, 이후 폐기합니다. 개인정보는 수집 목적 이외의 목적으로 활용되지 않습니다.
+4. 개인정보 보호 및 의견수렴 및 불만처리
+아이부키 경영지원팀 (전화 : 02-553-8387, URL : https://www.ibookee.kr)
+정보보호마크인증위원회 (전화 : 02-580-0533~4, URL : http://www.eprivacy.or.kr)
+개인정보침해신고센터 (전화 : 02-1336, URL : http://www.cyberprivacy.or.kr)
+경찰청사이버테러대응센터 (전화 : 02-392-0330, URL : http://www.police.go.kr)
+5. 위 개인정보의 수집·이용·제공에 대하여 동의를 거부할 수 있습니다. 다만, 입주자 모집 알림에 필요한 최소한의 정보이므로 동의하지 않을 시 알림신청이 불가함을 알려드립니다.`}
                                   </div>
                                   <div className="flex items-center space-x-2">
                                     <input type="checkbox" id="privacy-agree" checked={moveInData.agreePrivacy} onChange={(e) => setMoveInData({ ...moveInData, agreePrivacy: e.target.checked })} className="rounded border-gray-300 w-4 h-4 text-primary focus:ring-primary" required />
