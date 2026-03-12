@@ -277,9 +277,10 @@ export default function Community() {
                       )}
                     </div>
                     {recruitment.content && (
-                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                        {recruitment.content}
-                      </p>
+                      <div 
+                        className="text-sm text-muted-foreground mt-2 line-clamp-2 [&>p]:mb-0"
+                        dangerouslySetInnerHTML={{ __html: recruitment.content }}
+                      />
                     )}
                   </div>
                 ))}

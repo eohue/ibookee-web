@@ -56,9 +56,10 @@ export default function HousingRecruitmentPage() {
                                                 <span>{recruitment.createdAt ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR") : ""}</span>
                                             </div>
                                             {recruitment.content && (
-                                                <p className="text-foreground/80 line-clamp-3">
-                                                    {recruitment.content}
-                                                </p>
+                                                <div 
+                                                    className="text-foreground/80 line-clamp-3 [&>p]:mb-0"
+                                                    dangerouslySetInnerHTML={{ __html: recruitment.content }}
+                                                />
                                             )}
                                         </div>
                                         {recruitment.fileUrl && (
