@@ -5,6 +5,12 @@ import { ArrowLeft, ArrowRight, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { HousingRecruitment } from "@shared/schema";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function HousingRecruitmentPage() {
     const { data: recruitments = [], isLoading } = useQuery<HousingRecruitment[]>({
@@ -42,40 +48,51 @@ export default function HousingRecruitmentPage() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {recruitments.map((recruitment) => (
-                                <div
-                                    key={recruitment.id}
-                                    className="bg-card rounded-lg p-6 border-2 border-border/80 hover:border-primary/50 hover:shadow-md transition-all"
-                                >
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                        <div className="flex-1">
-                                            <h3 className="text-xl font-semibold mb-2">
-                                                {recruitment.title}
-                                            </h3>
-                                            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                                                <span>{recruitment.createdAt ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR") : ""}</span>
+                            <Accordion type="single" collapsible className="w-full space-y-4">
+                                {recruitments.map((recruitment) => (
+                                    <AccordionItem
+                                        key={recruitment.id}
+                                        value={recruitment.id.toString()}
+                                        className="bg-card rounded-lg border-2 border-border/80 hover:border-primary/50 transition-all overflow-hidden"
+                                    >
+                                        <AccordionTrigger className="px-6 py-5 hover:no-underline [&[data-state=open]]:bg-muted/30">
+                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full pr-4 text-left">
+                                                <h3 className="text-xl font-semibold w-full md:w-auto">
+                                                    {recruitment.title}
+                                                </h3>
+                                                <span className="text-sm text-muted-foreground font-normal shrink-0">
+                                                    {recruitment.createdAt ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR") : ""}
+                                                </span>
                                             </div>
-                                            {recruitment.content && (
-                                                <div 
-                                                    className="text-foreground/80 line-clamp-3 [&>p]:mb-0"
-                                                    dangerouslySetInnerHTML={{ __html: recruitment.content }}
-                                                />
-                                            )}
-                                        </div>
-                                        {recruitment.fileUrl && (
-                                            <a
-                                                href={recruitment.fileUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium flex-shrink-0"
-                                            >
-                                                공고문 보기
-                                                <ArrowRight className="w-4 h-4" />
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                                        </AccordionTrigger>
+                                        
+                                        <AccordionContent className="px-6 pb-6 pt-4 border-t bg-muted/10">
+                                            <div className="space-y-6">
+                                                {recruitment.content && (
+                                                    <div
+                                                        className="text-foreground/90 whitespace-pre-wrap leading-relaxed min-h-[100px]"
+                                                        dangerouslySetInnerHTML={{ __html: recruitment.content }}
+                                                    />
+                                                )}
+
+                                                {recruitment.fileUrl && (
+                                                    <div className="pt-4 flex justify-end">
+                                                        <a
+                                                            href={recruitment.fileUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                                                        >
+                                                            공고문 보기
+                                                            <ArrowRight className="w-4 h-4" />
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
                         </div>
                     )}
                 </div>
