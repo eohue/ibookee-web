@@ -374,7 +374,7 @@ export default function Contact() {
                                 </div>
                                 <div>
                                   <Label>희망 주택 <span className="text-muted-foreground text-xs font-normal">(복수 선택 가능)</span></Label>
-                                  <div className="mt-2 space-y-2">
+                                  <div className="mt-2 flex flex-wrap gap-x-6 gap-y-3">
                                     {projects.map((project) => (
                                       <div key={project.id} className="flex items-center space-x-2">
                                         <input
