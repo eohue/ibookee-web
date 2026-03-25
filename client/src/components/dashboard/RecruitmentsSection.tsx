@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Edit, Trash2, FileText, Download } from "lucide-react";
-import { FileUpload } from "@/components/ui/file-upload";
+import { MultiFileUpload, FileAttachment } from "@/components/ui/multi-file-upload";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
     Pagination,
@@ -43,7 +43,7 @@ export function RecruitmentsSection() {
     const { toast } = useToast();
     const [editingRecruitment, setEditingRecruitment] = useState<HousingRecruitment | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [fileUrl, setFileUrl] = useState("");
+    const [files, setFiles] = useState<FileAttachment[]>([]);
     const [published, setPublished] = useState(true);
     const [content, setContent] = useState("");
     const [currentPage, setCurrentPage] = useState(getPageFromUrl);
@@ -164,14 +164,14 @@ export function RecruitmentsSection() {
 
     const resetForm = () => {
         setEditingRecruitment(null);
-        setFileUrl("");
+        setFiles([]);
         setPublished(true);
         setContent("");
     };
 
     const openDialog = (recruitment: HousingRecruitment | null) => {
         setEditingRecruitment(recruitment);
-        setFileUrl(recruitment?.fileUrl || "");
+        setFiles((recruitment?.files as FileAttachment[]) || []);
         setPublished(recruitment?.published ?? true);
         setContent(recruitment?.content || "");
         setIsDialogOpen(true);
@@ -183,7 +183,7 @@ export function RecruitmentsSection() {
         const data: Record<string, any> = {
             title: formData.get("title") as string,
             content: content || null,
-            fileUrl: fileUrl || null,
+            files: files.length > 0 ? files : null,
             published,
         };
 
@@ -230,16 +230,11 @@ export function RecruitmentsSection() {
                             </div>
                             <div className="space-y-2">
                                 <Label>첨부 파일 (PDF 등)</Label>
-                                <FileUpload
-                                    value={fileUrl}
-                                    onChange={(url) => setFileUrl(url as string || "")}
+                                <MultiFileUpload
+                                    value={files}
+                                    onChange={setFiles}
                                     accept=".pdf,.doc,.docx,.hwp"
                                 />
-                                {fileUrl && (
-                                    <p className="text-sm text-muted-foreground mt-1 truncate">
-                                        첨부됨: {fileUrl.split('/').pop()}
-                                    </p>
-                                )}
                             </div>
                             <div className="flex items-center space-x-2">
                                 <Switch
@@ -291,21 +286,22 @@ export function RecruitmentsSection() {
                                             </div>
                                             <p className="text-sm text-muted-foreground line-clamp-1">
                                                 {recruitment.createdAt ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR") : ""}
-                                                {recruitment.fileUrl && " · 첨부파일 있음"}
+                                                {(recruitment.files as FileAttachment[])?.length > 0 && ` · 첨부파일 ${(recruitment.files as FileAttachment[]).length}개`}
                                             </p>
                                         </div>
                                         <div className="flex gap-2">
-                                            {recruitment.fileUrl && (
+                                            {((recruitment.files as FileAttachment[]) || []).map((file, idx) => (
                                                 <Button
+                                                    key={idx}
                                                     variant="ghost"
                                                     size="icon"
                                                     asChild
                                                 >
-                                                    <a href={recruitment.fileUrl} target="_blank" rel="noopener noreferrer" title="파일 다운로드">
+                                                    <a href={file.url} target="_blank" rel="noopener noreferrer" title={`${file.originalName} 다운로드`}>
                                                         <Download className="w-4 h-4" />
                                                     </a>
                                                 </Button>
-                                            )}
+                                            ))}
                                             <Button
                                                 variant="ghost"
                                                 size="icon"

@@ -6,11 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { HousingRecruitment } from "@shared/schema";
 import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion";
+    Card,
+} from "@/components/ui/card";
 
 export default function HousingRecruitmentPage() {
     const { data: recruitments = [], isLoading } = useQuery<HousingRecruitment[]>({
@@ -47,52 +44,23 @@ export default function HousingRecruitmentPage() {
                             <p className="text-muted-foreground">현재 모집 중인 공고가 없습니다.</p>
                         </div>
                     ) : (
-                        <div className="space-y-4">
-                            <Accordion type="single" collapsible className="w-full space-y-4">
-                                {recruitments.map((recruitment) => (
-                                    <AccordionItem
-                                        key={recruitment.id}
-                                        value={recruitment.id.toString()}
-                                        className="bg-card rounded-lg border-2 border-border/80 hover:border-primary/50 transition-all overflow-hidden"
-                                    >
-                                        <AccordionTrigger className="px-6 py-5 hover:no-underline [&[data-state=open]]:bg-muted/30">
-                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full pr-4 text-left">
-                                                <h3 className="text-xl font-semibold w-full md:w-auto">
-                                                    {recruitment.title}
-                                                </h3>
-                                                <span className="text-sm text-muted-foreground font-normal shrink-0">
-                                                    {recruitment.createdAt ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR") : ""}
-                                                </span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {recruitments.map((recruitment) => (
+                                <Link href={`/story/recruitment/${recruitment.id}`} key={recruitment.id}>
+                                    <Card className="overflow-hidden cursor-pointer border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card h-full flex flex-col">
+                                        <div className="p-6 flex-1 flex flex-col">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-sm text-primary font-medium">입주자 모집 공고</span>
+                                                <span className="text-xs text-muted-foreground">{recruitment.createdAt ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR") : ""}</span>
                                             </div>
-                                        </AccordionTrigger>
-                                        
-                                        <AccordionContent className="px-6 pb-6 pt-4 border-t bg-muted/10">
-                                            <div className="space-y-6">
-                                                {recruitment.content && (
-                                                    <div
-                                                        className="text-foreground/90 whitespace-pre-wrap leading-relaxed min-h-[100px]"
-                                                        dangerouslySetInnerHTML={{ __html: recruitment.content }}
-                                                    />
-                                                )}
-
-                                                {recruitment.fileUrl && (
-                                                    <div className="pt-4 flex justify-end">
-                                                        <a
-                                                            href={recruitment.fileUrl}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
-                                                        >
-                                                            공고문 보기
-                                                            <ArrowRight className="w-4 h-4" />
-                                                        </a>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
+                                            <h3 className="text-xl font-bold mb-3 line-clamp-2">{recruitment.title}</h3>
+                                            <p className="text-muted-foreground line-clamp-3 text-sm mt-auto">
+                                                자세한 공고 내용과 첨부문서를 확인하려면 클릭하세요.
+                                            </p>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            ))}
                         </div>
                     )}
                 </div>

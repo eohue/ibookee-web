@@ -21,7 +21,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function EventDetail() {
-    const [, params] = useRoute("/community/event/:id");
+    const [, params] = useRoute("/story/event/:id");
     const eventId = params?.id || null;
 
     const { data: event, isLoading, isError, refetch } = useQuery<Event>({
@@ -62,7 +62,7 @@ export default function EventDetail() {
                 <Header />
                 <main className="pt-24 pb-16">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <Link href="/community">
+                        <Link href="/story">
                             <Button variant="ghost" className="mb-8" data-testid="button-back">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 목록으로
@@ -101,7 +101,7 @@ export default function EventDetail() {
             <Header />
             <main className="pt-24 pb-16">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <Link href="/community">
+                    <Link href="/story">
                         <Button variant="ghost" className="mb-8" data-testid="button-back">
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             목록으로

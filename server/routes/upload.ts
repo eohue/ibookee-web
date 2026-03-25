@@ -27,18 +27,21 @@ const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
     fileFilter: (_req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png|gif|webp|svg|pdf/;
+        const allowedTypes = /jpeg|jpg|png|gif|webp|svg|pdf|doc|docx|hwp/;
         // Case insensitive regex for mime type check
-        const allowedMimeTypes = /image\/(jpeg|png|gif|webp|svg\+xml)|application\/pdf/;
+        const allowedMimeTypes = /image\/(jpeg|png|gif|webp|svg\+xml)|application\/pdf|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document|application\/haansofthwp|application\/x-hwp/;
 
         const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = allowedMimeTypes.test(file.mimetype);
+        const mimetype = allowedMimeTypes.test(file.mimetype) ||
+            file.originalname.toLowerCase().endsWith('.hwp') || 
+            file.originalname.toLowerCase().endsWith('.docx') ||
+            file.originalname.toLowerCase().endsWith('.doc');
 
-        if (extname) {
+        if (extname || mimetype) {
             return cb(null, true);
         }
 
-        cb(new Error("Only image and PDF files are allowed!"));
+        cb(new Error(`File type not allowed. Check extension or mimetype: ${file.mimetype}`));
     },
 });
 
@@ -116,7 +119,7 @@ export function registerUploadRoutes(app: Express) {
                 await fs.promises.writeFile(filepath, buffer);
                 fileUrl = `/assets/${filename}`;
             }
-            res.json({ url: fileUrl });
+            res.json({ url: fileUrl, originalName: req.file.originalname });
         } catch (error: any) {
             console.error("Upload error:", error);
             res.status(500).json({ error: error.message });

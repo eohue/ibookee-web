@@ -24,10 +24,12 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const MyPage = lazy(() => import("@/pages/MyPage"));
 const ResidentReporterGuide = lazy(() => import("@/pages/ResidentReporterGuide"));
 const HousingRecruitmentPage = lazy(() => import("@/pages/community/HousingRecruitmentPage"));
+const HousingRecruitmentDetail = lazy(() => import("@/pages/community/HousingRecruitmentDetail"));
 const SocialStreamPage = lazy(() => import("@/pages/community/SocialStreamPage"));
 const ResidentReporterPage = lazy(() => import("@/pages/community/ResidentReporterPage"));
 const ResidentReporterDetail = lazy(() => import("@/pages/community/ResidentReporterDetail"));
 const SupportProgramsPage = lazy(() => import("@/pages/community/SupportProgramsPage"));
+const SupportProgramDetail = lazy(() => import("@/pages/community/SupportProgramDetail"));
 const EventsPage = lazy(() => import("@/pages/community/EventsPage"));
 const SearchPage = lazy(() => import("@/pages/Apply/SearchPage"));
 const LiveDetail = lazy(() => import("@/pages/Live/LiveDetail"));
@@ -67,10 +69,12 @@ function Router() {
         <Route path="/insight" component={Insight} />
         <Route path="/insight/:id" component={InsightDetail} />
         <Route path="/story/recruitment" component={HousingRecruitmentPage} />
+        <Route path="/story/recruitment/:id" component={HousingRecruitmentDetail} />
         <Route path="/story/social" component={SocialStreamPage} />
         <Route path="/story/reporter" component={ResidentReporterPage} />
         <Route path="/story/reporter/:id" component={ResidentReporterDetail} />
         <Route path="/story/programs" component={SupportProgramsPage} />
+        <Route path="/story/programs/:id" component={SupportProgramDetail} />
         <Route path="/story/events" component={EventsPage} />
         <Route path="/resident-reporter-guide" component={ResidentReporterGuide} />
         <Route path="/apply" component={SearchPage} />

@@ -18,6 +18,19 @@ export function registerProgramRoutes(app: Express) {
         }
     });
 
+    app.get("/api/programs/:id", async (req, res) => {
+        try {
+            const program = await storage.getResidentProgram(req.params.id);
+            if (!program) {
+                return res.status(404).json({ error: "Program not found" });
+            }
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
+            res.json(program);
+        } catch (error) {
+            res.status(500).json({ error: "Failed to fetch program" });
+        }
+    });
+
     // Public Application Submission
     app.post("/api/applications", async (req, res) => {
         try {

@@ -399,7 +399,7 @@ export const housingRecruitments = pgTable("housing_recruitments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   content: text("content"),
-  fileUrl: text("file_url"), // 공고문 파일 URL (PDF 등)
+  files: jsonb("files"), // Array of { url: string, originalName: string }
   published: boolean("published").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });

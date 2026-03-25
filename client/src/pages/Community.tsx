@@ -253,54 +253,23 @@ export default function Community() {
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
-                <Accordion type="single" collapsible className="w-full space-y-3">
-                  {recruitments.map((recruitment) => (
-                    <AccordionItem
-                      key={recruitment.id}
-                      value={recruitment.id.toString()}
-                      className="bg-background rounded-lg border-2 border-border/80 hover:border-primary/50 transition-all overflow-hidden"
-                    >
-                      <AccordionTrigger className="px-4 py-4 hover:no-underline [&[data-state=open]]:bg-muted/30">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full pr-4 text-left">
-                          <div className="w-full md:w-auto overflow-hidden">
-                            <h3 className="font-semibold text-foreground truncate">
-                              {recruitment.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground mt-1 font-normal">
-                              {recruitment.createdAt
-                                ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR")
-                                : ""}
-                            </p>
-                          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {recruitments.map((recruitment) => (
+                  <Link href={`/story/recruitment/${recruitment.id}`} key={recruitment.id}>
+                    <Card className="overflow-hidden cursor-pointer border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card h-full flex flex-col">
+                      <div className="p-6 flex-1 flex flex-col">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm text-primary font-medium">입주자 모집 공고</span>
+                          <span className="text-xs text-muted-foreground">{recruitment.createdAt ? new Date(recruitment.createdAt).toLocaleDateString("ko-KR") : ""}</span>
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4 pb-4 pt-3 border-t bg-muted/10">
-                        <div className="space-y-4">
-                          {recruitment.content && (
-                            <div 
-                              className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed min-h-[60px]"
-                              dangerouslySetInnerHTML={{ __html: recruitment.content }}
-                            />
-                          )}
-                          {recruitment.fileUrl && (
-                            <div className="pt-2 flex justify-end">
-                              <a
-                                href={recruitment.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
-                              >
-                                <ArrowRight className="w-4 h-4" />
-                                공고문 보기
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+                        <h3 className="text-xl font-bold mb-3 line-clamp-2">{recruitment.title}</h3>
+                        <p className="text-muted-foreground line-clamp-3 text-sm mt-auto">
+                          자세한 공고 내용과 첨부문서를 확인하려면 클릭하세요.
+                        </p>
+                      </div>
+                    </Card>
+                  </Link>
+                ))}
               </div>
             )}
           </div>
@@ -622,37 +591,34 @@ export default function Community() {
                   const IconComponent = programTypeIcons[program.programType] || Users;
                   const defaultBenefits = programTypeBenefits[program.programType] || [];
                   return (
-                    <Card
-                      key={program.id}
-                      className="p-6 md:p-8 border-2 border-border shadow-lg hover:shadow-xl bg-background"
-                      data-testid={`program-${program.id}`}
-                    >
-                      <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-6">
-                        <IconComponent className="w-7 h-7 text-primary" />
-                      </div>
-                      <h3 className="text-xl font-bold text-foreground mb-3">
-                        {program.title}
-                      </h3>
-                      <p className="text-foreground/80 mb-6">
-                        {program.description}
-                      </p>
-                      <ul className="space-y-2 mb-6">
-                        {defaultBenefits.map((benefit, index) => (
-                          <li key={index} className="flex items-center gap-2 text-sm text-foreground/70">
-                            <div className="w-2 h-2 rounded-full bg-primary" />
-                            {benefit}
-                          </li>
-                        ))}
-                      </ul>
-                      <Button
-                        className="w-full group"
-                        data-testid={`button-apply-${program.id}`}
-                        onClick={() => setSelectedProgram(program)}
+                    <Link href={`/story/programs/${program.id}`} key={program.id}>
+                      <Card
+                        className="p-6 md:p-8 border-2 border-border shadow-lg hover:shadow-xl bg-background cursor-pointer h-full flex flex-col transition-all"
+                        data-testid={`program-${program.id}`}
                       >
-                        신청하기
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </Card>
+                        <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-6">
+                          <IconComponent className="w-7 h-7 text-primary" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground mb-3">
+                          {program.title}
+                        </h3>
+                        <p className="text-foreground/80 mb-6 flex-1">
+                          {program.description}
+                        </p>
+                        <ul className="space-y-2 mb-6">
+                          {defaultBenefits.map((benefit, index) => (
+                            <li key={index} className="flex items-center gap-2 text-sm text-foreground/70">
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                              {benefit}
+                            </li>
+                          ))}
+                        </ul>
+                        <Button className="w-full group" data-testid={`button-apply-${program.id}`}>
+                          상세보기 및 신청하기
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
@@ -712,49 +678,42 @@ export default function Community() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                {
-                  upcomingEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      onClick={() => setSelectedEvent(event)}
-                      className="block cursor-pointer"
+                {upcomingEvents.map((event) => (
+                  <Link href={`/story/event/${event.id}`} key={event.id} className="block cursor-pointer">
+                    <Card
+                      className="overflow-hidden h-full border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card flex flex-col"
+                      data-testid={`event-${event.id}`}
                     >
-                      <Card
-                        className="overflow-hidden h-full border-2 border-border shadow-lg hover:shadow-xl transition-all bg-card"
-                        data-testid={`event-${event.id}`}
-                      >
-                        {event.imageUrl && (
-                          <div className="aspect-video w-full overflow-hidden">
-                            <img
-                              src={event.imageUrl}
-                              alt={event.title}
-                              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                            />
-                          </div>
-                        )}
-                        <div className="p-6">
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                              <Calendar className="w-6 h-6 text-primary" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-primary">
-                                {new Date(event.date).toLocaleDateString("ko-KR", {
-                                  month: "long",
-                                  day: "numeric",
-                                })}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{event.location}</p>
-                            </div>
-                          </div>
-                          <h3 className="font-semibold text-foreground mb-2">{event.title}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
+                      {event.imageUrl && (
+                        <div className="aspect-video w-full overflow-hidden shrink-0">
+                          <img
+                            src={event.imageUrl}
+                            alt={event.title}
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                          />
                         </div>
-                      </Card>
-                    </div>
-                  ))
-                }
+                      )}
+                      <div className="p-6 flex-1 flex flex-col">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <Calendar className="w-6 h-6 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-primary">
+                              {new Date(event.date).toLocaleDateString("ko-KR", {
+                                month: "long",
+                                day: "numeric",
+                              })}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{event.location}</p>
+                          </div>
+                        </div>
+                        <h3 className="font-semibold text-foreground mb-2">{event.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mt-auto">{event.description}</p>
+                      </div>
+                    </Card>
+                  </Link>
+                ))}
               </div>
             )}
           </div>
