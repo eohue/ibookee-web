@@ -15,6 +15,20 @@ export function registerRecruitmentRoutes(app: Express) {
         }
     });
 
+    // Public API - Get single recruitment
+    app.get("/api/recruitments/:id", async (req, res) => {
+        try {
+            const recruitment = await storage.getHousingRecruitment(req.params.id);
+            if (!recruitment) {
+                return res.status(404).json({ error: "Recruitment not found" });
+            }
+            res.set('Cache-Control', 'public, max-age=60, s-maxage=60');
+            res.json(recruitment);
+        } catch (error) {
+            res.status(500).json({ error: "Failed to fetch recruitment" });
+        }
+    });
+
     // Admin API - Get all recruitments
     app.get("/api/admin/recruitments", isAdmin, async (req, res) => {
         try {
@@ -41,13 +55,19 @@ export function registerRecruitmentRoutes(app: Express) {
     // Admin API - Create recruitment
     app.post("/api/admin/recruitments", isAdmin, async (req, res) => {
         try {
-            const parsed = insertHousingRecruitmentSchema.safeParse(req.body);
-            if (!parsed.success) {
-                return res.status(400).json({ error: "Invalid recruitment data", details: parsed.error });
+            const { title, content, files, published } = req.body;
+            if (!title || typeof title !== 'string') {
+                return res.status(400).json({ error: "Title is required" });
             }
-            const recruitment = await storage.createHousingRecruitment(parsed.data);
+            const recruitment = await storage.createHousingRecruitment({
+                title,
+                content: content || null,
+                files: files || null,
+                published: published ?? true,
+            });
             res.status(201).json(recruitment);
         } catch (error) {
+            console.error("Failed to create recruitment:", error);
             res.status(500).json({ error: "Failed to create recruitment" });
         }
     });
@@ -55,16 +75,20 @@ export function registerRecruitmentRoutes(app: Express) {
     // Admin API - Update recruitment
     app.put("/api/admin/recruitments/:id", isAdmin, async (req, res) => {
         try {
-            const parsed = insertHousingRecruitmentSchema.partial().safeParse(req.body);
-            if (!parsed.success) {
-                return res.status(400).json({ error: "Invalid recruitment data", details: parsed.error });
-            }
-            const recruitment = await storage.updateHousingRecruitment(req.params.id, parsed.data);
+            const { title, content, files, published } = req.body;
+            const updateData: Record<string, any> = {};
+            if (title !== undefined) updateData.title = title;
+            if (content !== undefined) updateData.content = content;
+            if (files !== undefined) updateData.files = files;
+            if (published !== undefined) updateData.published = published;
+
+            const recruitment = await storage.updateHousingRecruitment(req.params.id, updateData);
             if (!recruitment) {
                 return res.status(404).json({ error: "Recruitment not found" });
             }
             res.json(recruitment);
         } catch (error) {
+            console.error("Failed to update recruitment:", error);
             res.status(500).json({ error: "Failed to update recruitment" });
         }
     });

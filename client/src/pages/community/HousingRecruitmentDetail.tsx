@@ -13,9 +13,9 @@ export default function HousingRecruitmentDetail() {
     const recruitmentId = params?.id || null;
 
     const { data: recruitment, isLoading, isError, refetch } = useQuery<HousingRecruitment>({
-        queryKey: ["/api/admin/recruitments", recruitmentId],
+        queryKey: ["/api/recruitments", recruitmentId],
         queryFn: async () => {
-            const response = await fetch(`/api/admin/recruitments/${recruitmentId}`);
+            const response = await fetch(`/api/recruitments/${recruitmentId}`);
             if (!response.ok) throw new Error("Recruitment not found");
             return response.json();
         },

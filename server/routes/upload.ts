@@ -119,7 +119,10 @@ export function registerUploadRoutes(app: Express) {
                 await fs.promises.writeFile(filepath, buffer);
                 fileUrl = `/assets/${filename}`;
             }
-            res.json({ url: fileUrl, originalName: req.file.originalname });
+            // Multer encodes originalname in latin1 by default, garbling non-ASCII (Korean) characters.
+            // Decode it back to UTF-8 for correct display.
+            const originalName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+            res.json({ url: fileUrl, originalName });
         } catch (error: any) {
             console.error("Upload error:", error);
             res.status(500).json({ error: error.message });
