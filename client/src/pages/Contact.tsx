@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -68,10 +69,7 @@ export default function Contact() {
   const [activeForm, setActiveForm] = useState<FormType>("move-in");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Common Form Fields
-  const [commonFields, setCommonFields] = useState({
-    title: "",
-  });
+
 
   const [moveInData, setMoveInData] = useState({
     name: "",
@@ -154,7 +152,7 @@ export default function Contact() {
       }
       data = {
         type: "move-in",
-        title: commonFields.title,
+        title: `${moveInData.name} 입주 문의`,
         name: moveInData.name,
         email: moveInData.email,
         phone: moveInData.phone,
@@ -164,7 +162,7 @@ export default function Contact() {
     } else if (activeForm === "business") {
       data = {
         type: "business",
-        title: commonFields.title,
+        title: `${businessData.company} 사업 제휴 문의`,
         name: businessData.name,
         email: businessData.email,
         phone: businessData.phone,
@@ -174,7 +172,7 @@ export default function Contact() {
     } else if (activeForm === "recruit") {
       data = {
         type: "recruit",
-        title: commonFields.title,
+        title: `${recruitData.name} 인재 채용 지원`,
         name: recruitData.name,
         email: recruitData.email,
         phone: recruitData.phone,
@@ -183,7 +181,7 @@ export default function Contact() {
     } else {
       data = {
         type: "resident-auth",
-        title: commonFields.title,
+        title: `${residentAuthData.name} 입주민 인증 신청`,
         name: residentAuthData.name,
         email: "resident-auth@ibookee.kr",
         phone: residentAuthData.phone,
@@ -198,7 +196,6 @@ export default function Contact() {
 
   const resetForm = () => {
     setIsSubmitted(false);
-    setCommonFields({ title: "" });
     setMoveInData({ name: "", gender: "", age: "", local: "", email: "", phone: "", preferredLocations: [], agreePrivacy: false });
     setBusinessData({ name: "", company: "", email: "", phone: "", inquiryType: "", message: "" });
     setRecruitData({ name: "", email: "", phone: "", position: "", message: "" });
@@ -319,20 +316,7 @@ export default function Contact() {
                         </h2>
                       </div>
                       <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-5">
-                              <div>
-                                <Label htmlFor="common-title">제목 <span className="text-red-500">*</span></Label>
-                                <Input
-                                  id="common-title"
-                                  value={commonFields.title}
-                                  onChange={(e) => setCommonFields({ ...commonFields, title: e.target.value })}
-                                  required
-                                  className="mt-1.5"
-                                  placeholder="문의 제목을 입력해주세요"
-                                />
-                              </div>
-                            </div>
-                            <div className="border-t pt-6" />
+
 
                             {activeForm === "move-in" && (
                               <div className="space-y-5">
@@ -342,11 +326,22 @@ export default function Contact() {
                                     <Input id="move-name" value={moveInData.name} onChange={(e) => setMoveInData({ ...moveInData, name: e.target.value })} required className="mt-1.5" />
                                   </div>
                                   <div>
-                                    <Label htmlFor="move-gender">성별 <span className="text-red-500">*</span></Label>
-                                    <Select value={moveInData.gender} onValueChange={(value) => setMoveInData({ ...moveInData, gender: value })}>
-                                      <SelectTrigger id="move-gender" className="mt-1.5 aria-required:border-red-500" aria-required="true"><SelectValue placeholder="성별 선택" /></SelectTrigger>
-                                      <SelectContent><SelectItem value="남">남</SelectItem><SelectItem value="여">여</SelectItem><SelectItem value="기타">기타</SelectItem></SelectContent>
-                                    </Select>
+                                    <Label>성별 <span className="text-red-500">*</span></Label>
+                                    <RadioGroup
+                                      value={moveInData.gender}
+                                      onValueChange={(value) => setMoveInData({ ...moveInData, gender: value })}
+                                      className="flex items-center space-x-6 mt-2"
+                                      required
+                                    >
+                                      <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="남자" id="gender-male" />
+                                        <Label htmlFor="gender-male" className="font-normal cursor-pointer text-base mt-0">남자</Label>
+                                      </div>
+                                      <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="여자" id="gender-female" />
+                                        <Label htmlFor="gender-female" className="font-normal cursor-pointer text-base mt-0">여자</Label>
+                                      </div>
+                                    </RadioGroup>
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
