@@ -80,6 +80,30 @@ export async function runSafeMigration() {
             await client.query(`ALTER TABLE articles ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0`);
         }
 
+        // 8. Check and migrate housing_recruitments: add 'files' jsonb column, remove old 'file_url'
+        const checkFilesColumn = await client.query(
+            `SELECT column_name FROM information_schema.columns WHERE table_name='housing_recruitments' AND column_name='files'`
+        );
+        if (checkFilesColumn.rows.length === 0) {
+            console.log("Adding missing column: files (jsonb) to housing_recruitments");
+            await client.query(`ALTER TABLE housing_recruitments ADD COLUMN files JSONB`);
+
+            // Migrate existing file_url data to the new files column
+            const checkOldFileUrl = await client.query(
+                `SELECT column_name FROM information_schema.columns WHERE table_name='housing_recruitments' AND column_name='file_url'`
+            );
+            if (checkOldFileUrl.rows.length > 0) {
+                console.log("Migrating file_url data to files column");
+                await client.query(`
+                    UPDATE housing_recruitments 
+                    SET files = jsonb_build_array(jsonb_build_object('url', file_url, 'originalName', file_url))
+                    WHERE file_url IS NOT NULL AND file_url != ''
+                `);
+                await client.query(`ALTER TABLE housing_recruitments DROP COLUMN file_url`);
+                console.log("Dropped old file_url column");
+            }
+        }
+
     } catch (error) {
         console.error("Safe migration failed:", error);
         // Don't throw, let the app try to start anyway, or throw if critical?
