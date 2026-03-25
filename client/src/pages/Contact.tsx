@@ -80,8 +80,7 @@ export default function Contact() {
     local: "",
     email: "",
     phone: "",
-    preferredLocation: "",
-    message: "",
+    preferredLocations: [] as string[],
     agreePrivacy: false,
   });
 
@@ -159,8 +158,8 @@ export default function Contact() {
         name: moveInData.name,
         email: moveInData.email,
         phone: moveInData.phone,
-        preferredProject: moveInData.preferredLocation,
-        message: `성별: ${moveInData.gender}\n연령대: ${moveInData.age}\n거주지역(시/도): ${moveInData.local}\n\n[문의내용]\n${moveInData.message}`,
+        preferredProject: moveInData.preferredLocations.join(", "),
+        message: `성별: ${moveInData.gender}\n연령대: ${moveInData.age}\n거주지역(시/도): ${moveInData.local}\n희망 주택: ${moveInData.preferredLocations.join(", ")}`,
       };
     } else if (activeForm === "business") {
       data = {
@@ -200,7 +199,7 @@ export default function Contact() {
   const resetForm = () => {
     setIsSubmitted(false);
     setCommonFields({ title: "" });
-    setMoveInData({ name: "", gender: "", age: "", local: "", email: "", phone: "", preferredLocation: "", message: "", agreePrivacy: false });
+    setMoveInData({ name: "", gender: "", age: "", local: "", email: "", phone: "", preferredLocations: [], agreePrivacy: false });
     setBusinessData({ name: "", company: "", email: "", phone: "", inquiryType: "", message: "" });
     setRecruitData({ name: "", email: "", phone: "", position: "", message: "" });
     setResidentAuthData({ name: "", phone: "", unitInfo: "" });
@@ -374,19 +373,28 @@ export default function Contact() {
                                   </div>
                                 </div>
                                 <div>
-                                  <Label htmlFor="move-location">희망 지역</Label>
-                                  <Select value={moveInData.preferredLocation} onValueChange={(value) => setMoveInData({ ...moveInData, preferredLocation: value })}>
-                                    <SelectTrigger className="mt-1.5"><SelectValue placeholder="선택해주세요" /></SelectTrigger>
-                                    <SelectContent>
-                                      {projects.map((project) => (
-                                        <SelectItem key={project.id} value={project.title}>{project.title}</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label htmlFor="move-message">문의 내용 <span className="text-red-500">*</span></Label>
-                                  <Textarea id="move-message" value={moveInData.message} onChange={(e) => setMoveInData({ ...moveInData, message: e.target.value })} placeholder="입주 관련 문의 사항을 적어주세요" className="mt-1.5 min-h-32" required />
+                                  <Label>희망 주택 <span className="text-muted-foreground text-xs font-normal">(복수 선택 가능)</span></Label>
+                                  <div className="mt-2 space-y-2">
+                                    {projects.map((project) => (
+                                      <div key={project.id} className="flex items-center space-x-2">
+                                        <input
+                                          type="checkbox"
+                                          id={`project-${project.id}`}
+                                          checked={moveInData.preferredLocations.includes(project.title)}
+                                          onChange={(e) => {
+                                            setMoveInData(prev => ({
+                                              ...prev,
+                                              preferredLocations: e.target.checked
+                                                ? [...prev.preferredLocations, project.title]
+                                                : prev.preferredLocations.filter(t => t !== project.title)
+                                            }));
+                                          }}
+                                          className="rounded border-gray-300 w-4 h-4 text-primary focus:ring-primary"
+                                        />
+                                        <Label htmlFor={`project-${project.id}`} className="text-sm font-normal cursor-pointer">{project.title}</Label>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                                 <div className="pt-4 border-t">
                                   <Label className="mb-2 block">개인정보 수집 및 이용 동의 <span className="text-red-500">*</span></Label>

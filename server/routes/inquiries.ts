@@ -1,19 +1,30 @@
 import type { Express } from "express";
 import { storage } from "../storage";
-import { insertInquirySchema } from "@shared/schema";
 import { isAdmin } from "../replit_integrations/auth";
 
 export function registerInquiryRoutes(app: Express) {
     // Public Inquiries API
     app.post("/api/inquiries", async (req, res) => {
         try {
-            const parsed = insertInquirySchema.safeParse(req.body);
-            if (!parsed.success) {
-                return res.status(400).json({ error: "Invalid inquiry data", details: parsed.error });
+            const { type, title, name, email, phone, company, password, message, preferredProject, isSecret } = req.body;
+            if (!type || !name || !email) {
+                return res.status(400).json({ error: "type, name, email are required" });
             }
-            const inquiry = await storage.createInquiry(parsed.data);
+            const inquiry = await storage.createInquiry({
+                type,
+                title: title || '',
+                name,
+                email,
+                phone: phone || null,
+                company: company || null,
+                password: password || null,
+                message: message || '',
+                preferredProject: preferredProject || null,
+                isSecret: isSecret ?? true,
+            });
             res.status(201).json(inquiry);
         } catch (error) {
+            console.error("Failed to create inquiry:", error);
             res.status(500).json({ error: "Failed to create inquiry" });
         }
     });
