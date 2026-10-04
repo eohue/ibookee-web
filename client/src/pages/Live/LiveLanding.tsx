@@ -2,19 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import type { Project } from "@shared/schema";
+import type { ProjectSummary } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles, Users, MapPin, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function LiveLanding() {
-    const { data: projects = [], isLoading } = useQuery<Project[]>({
+    const { data: projects = [], isLoading } = useQuery<ProjectSummary[]>({
         queryKey: ["/api/projects?isLive=true"],
     });
 
     // Determine project category mapping
-    const getProjectType = (project: Project) => {
+    const getProjectType = (project: ProjectSummary) => {
         const cats = Array.isArray(project.category) ? project.category : [project.category as unknown as string];
         if (cats.includes('청년') || cats.includes('1인')) return 'Youth & Creator';
         if (cats.includes('가족') || cats.includes('신혼부부')) return 'Social & Family';

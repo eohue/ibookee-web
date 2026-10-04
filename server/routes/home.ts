@@ -6,7 +6,7 @@ export function registerHomeRoutes(app: Express) {
         try {
             // Execute independent queries in parallel
             const [projectsResult, reportersResult, statsSettings] = await Promise.all([
-                storage.getProjects(1, 10), // Fetch first 10 projects (frontend filters for featured)
+                storage.getProjectSummaries(1, 10), // Fetch first 10 projects (frontend filters for featured)
                 storage.getReporterArticles("approved", 1, 6), // Only approved articles, limit 6
                 storage.getSiteSetting("company_stats"),
             ]);

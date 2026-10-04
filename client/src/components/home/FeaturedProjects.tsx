@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { Project } from "@shared/schema";
+import type { ProjectSummary } from "@shared/schema";
 
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface FeaturedProjectsProps {
-  projects?: Project[];
+  projects?: ProjectSummary[];
   isLoading: boolean;
 }
 

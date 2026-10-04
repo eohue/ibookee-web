@@ -3,7 +3,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Building2, Users, Award, Target, ChevronRight } from "lucide-react";
 import { useCompanyStats, usePageImages, useCeoMessage } from "@/hooks/use-site-settings";
-import type { HistoryMilestone, Project } from "@shared/schema";
+import type { HistoryMilestone, ProjectSummary } from "@shared/schema";
 
 const defaultHistoryMilestones = [
   { year: 2012, title: "아이부키 설립", description: "사회주택 전문기업으로 첫 발을 내딛다" },
@@ -28,7 +28,7 @@ export default function About() {
     staleTime: 60000,
   });
 
-  const { data: projects } = useQuery<Project[]>({
+  const { data: projects } = useQuery<ProjectSummary[]>({
     queryKey: ["/api/projects"],
     staleTime: 60000,
   });

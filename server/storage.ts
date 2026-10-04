@@ -1,6 +1,7 @@
 // Imports kept for IStorage interface definition
 import {
   type Project,
+  type ProjectSummary,
   type InsertProject,
   type Inquiry,
   type InsertInquiry,
@@ -50,6 +51,7 @@ import { ArticleRepository } from "./repositories/articleRepository";
 export interface IStorage {
   // Projects
   getProjects(page?: number, limit?: number, titles?: string[], isLive?: boolean): Promise<{ projects: Project[], total: number }>;
+  getProjectSummaries(page?: number, limit?: number, titles?: string[], isLive?: boolean): Promise<{ projects: ProjectSummary[], total: number }>;
   getProject(id: string): Promise<Project | undefined>;
   getProjectsByCategory(category: string): Promise<Project[]>;
   createProject(project: InsertProject): Promise<Project>;
@@ -241,6 +243,10 @@ export class DatabaseStorage implements IStorage {
   // Projects
   async getProjects(page: number = 1, limit: number = 100, titles?: string[], isLive?: boolean): Promise<{ projects: Project[], total: number }> {
     return this.projectRepo.getProjects(page, limit, titles, isLive);
+  }
+
+  async getProjectSummaries(page: number = 1, limit: number = 100, titles?: string[], isLive?: boolean): Promise<{ projects: ProjectSummary[], total: number }> {
+    return this.projectRepo.getProjectSummaries(page, limit, titles, isLive);
   }
 
   async getProject(id: string): Promise<Project | undefined> {

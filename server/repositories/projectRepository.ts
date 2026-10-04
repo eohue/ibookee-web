@@ -5,6 +5,7 @@ import {
     subprojects,
     projectImages,
     type Project,
+    type ProjectSummary,
     type InsertProject,
     type Subproject,
     type InsertSubproject,
@@ -40,6 +41,50 @@ export class ProjectRepository {
 
         return {
             projects: projectsResult as Project[],
+            total: countResult[0]?.count || 0
+        };
+    }
+
+    async getProjectSummaries(page: number = 1, limit: number = 100, titles?: string[], isLive?: boolean): Promise<{ projects: ProjectSummary[], total: number }> {
+        const offset = (page - 1) * limit;
+
+        const [projectsResult, countResult] = await Promise.all([
+            db.select({
+                id: projects.id,
+                title: projects.title,
+                titleEn: projects.titleEn,
+                location: projects.location,
+                category: projects.category,
+                // Strip tags (including embedded image data) before truncation in PostgreSQL.
+                // The full HTML never leaves the DB on public list requests.
+                description: sql<string>`left(btrim(regexp_replace(regexp_replace(${projects.description}, '<[^>]*>', ' ', 'g'), '[[:space:]]+', ' ', 'g')), 300)`,
+                imageUrl: projects.imageUrl,
+                year: projects.year,
+                units: projects.units,
+                featured: projects.featured,
+            })
+                .from(projects)
+                // Add conditional where clause
+                .where(
+                    sql`${titles && titles.length > 0 ? sql`${projects.title} IN ${titles}` : sql`1=1`
+                        } AND ${typeof isLive === 'boolean' ? eq(projects.isLive, isLive) : sql`1=1`
+                        }`
+                )
+                .orderBy(desc(projects.year))
+                .limit(limit)
+                .offset(offset),
+
+            db.select({ count: count() })
+                .from(projects)
+                .where(
+                    sql`${titles && titles.length > 0 ? sql`${projects.title} IN ${titles}` : sql`1=1`
+                        } AND ${typeof isLive === 'boolean' ? eq(projects.isLive, isLive) : sql`1=1`
+                        }`
+                )
+        ]);
+
+        return {
+            projects: projectsResult as ProjectSummary[],
             total: countResult[0]?.count || 0
         };
     }

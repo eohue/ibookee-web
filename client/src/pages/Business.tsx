@@ -120,10 +120,12 @@ const esgMetrics = [
 
 import { IbookeeSubNav } from "@/components/layout/IbookeeSubNav";
 
+import type { ProjectSummary } from "@shared/schema";
+
 export default function Business() {
   const { getImageUrl } = usePageImages();
 
-  const { data: projects = [] } = useQuery<any[]>({
+  const { data: projects = [] } = useQuery<ProjectSummary[]>({
     queryKey: ["/api/projects", "business-solutions"],
     queryFn: async () => {
       const titles = ["다다름하우스", "홍시주택", "장안생활", "길동생활"].join(",");

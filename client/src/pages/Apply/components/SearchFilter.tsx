@@ -6,10 +6,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import type { Project } from "@shared/schema";
+import type { ProjectSummary } from "@shared/schema";
 
 interface SearchFilterProps {
-    projects: Project[];
+    projects: ProjectSummary[];
     filters: { projectId: string; status: string };
     onFilterChange: (key: string, value: string) => void;
 }

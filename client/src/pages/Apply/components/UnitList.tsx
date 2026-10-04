@@ -1,10 +1,10 @@
-import type { ProjectUnit, Project } from "@shared/schema";
+import type { ProjectUnit, ProjectSummary } from "@shared/schema";
 import { UnitCard } from "./UnitCard";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface UnitListProps {
     units: ProjectUnit[];
-    projects: Project[];
+    projects: ProjectSummary[];
     isLoading: boolean;
     onApply?: (unit: ProjectUnit) => void;
 }

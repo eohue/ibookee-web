@@ -4,7 +4,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { SearchFilter } from "./components/SearchFilter";
 import { UnitList } from "./components/UnitList";
-import type { Project, ProjectUnit } from "@shared/schema";
+import type { ProjectSummary, ProjectUnit } from "@shared/schema";
 
 export default function SearchPage() {
     const [filters, setFilters] = useState({
@@ -12,7 +12,7 @@ export default function SearchPage() {
         status: ""
     });
 
-    const { data: projects = [] } = useQuery<Project[]>({
+    const { data: projects = [] } = useQuery<ProjectSummary[]>({
         queryKey: ["/api/projects"],
     });
 

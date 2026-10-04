@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import type { Project } from "@shared/schema";
+import type { ProjectSummary } from "@shared/schema";
 
 import { PROJECT_CATEGORIES } from "@/lib/constants";
 
@@ -24,7 +24,7 @@ export default function Space() {
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const { isVisible } = useScrollVisible();
 
-  const { data: projects = [], isLoading, isError, refetch } = useQuery<Project[]>({
+  const { data: projects = [], isLoading, isError, refetch } = useQuery<ProjectSummary[]>({
     queryKey: ["/api/projects"],
   });
 

@@ -37,6 +37,12 @@ export const insertProjectSchema = createInsertSchema(projects).omit({ id: true 
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
+// Public cards receive a bounded plain-text description; detail/admin retain Project.
+export type ProjectSummary = Pick<Project,
+  "id" | "title" | "titleEn" | "location" | "category" | "description" |
+  "imageUrl" | "year" | "units" | "featured"
+>;
+
 export interface PartnerLogo {
   url: string;
   link?: string;

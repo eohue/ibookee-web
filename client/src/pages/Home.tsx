@@ -10,11 +10,11 @@ import ReporterPreview from "@/components/home/ReporterPreview";
 import CommunityPreview from "@/components/home/CommunityPreview";
 import StatsSection from "@/components/home/StatsSection";
 import CTASection from "@/components/home/CTASection";
-import type { Project, ResidentReporter } from "@shared/schema";
+import type { ProjectSummary, ResidentReporter } from "@shared/schema";
 import type { CompanyStats } from "@/hooks/use-site-settings";
 
 interface HomeData {
-  projects: Project[];
+  projects: ProjectSummary[];
   reporters: ResidentReporter[];
   stats: CompanyStats | null;
 }

@@ -30,7 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 import { useFooterSettings } from "@/hooks/use-site-settings";
-import type { Project, Inquiry } from "@shared/schema";
+import type { ProjectSummary, Inquiry } from "@shared/schema";
 
 type FormType = "move-in" | "business" | "recruit" | "resident-auth";
 
@@ -115,7 +115,7 @@ export default function Contact() {
     }
   }, []);
 
-  const { data: projects = [] } = useQuery<Project[]>({
+  const { data: projects = [] } = useQuery<ProjectSummary[]>({
     queryKey: ["/api/projects?isLive=true"],
   });
 
