@@ -44,9 +44,14 @@ import {
   type InsertHousingRecruitment,
   type ProjectUnit,
   type InsertProjectUnit,
+  type Mentor,
+  type InsertMentor,
+  type MentoringConsultation,
+  type InsertMentoringConsultation,
 } from "@shared/schema";
 import { ProjectRepository } from "./repositories/projectRepository";
 import { ArticleRepository } from "./repositories/articleRepository";
+import { MentoringRepository } from "./repositories/mentoringRepository";
 
 export interface IStorage {
   // Projects
@@ -210,6 +215,22 @@ export interface IStorage {
   createProjectUnit(unit: InsertProjectUnit): Promise<ProjectUnit>;
   updateProjectUnit(id: string, unit: Partial<InsertProjectUnit>): Promise<ProjectUnit | undefined>;
   deleteProjectUnit(id: string): Promise<void>;
+
+  // Mentors
+  getMentors(status?: string): Promise<Mentor[]>;
+  getMentor(id: string): Promise<Mentor | undefined>;
+  createMentor(mentor: InsertMentor): Promise<Mentor>;
+  updateMentor(id: string, mentor: Partial<InsertMentor>): Promise<Mentor | undefined>;
+  deleteMentor(id: string): Promise<void>;
+
+  // Mentoring Consultations
+  getMentoringConsultations(filters?: { category?: string; mentorId?: string }): Promise<MentoringConsultation[]>;
+  getMentoringConsultation(id: string): Promise<MentoringConsultation | undefined>;
+  createMentoringConsultation(data: InsertMentoringConsultation): Promise<MentoringConsultation>;
+  updateMentoringConsultation(id: string, data: Partial<MentoringConsultation>): Promise<MentoringConsultation | undefined>;
+  answerMentoringConsultation(id: string, answer: string, answeredBy?: string): Promise<MentoringConsultation | undefined>;
+  incrementMentoringConsultationViews(id: string): Promise<void>;
+  deleteMentoringConsultation(id: string): Promise<void>;
 }
 
 import { UserRepository } from "./repositories/userRepository";
@@ -239,6 +260,7 @@ export class DatabaseStorage implements IStorage {
   private housingRepo = new HousingRepository();
   private reporterRepo = new ReporterRepository();
   private unitRepo = new UnitRepository();
+  private mentoringRepo = new MentoringRepository();
 
   // Projects
   async getProjects(page: number = 1, limit: number = 100, titles?: string[], isLive?: boolean): Promise<{ projects: Project[], total: number }> {
@@ -740,6 +762,56 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProjectUnit(id: string): Promise<void> {
     return this.unitRepo.deleteProjectUnit(id);
+  }
+
+  // Mentors
+  async getMentors(status: string = "active"): Promise<Mentor[]> {
+    return this.mentoringRepo.getMentors(status);
+  }
+
+  async getMentor(id: string): Promise<Mentor | undefined> {
+    return this.mentoringRepo.getMentor(id);
+  }
+
+  async createMentor(mentor: InsertMentor): Promise<Mentor> {
+    return this.mentoringRepo.createMentor(mentor);
+  }
+
+  async updateMentor(id: string, mentor: Partial<InsertMentor>): Promise<Mentor | undefined> {
+    return this.mentoringRepo.updateMentor(id, mentor);
+  }
+
+  async deleteMentor(id: string): Promise<void> {
+    return this.mentoringRepo.deleteMentor(id);
+  }
+
+  // Mentoring Consultations
+  async getMentoringConsultations(filters?: { category?: string; mentorId?: string }): Promise<MentoringConsultation[]> {
+    return this.mentoringRepo.getConsultations(filters);
+  }
+
+  async getMentoringConsultation(id: string): Promise<MentoringConsultation | undefined> {
+    return this.mentoringRepo.getConsultation(id);
+  }
+
+  async createMentoringConsultation(data: InsertMentoringConsultation): Promise<MentoringConsultation> {
+    return this.mentoringRepo.createConsultation(data);
+  }
+
+  async updateMentoringConsultation(id: string, data: Partial<MentoringConsultation>): Promise<MentoringConsultation | undefined> {
+    return this.mentoringRepo.updateConsultation(id, data);
+  }
+
+  async answerMentoringConsultation(id: string, answer: string, answeredBy?: string): Promise<MentoringConsultation | undefined> {
+    return this.mentoringRepo.answerConsultation(id, answer, answeredBy);
+  }
+
+  async incrementMentoringConsultationViews(id: string): Promise<void> {
+    return this.mentoringRepo.incrementConsultationViews(id);
+  }
+
+  async deleteMentoringConsultation(id: string): Promise<void> {
+    return this.mentoringRepo.deleteConsultation(id);
   }
 }
 

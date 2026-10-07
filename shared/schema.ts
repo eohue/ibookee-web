@@ -481,3 +481,66 @@ export interface CommunityFeature {
   description: string;
   imageUrl: string;
 }
+
+// Mentors (이웃 멘토 프로필: 회계사, 법무사 등 사회공헌/자발적 멘토)
+export const mentors = pgTable("mentors", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  title: text("title").notNull(),                       // e.g. "공인회계사 / 세무사", "법무사"
+  organization: text("organization"),                   // 소속 (e.g. "세무법인 한울", "이음 법무사사무소")
+  category: text("category").notNull(),                 // finance, law, career, housing, life
+  profileImageUrl: text("profile_image_url"),
+  bio: text("bio").notNull(),                           // 소개글
+  expertiseTopics: text("expertise_topics").array(),    // ["청년 연말정산", "종합소득세", "재무설계"]
+  consultingType: text("consulting_type").default("both"), // online, offline, both
+  availableSchedule: text("available_schedule"),        // 예: "매주 화·목 19:00~21:00 (온라인)"
+  status: text("status").default("active"),             // active, paused, hidden
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertMentorSchema = createInsertSchema(mentors).omit({ id: true, createdAt: true });
+export type InsertMentor = z.infer<typeof insertMentorSchema>;
+export type Mentor = typeof mentors.$inferSelect;
+
+// Mentoring Consultations (멘토링 상담 글: 기본 공개, 비공개 선택 지원)
+export const mentoringConsultations = pgTable("mentoring_consultations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  mentorId: varchar("mentor_id").references(() => mentors.id), // 지정 멘토 (NULL일 경우 공개 오픈 질문)
+  userId: varchar("user_id").references(() => users.id),       // 작성자 회원 ID (비회원/익명도 허용 가능하나 회원 권장)
+  authorNickname: text("author_nickname").notNull(),           // 표시용 닉네임
+  authorContact: text("author_contact"),                       // 비공개 연락처/이메일 (운영용)
+  category: text("category").notNull(),                        // finance, law, career, housing, life
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  
+  // 핵심: 공개/비공개 토글 (기본 false = 공개, true = 비공개)
+  isSecret: boolean("is_secret").default(false).notNull(),
+  
+  // 1:1 심층 상담 추가 희망 옵션
+  requestMeeting: boolean("request_meeting").default(false),
+  preferredSchedule: text("preferred_schedule"),
+  meetingStatus: text("meeting_status").default("none"),        // none, requested, scheduled, completed
+  
+  // 멘토 답변
+  status: text("status").default("pending"),                   // pending(답변대기), answered(답변완료)
+  answer: text("answer"),
+  answeredBy: varchar("answered_by").references(() => mentors.id),
+  answeredAt: timestamp("answered_at"),
+  
+  views: integer("views").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertMentoringConsultationSchema = createInsertSchema(mentoringConsultations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  answeredAt: true,
+  views: true,
+  status: true,
+});
+export type InsertMentoringConsultation = z.infer<typeof insertMentoringConsultationSchema>;
+export type MentoringConsultation = typeof mentoringConsultations.$inferSelect;

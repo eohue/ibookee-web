@@ -31,6 +31,8 @@ const ResidentReporterDetail = lazy(() => import("@/pages/community/ResidentRepo
 const SupportProgramsPage = lazy(() => import("@/pages/community/SupportProgramsPage"));
 const SupportProgramDetail = lazy(() => import("@/pages/community/SupportProgramDetail"));
 const EventsPage = lazy(() => import("@/pages/community/EventsPage"));
+const MentoringPage = lazy(() => import("@/pages/community/MentoringPage"));
+const MentoringDetail = lazy(() => import("@/pages/community/MentoringDetail"));
 const SearchPage = lazy(() => import("@/pages/Apply/SearchPage"));
 const LiveDetail = lazy(() => import("@/pages/Live/LiveDetail"));
 const LiveLanding = lazy(() => import("@/pages/Live/LiveLanding"));
@@ -76,6 +78,8 @@ function Router() {
         <Route path="/story/programs" component={SupportProgramsPage} />
         <Route path="/story/programs/:id" component={SupportProgramDetail} />
         <Route path="/story/events" component={EventsPage} />
+        <Route path="/story/mentoring" component={MentoringPage} />
+        <Route path="/story/mentoring/:id" component={MentoringDetail} />
         <Route path="/resident-reporter-guide" component={ResidentReporterGuide} />
         <Route path="/apply" component={SearchPage} />
         <Route path="/live" component={LiveLanding} />

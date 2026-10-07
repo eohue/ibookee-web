@@ -198,13 +198,32 @@ export default function Header() {
                         navigationMenuTriggerStyle(),
                         "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4",
                         isTransparent ? "text-white hover:text-white/80" : "text-foreground hover:text-primary",
-                        location.startsWith("/story") && !isTransparent && "text-primary",
-                        location.startsWith("/story") && isTransparent && "text-white/90"
+                        location.startsWith("/story") && !location.startsWith("/story/mentoring") && !isTransparent && "text-primary",
+                        location.startsWith("/story") && !location.startsWith("/story/mentoring") && isTransparent && "text-white/90"
                       )}>
                         사는이야기
                       </NavigationMenuLink>
                     </Link>
                   </NavigationMenuItem>
+
+                  {/* 5. Mentoring (Admin Only Test) */}
+                  {user?.role === 'admin' && (
+                    <NavigationMenuItem>
+                      <Link href="/story/mentoring">
+                        <NavigationMenuLink className={cn(
+                          navigationMenuTriggerStyle(),
+                          "bg-transparent hover:bg-transparent focus:bg-transparent text-lg font-bold px-4 flex items-center gap-1.5",
+                          isTransparent ? "text-amber-300 hover:text-amber-200" : "text-amber-600 dark:text-amber-400 hover:text-amber-700",
+                          location.startsWith("/story/mentoring") && "font-extrabold underline"
+                        )}>
+                          <span>멘토링</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 font-normal">
+                            테스트
+                          </span>
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  )}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -374,7 +393,7 @@ export default function Header() {
                     href="/story"
                     className={cn(
                       "px-4 py-3 rounded-lg transition-all duration-200 font-bold text-xl",
-                      location.startsWith("/story")
+                      location === "/story"
                         ? "bg-primary/10 text-primary translate-x-1"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     )}
@@ -382,6 +401,24 @@ export default function Header() {
                   >
                     사는이야기
                   </Link>
+
+                  {user?.role === 'admin' && (
+                    <Link
+                      href="/story/mentoring"
+                      className={cn(
+                        "px-4 py-3 rounded-lg transition-all duration-200 font-bold text-xl flex items-center justify-between",
+                        location.startsWith("/story/mentoring")
+                          ? "bg-amber-500/10 text-amber-600 translate-x-1"
+                          : "text-amber-600 dark:text-amber-400 hover:bg-muted"
+                      )}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <span>이웃 멘토링</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 font-normal">
+                        테스트
+                      </span>
+                    </Link>
+                  )}
 
                   <div className="my-4 h-px bg-border mx-4" />
 

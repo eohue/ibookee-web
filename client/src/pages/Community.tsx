@@ -3,7 +3,7 @@ import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink, Loader2, MessageCircle, Info, Home, Plus } from "lucide-react";
+import { Heart, Calendar, Users, ArrowRight, Gift, AlertCircle, RefreshCw, ExternalLink, Loader2, MessageCircle, Info, Home, Plus, Sparkles } from "lucide-react";
 import { SiInstagram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -211,6 +211,41 @@ export default function Community() {
             </div>
           </div>
         </section>
+
+        {/* Admin Mentoring Preview Banner (관리자 테스트 전용 노출) */}
+        {user?.role === 'admin' && (
+          <section className="py-6 bg-gradient-to-r from-amber-500/10 via-primary/10 to-amber-500/5 border-y border-amber-500/30">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-background/80 backdrop-blur-sm p-5 sm:p-6 rounded-2xl border border-amber-500/30 shadow-sm">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                        신규 코너 • 내부 테스트
+                      </span>
+                      <span className="text-xs text-muted-foreground">관리자 전용 노출</span>
+                    </div>
+                    <h3 className="text-base sm:text-lg font-bold text-foreground mt-0.5">
+                      아이부키 이웃 멘토링 (회계사·법무사 1:1 상담소)
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                      기본 공개 문답으로 지식을 나누고, 비공개로 안심 상담을 지원합니다.
+                    </p>
+                  </div>
+                </div>
+                <Link href="/story/mentoring">
+                  <Button className="gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white whitespace-nowrap self-start sm:self-auto">
+                    멘토링 테스트 룸 바로가기
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Housing Recruitment Section */}
         <section className="py-16 bg-gradient-to-r from-primary/5 to-primary/10" data-testid="section-housing-recruitment">

@@ -22,6 +22,7 @@ import { registerHomeRoutes } from "./routes/home";
 import { registerLiveDetailRoutes } from "./routes/live-details";
 
 import { registerUnitRoutes } from "./routes/units";
+import { registerMentoringRoutes } from "./routes/mentoring";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -57,6 +58,7 @@ export async function registerRoutes(
   registerHomeRoutes(app);
   registerUnitRoutes(app);
   registerLiveDetailRoutes(app);
+  registerMentoringRoutes(app);
 
   return httpServer;
 }
